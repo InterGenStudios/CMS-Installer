@@ -7,7 +7,7 @@
 # 1) Finish Trap Purge Functions
 # 2) Set up check for WordPress already installed in target
 # 3) Set up check and adjustment for already existing database
-# 4) other things...
+# 4) Will be adding additional CMSs...
 
 trap bashtrap INT
 
@@ -264,15 +264,14 @@ rm -rf rpasscheck
 
 
 CHECK_RPASS () {
-clear
-printf "\n\n"
+printf "\n\n\n"
 tput bold
 tput setaf 2
 printf "Please enter your server's root password"
 tput sgr0
 echo -n ":"
 read API_PASS
-printf "\n\n"
+printf "\n\n\n"
 clear
 
 curl -k -X GET -u $API_USER:$API_PASS https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
@@ -458,10 +457,18 @@ if [ -z "$1" ]; then
     FIRST_FUNCTION
 else
     if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
-        TARGET=$1
-        API_PASS=$2
-        RPASS_VALIDATE
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+        if [ -z "$2" ]; then
+            TARGET=$1
+            CHECK_RPASS
+            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+        else
+            TARGET=$1
+            API_PASS=$2
+            RPASS_VALIDATE
+            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+        fi
     else
         case "$1" in
 
