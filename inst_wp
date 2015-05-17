@@ -90,7 +90,7 @@ echo "Installs WordPress in target domain/subdomain docroot"
 echo
 echo "USAGE: "
 WHITE
-echo "inst_wp [options]  -or-  inst_wp [domain_name]"
+echo "inst_wp [options]  -or-  inst_wp [domain_name] [rootpass]"
 GREEN
 echo "-------"
 echo "Options:"
