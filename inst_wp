@@ -7,8 +7,7 @@
 # 1) Finish Trap Purge Functions
 # 2) Set up check for WordPress already installed in target
 # 3) Set up check and adjustment for already existing database
-# 4) Fix database mapping in cPanel
-# 5) other things...
+# 4) other things...
 
 trap bashtrap INT
 
@@ -31,6 +30,9 @@ bashtrap () {
 }
 
 NC='^[0-9]+$' #RE check for numbers as choices
+SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)"
+API_USER=root
+
 
 PURGE_INSTALL_FILES () {
     WHITE
@@ -153,6 +155,7 @@ else
         else
             TARGET="$(grep $DOMAIN_CHOICE domainchoices | awk '{print $2}')"
             rm -rf domainlist domainchoices
+            CHECK_RPASS
             TARGET_CHECK
         fi
     fi
@@ -223,39 +226,138 @@ else
 fi
 }
 
+RPASS_VALIDATE () {
+curl -k -X GET -u "$API_USER":"$API_PASS" https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
+    if [[ ! -z $(grep "error" rpasscheck) ]]; then 
+        tput bold 
+        tput setaf 1
+        echo "$API_USER" > rval_apiusercheck
+        echo "$API_PASS" > rval_apipasscheck
+        echo "The root password given is invalid."
+        echo
+        tput sgr0
+        read -p "Would you like to enter it again [y/n]? " RETRY
+            case ${RETRY:0:1} in
+                y|Y )
+                    echo
+                    echo "Restarting..."
+                    sleep 2
+                    CHECK_RPASS;;
+                * )
+                    tput bold
+                    tput setaf 1
+                    echo "Exiting..."
+                    tput sgr0
+                    printf "\n\n";;
+            esac
+    else
+        tput bold
+        tput setaf 2
+        printf "\n\n"
+        echo "Root password accepted."
+        tput sgr0
+        echo
+        sleep 2
+    fi
+rm -rf rpasscheck
+}
+
+
+CHECK_RPASS () {
+clear
+printf "\n\n"
+tput bold
+tput setaf 2
+printf "Please enter your server's root password"
+tput sgr0
+echo -n ":"
+read API_PASS
+printf "\n\n"
+clear
+
+curl -k -X GET -u $API_USER:$API_PASS https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
+    if [[ ! -z $(grep "error" rpasscheck) ]]; then 
+        tput bold 
+        tput setaf 1 
+        echo "$API_USER" > apiusercheck
+        echo "$API_PASS" > apipasscheck
+        echo "$RPASS" > rpasscheck
+        echo 
+        echo "The root password given is invalid."
+        echo
+        tput sgr0
+        read -p "Would you like to enter it again [y/n]? " RETRY
+            case ${RETRY:0:1} in
+                y|Y )
+                    echo
+                    echo "Restarting..."
+                    sleep 2
+                    CHECK_RPASS;;
+                * )
+                    tput bold
+                    tput setaf 1
+                    echo "Exiting..."
+                    tput sgr0
+                    printf "\n\n";;
+            esac
+    else
+        tput bold
+        tput setaf 2
+        printf "\n\n"
+        echo "Root password accepted."
+        tput sgr0
+        echo
+        sleep 2
+    fi
+rm -rf rpasscheck
+}
+
 INSTALL_WPDB () {
 echo
 SEPARATOR
 GREEN
-echo Creating WordPress Database and DatabaseUser...
-sleep 1
-echo Mapping Database and DatabaseUser to cPanel Admin...
-sleep 1
+echo Creating WordPress Database and DatabaseUser via WHM API...
+sleep 2
+
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
 DB_NAME="$DB_PREFIX"_khwpdb
 DBU_NAME="$DB_NAME"u
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-mysql -e "create database "$DB_NAME";"
-mysql -e "GRANT ALL PRIVILEGES ON "$DB_NAME".* TO "$DBU_NAME"@localhost IDENTIFIED BY '"$DBU_PASS"';"
-cat > mpdb.sh << "EOF"
-#!/bin/bash
-/usr/local/cpanel/bin/dbmaptool CPANELUSER -type mysql -dbs 'DB_NAME' -dbusers 'DBU_NAME'
-EOF
-sed -i -e "s/CPANELUSER/$TARGET_ACCT/" -e "s/DB_NAME/$DB_NAME/" -e "s/DBU_NAME/$DBU_NAME/" mpdb.sh
-/bin/bash mpdb.sh &&
-DB_IP="$(grep "$DB_NAME" /var/cpanel/databases/"$TARGET_ACCT".yaml | awk '{print $2}')"
-cat > yaml_entry << "EOF"
-DBNAME: DBIP
-EOF
-sed -i -e "s/DBNAME/$DB_NAME/" -e "s/DBIP/$DB_IP/" yaml_entry
-sed -i "0,/      dbs: {}/s/      dbs: {}/      dbs:/" /var/cpanel/databases/"$TARGET_ACCT".yaml
-sed -i "0,/^$/s/^$/        $(cat yaml_entry)/" /var/cpanel/databases/"$TARGET_ACCT".yaml
-rm -rf mpdb.sh yaml_entry
+
+curl -sk -X GET -u $API_USER:$API_PASS 
+"https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME"
+
+curl -sk -X GET -u $API_USER:$API_PASS 
+"https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS"
+
+curl -sk -X GET -u $API_USER:$API_PASS 
+"https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
+
+curl -sk -X GET -u $API_USER:$API_PASS 
+"https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" 
+> dbvalidation 
+    if [[ ! -z $(grep "error" dbvalidation) ]]; then 
+        RED
+        printf "\n\n" 
+        echo "cPanel API call errors reported." 
+        echo 
+        printf "Review the logs at"
+        WHITE
+        printf " /root/support/scripts/DevelopmentScripts/Inst_wp_logs/"
+        RED
+        printf " for more information." 
+        sleep 3 
+    else 
+        printf "\n\n"
+        GREEN 
+        echo "ALL WHM API calls completed successfully."
+        sleep 2
+    fi
+rm -rf dbvalidation
 echo
 clear
 SEPARATOR
 GREEN
-echo Database Mapping Complete...
 echo
 }
 
@@ -281,7 +383,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod $verbose 644
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
         find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
         find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
@@ -347,20 +449,27 @@ if [ "$FIRST_CHOICE" = "get list" ]; then
     LIST_ACCTS
 else
     TARGET=FIRST_CHOICE
+    CHECK_RPASS
     TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
 fi
 }
 
-if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
-    TARGET=$1
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+if [ -z "$1" ]; then
+    FIRST_FUNCTION
 else
-    case "$1" in
+    if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+        TARGET=$1
+        API_PASS=$2
+        RPASS_VALIDATE
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+    else
+        case "$1" in
 
-        --help) HELPTEXT;;
-        --list) LIST_ACCTS;;
-        --version) VERSION;;
-        *) FIRST_FUNCTION;;
-
-    esac
+            --help) HELPTEXT;;
+            --list) LIST_ACCTS;;
+            --version) VERSION;;
+            *) FIRST_FUNCTION;;
+    
+        esac
+    fi
 fi
