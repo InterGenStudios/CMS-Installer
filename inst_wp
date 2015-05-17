@@ -1,0 +1,365 @@
+#!/bin/bash
+# inst_wp - Installs WordPress on a cPanel server
+# InterGen - 5-16-15
+# 
+# To Do List:
+# -----------
+# 1) Finish Trap Purge Functions
+# 2) Set up check for WordPress already installed in target
+# 3) Set up check and adjustment for already existing database
+# 4) Fix database mapping in cPanel
+# 5) other things...
+
+trap bashtrap INT
+
+bashtrap () {
+    RED
+    echo "CTRL+C detected in terminal... halting installation..."
+    echo
+    echo "Removing WordPress Installation..."
+    echo
+    PURGE_INSTALL_FILES
+    RED
+    echo "Removing created database files..."
+    echo
+    PURGE_INSTALL_DATABASE
+    PURGE_INSTALL_DATABASE_USER
+    WHITE
+    echo "Installation removed, exiting."
+    echo
+    exit 0
+}
+
+NC='^[0-9]+$' #RE check for numbers as choices
+
+PURGE_INSTALL_FILES () {
+    WHITE
+    echo 
+}
+
+PURGE_INSTALL_DATABASE () {
+    WHITE
+    echo 
+}
+
+PURGE_INSTALL_DATABASE_USER () {
+    WHITE
+    echo "We're working on the purge routines. Should be done soon."
+}
+
+RED () {
+tput bold
+tput setaf 1
+}
+
+GREEN () {
+tput bold
+tput setaf 2
+}
+
+YELLOW () {
+tput bold
+tput setaf 3
+}
+
+BLUE () {
+tput bold
+tput setaf 4
+}
+
+WHITE () {
+tput sgr0
+}
+
+SEPARATOR () {
+echo
+YELLOW
+echo " ------------------------- "
+echo
+WHITE
+}
+
+HELPTEXT () {
+clear
+GREEN
+echo "Inst_wp script help:"
+echo
+echo "Installs WordPress in target domain/subdomain docroot"
+echo
+echo "USAGE: "
+WHITE
+echo "inst_wp [options]  -or-  inst_wp [domain_name]"
+GREEN
+echo "-------"
+echo "Options:"
+echo
+WHITE
+echo "--help: print this screen and exit"
+echo "--list: list accounts available for installation"
+echo "--version: show the current installer version and exit"
+printf "\n\n"
+exit 0
+}
+
+VERSION () {
+clear
+SEPARATOR
+GREEN
+echo " WordPress Installer"
+WHITE
+echo " Version: 1.0"
+SEPARATOR
+echo
+exit 0
+}
+
+LIST_ACCTS () {
+clear
+echo
+GREEN
+echo "Preparing domain list for WordPress Installation..."
+sleep 1
+SEPARATOR
+WHITE
+grep ':' /etc/userdomains | grep -v nobody | awk '{print $1}' | cut -d ':' -f 1 | sort > domainlist
+sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
+cat domainchoices
+SEPARATOR
+echo
+echo -n "Select Domain for WordPress Installation [q for quit]? "
+read DOMAIN_CHOICE
+if [ "$DOMAIN_CHOICE" = Q ]; then
+    printf "\n\n"
+    echo "Quiting..."
+    rm -rf domainlist domainchoices
+    printf "\n\n"
+    exit 0
+else
+    if [ "$DOMAIN_CHOICE" = q ]; then
+        printf "\n\n"
+        echo "Quiting..."
+        rm -rf domainlist domainchoices
+        printf "\n\n"
+        exit 0
+    else
+        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+            echo
+            RED
+            echo "\"$DOMAIN_CHOICE\" is not a valid selection."
+            echo
+            echo "Restarting..."
+            sleep 1
+            LIST_ACCTS
+        else
+            TARGET="$(grep $DOMAIN_CHOICE domainchoices | awk '{print $2}')"
+            rm -rf domainlist domainchoices
+            TARGET_CHECK
+        fi
+    fi
+fi
+}
+
+GET_MAINDOMAIN_PATH () {
+TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
+TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
+}
+
+GET_SUBDOMAIN_PATH () {
+TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
+TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"
+}
+
+CONFIRM_INSTALL () {
+printf "\n\n"
+GREEN
+printf "Install WordPress for account "
+WHITE
+printf "%s\n" "$TARGET_ACCT"
+GREEN
+printf " in the "
+WHITE
+printf "%s\n" "$TARGET"
+GREEN
+if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    printf " domain, is that correct "
+    WHITE
+    echo -n "[y/n]? "
+    old_stty_cfg=$(stty -g)
+    stty raw -echo
+    OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+    stty "$old_stty_cfg"
+    if echo "$OPTION1" | grep -iq "^y" ;then
+        printf "\n\n"
+        INSTALL_WP
+    else
+        printf "\n\n"
+        RED
+        echo "Installation aborted..."
+        echo
+        echo "Exiting now."
+        printf "\n\n"
+        exit 0
+    fi
+else
+    printf " subdomain, is that correct "
+    WHITE
+    echo -n "[y/n]? "
+    old_stty_cfg=$(stty -g)
+    stty raw -echo
+    OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+    stty "$old_stty_cfg"
+    if echo "$OPTION1" | grep -iq "^y" ;then
+        printf "\n\n"
+        INSTALL_WP
+    else
+        printf "\n\n"
+        RED
+        echo "Installation aborted..."
+        echo
+        echo "Exiting now."
+        printf "\n\n"
+        exit 0
+    fi
+fi
+}
+
+INSTALL_WPDB () {
+echo
+SEPARATOR
+GREEN
+echo Creating WordPress Database and DatabaseUser...
+sleep 1
+echo Mapping Database and DatabaseUser to cPanel Admin...
+sleep 1
+DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
+DB_NAME="$DB_PREFIX"_khwpdb
+DBU_NAME="$DB_NAME"u
+DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+mysql -e "create database "$DB_NAME";"
+mysql -e "GRANT ALL PRIVILEGES ON "$DB_NAME".* TO "$DBU_NAME"@localhost IDENTIFIED BY '"$DBU_PASS"';"
+cat > mpdb.sh << "EOF"
+#!/bin/bash
+/usr/local/cpanel/bin/dbmaptool CPANELUSER -type mysql -dbs 'DB_NAME' -dbusers 'DBU_NAME'
+EOF
+sed -i -e "s/CPANELUSER/$TARGET_ACCT/" -e "s/DB_NAME/$DB_NAME/" -e "s/DBU_NAME/$DBU_NAME/" mpdb.sh
+/bin/bash mpdb.sh &&
+DB_IP="$(grep "$DB_NAME" /var/cpanel/databases/"$TARGET_ACCT".yaml | awk '{print $2}')"
+cat > yaml_entry << "EOF"
+DBNAME: DBIP
+EOF
+sed -i -e "s/DBNAME/$DB_NAME/" -e "s/DBIP/$DB_IP/" yaml_entry
+sed -i "0,/      dbs: {}/s/      dbs: {}/      dbs:/" /var/cpanel/databases/"$TARGET_ACCT".yaml
+sed -i "0,/^$/s/^$/        $(cat yaml_entry)/" /var/cpanel/databases/"$TARGET_ACCT".yaml
+rm -rf mpdb.sh yaml_entry
+echo
+clear
+SEPARATOR
+GREEN
+echo Database Mapping Complete...
+echo
+}
+
+INSTALL_WP () {
+cd "$TARGET_PATH"
+SEPARATOR
+GREEN
+echo "Fetching WordPress Files..."
+echo
+wget https://wordpress.org/latest.tar.gz
+tar xf latest.tar.gz &&
+mv wordpress/* .
+INSTALL_WPDB
+cp wp-config-sample.php wp-config.php
+sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod $verbose 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+clear
+SEPARATOR
+GREEN
+printf "WordPress has been installed for"
+WHITE
+echo " $TARGET"
+SEPARATOR
+WHITE
+echo
+echo "Provide your customer the following WordPress URL"
+echo 
+echo "so that they can finalize their installation:"
+echo
+echo "http://$TARGET"
+echo
+SEPARATOR
+rm -rf wordpress/ latest.tar.gz
+exit 0
+}
+
+TARGET_CHECK () {
+if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+        SEPARATOR
+        RED
+        echo "That isn't a valid domain/subdomain on this server."
+        echo
+        echo "Exiting now."
+        sleep 2
+        HELPTEXT
+    else
+        TARGET_TYPE=SUBDOMAIN
+        GET_SUBDOMAIN_PATH
+        CONFIRM_INSTALL
+    fi
+else
+    TARGET_TYPE=MAINDOMAIN
+    GET_MAINDOMAIN_PATH
+    CONFIRM_INSTALL
+fi
+}
+
+FIRST_FUNCTION () {
+clear
+echo
+GREEN
+printf "Enter domain for WordPress install or "
+WHITE
+printf "'get list'"
+GREEN
+printf " for domain list"
+WHITE
+echo -n ": "
+read FIRST_CHOICE
+if [ "$FIRST_CHOICE" = "get list" ]; then
+    LIST_ACCTS
+else
+    TARGET=FIRST_CHOICE
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/inst_wp_log_"$(date +"%T_%m-%d-%Y")"
+fi
+}
+
+if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+    TARGET=$1
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/inst_wp_log_"$(date +"%T_%m-%d-%Y")"
+else
+    case "$1" in
+
+        --help) HELPTEXT;;
+        --list) LIST_ACCTS;;
+        --version) VERSION;;
+        *) FIRST_FUNCTION;;
+
+    esac
+fi
