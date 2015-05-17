@@ -185,44 +185,26 @@ printf "%s\n" "$TARGET"
 GREEN
 if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
     printf " domain, is that correct "
-    WHITE
-    echo -n "[y/n]? "
-    old_stty_cfg=$(stty -g)
-    stty raw -echo
-    OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
-    stty "$old_stty_cfg"
-    if echo "$OPTION1" | grep -iq "^y" ;then
-        printf "\n\n"
-        INSTALL_WP
-    else
-        printf "\n\n"
-        RED
-        echo "Installation aborted..."
-        echo
-        echo "Exiting now."
-        printf "\n\n"
-        exit 0
-    fi
 else
     printf " subdomain, is that correct "
-    WHITE
-    echo -n "[y/n]? "
-    old_stty_cfg=$(stty -g)
-    stty raw -echo
-    OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
-    stty "$old_stty_cfg"
-    if echo "$OPTION1" | grep -iq "^y" ;then
-        printf "\n\n"
-        INSTALL_WP
-    else
-        printf "\n\n"
-        RED
-        echo "Installation aborted..."
-        echo
-        echo "Exiting now."
-        printf "\n\n"
-        exit 0
-    fi
+fi
+WHITE
+echo -n "[y/n]? "
+old_stty_cfg=$(stty -g)
+stty raw -echo
+OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+stty "$old_stty_cfg"
+if echo "$OPTION1" | grep -iq "^y" ;then
+    printf "\n\n"
+    INSTALL_WP
+else
+    printf "\n\n"
+    RED
+    echo "Installation aborted..."
+    echo
+    echo "Exiting now."
+    printf "\n\n"
+    exit 0
 fi
 }
 
