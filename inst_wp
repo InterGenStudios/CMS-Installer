@@ -332,6 +332,7 @@ fi
 
 FIRST_FUNCTION () {
 clear
+mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
 echo
 GREEN
 printf "Enter domain for WordPress install or "
@@ -346,13 +347,13 @@ if [ "$FIRST_CHOICE" = "get list" ]; then
     LIST_ACCTS
 else
     TARGET=FIRST_CHOICE
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/inst_wp_log_"$(date +"%T_%m-%d-%Y")"
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
 fi
 }
 
 if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
     TARGET=$1
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/inst_wp_log_"$(date +"%T_%m-%d-%Y")"
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
 else
     case "$1" in
 
