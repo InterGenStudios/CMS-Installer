@@ -664,7 +664,7 @@ else
         --help) HELPTEXT;;
         --list) LIST_ACCTS;;
         --version) VERSION;;
-        wp) CMS_TARGET=WP
+        wp) CMS_TARGET=WP &
             if [ -z "$2" ]; then
                 FIRST_FUNCTION
             else
@@ -684,7 +684,7 @@ else
                     fi
                 fi
             fi;;
-        dr) CMS_TARGET=DR
+        dr) CMS_TARGET=DR &
             if [ -z "$2" ]; then
                 FIRST_FUNCTION
             else
@@ -704,7 +704,7 @@ else
                     fi
                 fi
             fi;;
-        jm) CMS_TARGET=JM
+        jm) CMS_TARGET=JM &
             if [ -z "$2" ]; then
                 FIRST_FUNCTION
             else
