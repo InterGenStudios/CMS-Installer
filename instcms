@@ -681,7 +681,7 @@ else
             --help) HELPTEXT;;
             --list) LIST_ACCTS;;
             --version) VERSION;;
-            --wp) CMS_TARGET=WP
+            wp) CMS_TARGET=WP
                         case "$2" in
                         
                             *) if [ -z "$2" ]; then
@@ -705,7 +705,7 @@ else
                                fi
                                
                         esac;;
-            --dr) CMS_TARGET=DR
+            dr) CMS_TARGET=DR
                         case "$2" in
                         
                             *) if [ -z "$2" ]; then
@@ -729,7 +729,7 @@ else
                                fi
                                
                         esac;;
-            --jm) CMS_TARGET=JM
+            jm) CMS_TARGET=JM
                         case "$2" in
                         
                             *) if [ -z "$2" ]; then
