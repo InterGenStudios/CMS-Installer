@@ -11,7 +11,7 @@
   2) Add .htaccess check in primary doc root when installing for subdomain
   3) Set up check and adjustment for already existing database
   4) Improve error checking during API calls
-  5) Begin additiona CMS functions (joomla, drupal, etc)
+  5) Begin additional CMS functions (joomla, drupal, etc)
   6) Start cPanel plugin gui development
   
 ```
