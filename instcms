@@ -687,7 +687,7 @@ else
                             *) if [ -z "$2" ]; then
                                    FIRST_FUNCTION
                                else
-                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                   if [ "$2" = "$(grep \"$1\" /etc/userdomains | cut -d ':' -f 1)" ]; then
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
@@ -711,7 +711,7 @@ else
                             *) if [ -z "$2" ]; then
                                    FIRST_FUNCTION
                                else
-                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                   if [ "$2" = "$(grep \"$1\" /etc/userdomains | cut -d ':' -f 1)" ]; then
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
@@ -735,7 +735,7 @@ else
                             *) if [ -z "$2" ]; then
                                    FIRST_FUNCTION
                                else
-                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                   if [ "$2" = "$(grep \"$1\" /etc/userdomains | cut -d ':' -f 1)" ]; then
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
