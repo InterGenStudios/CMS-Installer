@@ -199,6 +199,7 @@ else
             TARGET="$(grep "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
             rm -rf domainlist domainchoices
             CHECK_RPASS
+            RPASS_VALIDATE
             TARGET_CHECK
         fi
     fi
@@ -305,7 +306,7 @@ echo -n ":"
 read API_PASS
 printf "\n\n\n"
 clear
-RPASS_VALIDATE
+#RPASS_VALIDATE
 }
 
 RPASS_VALIDATE () {
@@ -650,6 +651,7 @@ if [ "$FIRST_CHOICE" = "get list" ]; then
 else
     TARGET=FIRST_CHOICE
     CHECK_RPASS
+    RPASS_VALIDATE
     TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
 fi
 }
@@ -662,6 +664,7 @@ else
             CMS_SELECT
             TARGET=$1
             CHECK_RPASS
+            RPASS_VALIDATE
             mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
             TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
         else
@@ -688,6 +691,7 @@ else
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
+                                           RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
                                        else
@@ -711,6 +715,7 @@ else
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
+                                           RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
                                        else
@@ -734,6 +739,7 @@ else
                                        if [ -z "$3" ]; then
                                            TARGET=$2
                                            CHECK_RPASS
+                                           RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
                                        else
