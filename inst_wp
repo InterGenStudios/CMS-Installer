@@ -152,7 +152,7 @@ else
             sleep 1
             LIST_ACCTS
         else
-            TARGET="$(grep $DOMAIN_CHOICE domainchoices | awk '{print $2}')"
+            TARGET="$(grep "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
             rm -rf domainlist domainchoices
             CHECK_RPASS
             TARGET_CHECK
@@ -244,7 +244,7 @@ RPASS_VALIDATE
 }
 
 RPASS_VALIDATE () {
-curl -k -X GET -u $API_USER:$API_PASS https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
+curl -k -X GET -u "$API_USER":"$API_PASS" https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
     if [[ ! -z $(grep "error" rpasscheck) ]]; then 
         RED
         echo 
@@ -288,13 +288,13 @@ DB_NAME="$DB_PREFIX"_cmsi
 DBU_NAME="$DB_NAME"u
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 
-curl -sk -X GET -u $API_USER:$API_PASS "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME"
 
-curl -sk -X GET -u $API_USER:$API_PASS "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS"
 
-curl -sk -X GET -u $API_USER:$API_PASS "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
 
-curl -sk -X GET -u $API_USER:$API_PASS "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation 
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation 
     if [[ ! -z $(grep "error" dbvalidation) ]]; then 
         RED
         printf "\n\n" 
