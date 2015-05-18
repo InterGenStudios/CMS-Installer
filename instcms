@@ -567,8 +567,8 @@ exit 0
 }
 
 TARGET_CHECK () {
-if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
-    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+if [ "$TARGET" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+    if [ "$TARGET" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then
         SEPARATOR
         RED
         echo "That isn't a valid domain/subdomain on this server."
