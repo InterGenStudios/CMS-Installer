@@ -47,10 +47,10 @@ if [ "$CMS_FILES" = "1" ]; then
         if [ -d "cgi-bin" ]; then
             mv cgi-bin/ ../
             rm -rf ./*
-            mv ../cgi-bin .
+            mv ../cgi-bin/ .
+        else
+            rm -rf ./*
         fi
-else
-    rm -rf ./*
 fi
 }
 
