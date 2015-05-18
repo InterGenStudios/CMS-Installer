@@ -647,7 +647,7 @@ WHITE
 echo -n ": "
 read FIRST_CHOICE
 if [ "$FIRST_CHOICE" = "get list" ]; then
-    LIST_ACCTS
+    LIST_ACCTS 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
 else
     TARGET=FIRST_CHOICE
     CHECK_RPASS
