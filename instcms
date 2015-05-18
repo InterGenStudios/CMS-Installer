@@ -659,102 +659,98 @@ fi
 if [ -z "$1" ]; then
     CMS_SELECT
 else
-    if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
-        if [ -z "$2" ]; then
-            CMS_SELECT
-            TARGET=$1
-            CHECK_RPASS
-            RPASS_VALIDATE
-            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-        else
-            CMS_SELECT
-            TARGET=$1
-            API_PASS=$2
-            RPASS_VALIDATE
-            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-        fi
-    else
-        case "$1" in
-
-            --help) HELPTEXT;;
-            --list) LIST_ACCTS;;
-            --version) VERSION;;
-            wp) CMS_TARGET=WP
-                        case "$2" in
-                        
-                            *) if [ -z "$2" ]; then
-                                   FIRST_FUNCTION
-                               else
-                                   if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                                       if [ -z "$3" ]; then
-                                           TARGET=$2
-                                           CHECK_RPASS
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       else
-                                           TARGET=$2
-                                           API_PASS=$3
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       fi
-                                   fi
-                               fi
-                               
-                        esac;;
-            dr) CMS_TARGET=DR
-                        case "$2" in
-                        
-                            *) if [ -z "$2" ]; then
-                                   FIRST_FUNCTION
-                               else
-                                   if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                                       if [ -z "$3" ]; then
-                                           TARGET=$2
-                                           CHECK_RPASS
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       else
-                                           TARGET=$2
-                                           API_PASS=$3
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       fi
-                                   fi
-                               fi
-                               
-                        esac;;
-            jm) CMS_TARGET=JM
-                        case "$2" in
-                        
-                            *) if [ -z "$2" ]; then
-                                   FIRST_FUNCTION
-                               else
-                                   if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                                       if [ -z "$3" ]; then
-                                           TARGET=$2
-                                           CHECK_RPASS
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       else
-                                           TARGET=$2
-                                           API_PASS=$3
-                                           RPASS_VALIDATE
-                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                       fi
-                                   fi
-                               fi
-                               
-                        esac;;
-            *) CMS_SELECT;;
+    case "$1" in
     
-        esac
-    fi
+        *) if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+               if [ -z "$2" ]; then
+                   CMS_SELECT
+                   TARGET=$1
+                   CHECK_RPASS
+                   RPASS_VALIDATE
+                   mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                   TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+               else
+                   CMS_SELECT
+                   TARGET=$1
+                   API_PASS=$2
+                   RPASS_VALIDATE
+                   mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                   TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+               fi
+        --help) HELPTEXT;;
+        --list) LIST_ACCTS;;
+        --version) VERSION;;
+        wp) CMS_TARGET=WP
+            case "$2" in
+                        
+                *) if [ -z "$2" ]; then
+                       FIRST_FUNCTION
+                   else
+                       if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                           if [ -z "$3" ]; then
+                               TARGET=$2
+                               CHECK_RPASS
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           else
+                               TARGET=$2
+                               API_PASS=$3
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           fi
+                       fi
+                   fi
+                               
+            esac;;
+        dr) CMS_TARGET=DR
+            case "$2" in
+                        
+                *) if [ -z "$2" ]; then
+                       FIRST_FUNCTION
+                   else
+                       if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                           if [ -z "$3" ]; then
+                               TARGET=$2
+                               CHECK_RPASS
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           else
+                               TARGET=$2
+                               API_PASS=$3
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           fi
+                       fi
+                   fi
+                               
+            esac;;
+        jm) CMS_TARGET=JM
+            case "$2" in
+                        
+                *) if [ -z "$2" ]; then
+                       FIRST_FUNCTION
+                   else
+                       if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                           if [ -z "$3" ]; then
+                               TARGET=$2
+                               CHECK_RPASS
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           else
+                               TARGET=$2
+                               API_PASS=$3
+                               RPASS_VALIDATE
+                               mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                               TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                           fi
+                       fi
+                   fi
+                               
+            esac;;
+    esac
 fi
