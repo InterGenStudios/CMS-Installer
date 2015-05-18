@@ -1,5 +1,5 @@
 #!/bin/bash
-# inst_wp - Installs WordPress on a cPanel server
+# CMS-Installer - Installs choice CMS on a cPanel server
 # InterGen - 5-16-15
 # 
 # To Do List:
@@ -103,9 +103,9 @@ WHITE
 HELPTEXT () {
 clear
 GREEN
-echo "inst-cms help:"
+echo "CMS-Installer help:"
 echo
-echo "Installs CMS in target domain/subdomain docroot"
+echo "Installs choice CMS in target domain/subdomain docroot"
 echo
 echo "USAGE: "
 WHITE
@@ -135,11 +135,11 @@ clear
 SEPARATOR
 if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
     BLUE
-    figlet CMS Installer
+    figlet CMS-Installer
     WHITE
 else
     GREEN
-    echo " CMS Installer"
+    echo " CMS-Installer"
 fi
 echo
 BLUE
@@ -149,6 +149,8 @@ echo
 echo " Internet: https://intergenstudios.com" 
 echo
 echo " Email: <info@intergenstudios.com>"
+echo
+echo " Github: https://github.com/InterGenOS/inst_wp"
 echo
 echo " Version: 1.1a"
 SEPARATOR
@@ -160,7 +162,7 @@ LIST_ACCTS () {
 clear
 echo
 GREEN
-echo "Preparing domain list for WordPressCMS Installation..."
+echo "Preparing domain list for CMS Installation..."
 sleep 1
 SEPARATOR
 WHITE
@@ -169,7 +171,7 @@ sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
 cat domainchoices
 SEPARATOR
 echo
-echo -n "Select Domain for WordPressCMS Installation [q for quit]? "
+echo -n "Select Domain for CMS Installation [q for quit]? "
 read DOMAIN_CHOICE
 if [ "$DOMAIN_CHOICE" = Q ]; then
     printf "\n\n"
@@ -506,10 +508,10 @@ INSTALL_DB
 /usr/local/cpanel/scripts/restartsrv_httpd
 clear
 cat > jdbinfo << "EOF"
-=====================================
-        Joomla Installation
-         Step (2) Database
-       Configuration Details
+==============================================
+             Joomla Installation
+              Step (2) Database
+            Configuration Details
 
 Domain: DOMAIN
 URL: http://TARGET
@@ -529,9 +531,9 @@ Table Prefix*:  (leave default)
 Old Database    (leave default)
     Process*
 
-*Please use or make note of this
-data immediately- this paste
-will expire in 120 minutes*
+    **Please use or make note of this data 
+    immediately- this paste will expire in 
+                120 minutes**
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
