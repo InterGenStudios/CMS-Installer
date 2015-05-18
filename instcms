@@ -1,0 +1,741 @@
+#!/bin/bash
+# CMS-Installer - Installs choice CMS on a cPanel server
+# InterGen - 5-16-15
+# 
+# To Do List:
+# -----------
+# 1) Set up check and adjustment for already existing database
+# 2) Improve error checking during API calls
+# 3) Add additional CMS functions (Drupal, etc)
+# 4) Start cPanel plugin gui development
+
+trap bashtrap INT
+
+bashtrap () {
+    RED
+    printf "\n\n"
+    echo "CTRL+C detected in terminal... halting installation..."
+    echo
+    echo "Removing CMS Installation Files..."
+    echo
+    PURGE_INSTALL_FILES
+    sleep 1
+    RED
+    echo "Removing CMS Database and User..."
+    echo
+    PURGE_DATABASE
+    PURGE_DATABASE_USER
+    sleep 1
+    WHITE
+    echo "Installation removed, exiting..."
+    sleep 1
+    echo
+    exit 0
+}
+
+NC='^[0-9]+$' #RE check for numbers as choices
+SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)"
+API_USER=root
+CMS_FILES=0
+CMS_DB=0
+CMS_DBU=0
+
+PURGE_INSTALL_FILES () {
+WHITE
+if [ "$CMS_FILES" = "1" ]; then
+    cd "$TARGET_PATH"
+        if [ -d "cgi-bin" ]; then
+            mv cgi-bin/ ../
+            rm -rf *
+            mv ../cgi-bin .
+        fi
+else
+    rm -rf *
+fi
+}
+
+PURGE_DATABASE () {
+WHITE
+if [ "$CMS_DB" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?    cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
+fi
+}
+
+PURGE_DATABASE_USER () {
+WHITE
+if [ "$CMS_DBU" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
+fi
+}
+
+RED () {
+tput bold
+tput setaf 1
+}
+
+GREEN () {
+tput bold
+tput setaf 2
+}
+
+YELLOW () {
+tput bold
+tput setaf 3
+}
+
+BLUE () {
+tput bold
+tput setaf 4
+}
+
+WHITE () {
+tput sgr0
+}
+
+SEPARATOR () {
+echo
+YELLOW
+echo " ------------------------- "
+echo
+WHITE
+}
+
+HELPTEXT () {
+clear
+GREEN
+echo "CMS-Installer help:"
+echo
+echo "Installs choice CMS in target domain/subdomain docroot"
+echo
+echo "USAGE: "
+WHITE
+echo "instcms [options]  -or-  instcms [cms] [domain_name] [rootpass]"
+GREEN
+echo "-------"
+echo "Options:"
+echo
+WHITE
+echo "--help: print this screen and exit"
+echo "--list: list accounts available for installation"
+echo "--version: show the current installer version and exit"
+echo
+GREEN
+echo "CMS:"
+echo
+WHITE
+echo "--wp: install WordPress"
+echo "--jm: install Joomla"
+echo "--dr: install Drupal"
+printf "\n\n"
+exit 0
+}
+
+VERSION () {
+clear
+SEPARATOR
+if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
+    BLUE
+    figlet CMS-Installer
+    WHITE
+else
+    GREEN
+    echo " CMS-Installer"
+fi
+echo
+BLUE
+echo " InterGenStudios"
+WHITE
+echo
+echo " Internet: https://intergenstudios.com" 
+echo
+echo " Email: <info@intergenstudios.com>"
+echo
+echo " Github: https://github.com/InterGenOS/CMS-Installer"
+echo
+echo " Version: 1.1a"
+SEPARATOR
+echo
+exit 0
+}
+
+LIST_ACCTS () {
+clear
+echo
+GREEN
+echo "Preparing domain list for CMS Installation..."
+sleep 1
+SEPARATOR
+WHITE
+grep ':' /etc/userdomains | grep -v nobody | awk '{print $1}' | cut -d ':' -f 1 | sort > domainlist
+sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
+cat domainchoices
+SEPARATOR
+echo
+echo -n "Select Domain for CMS Installation [q for quit]? "
+read DOMAIN_CHOICE
+if [ "$DOMAIN_CHOICE" = Q ]; then
+    printf "\n\n"
+    echo "Quiting..."
+    rm -rf domainlist domainchoices
+    printf "\n\n"
+    exit 0
+else
+    if [ "$DOMAIN_CHOICE" = q ]; then
+        printf "\n\n"
+        echo "Quiting..."
+        rm -rf domainlist domainchoices
+        printf "\n\n"
+        exit 0
+    else
+        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+            echo
+            RED
+            echo "\"$DOMAIN_CHOICE\" is not a valid selection."
+            echo
+            echo "Restarting..."
+            sleep 1
+            LIST_ACCTS
+        else
+            TARGET="$(grep "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+            rm -rf domainlist domainchoices
+            CHECK_RPASS
+            TARGET_CHECK
+        fi
+    fi
+fi
+}
+
+EXISTING_INSTALL_WARN () {
+RED
+echo
+echo "WARNING!"
+echo 
+echo "$CMS installation exists in $TARGET_PATH."
+echo
+echo "Please clean the target directory and run the installer again."
+echo
+echo "Exiting..."
+printf "\n\n"
+WHITE
+exit 0
+}
+
+CHECK_EXISTING_INSTALL () {
+if [ -e "$TARGET_PATH"wp-config.php ]; then
+    EXISTING_INSTALL_WARN
+else
+    if [ -e "$TARGET_PATH"joomla.xml ]; then
+        EXISTING_INSTALL_WARN
+    else
+        if [ -e "$TARGET_PATH"DRUPAL_FILE ]; then
+            EXISTING_INSTALL_WARN
+        else
+            GREEN
+            echo
+            echo "Target path confirmed for installation."
+            WHITE
+        fi
+    fi
+fi
+}
+
+GET_MAINDOMAIN_PATH () {
+TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
+TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
+}
+
+GET_SUBDOMAIN_PATH () {
+TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
+TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"
+}
+
+CONFIRM_INSTALL () {
+printf "\n\n"
+GREEN
+printf "Install $CMS for account "
+WHITE
+printf "%s\n" "$TARGET_ACCT"
+GREEN
+printf " in the "
+WHITE
+printf "%s\n" "$TARGET"
+GREEN
+if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    printf " domain, is that correct "
+else
+    printf " subdomain, is that correct "
+fi
+WHITE
+echo -n "[y/n]? "
+old_stty_cfg=$(stty -g)
+stty raw -echo
+OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+stty "$old_stty_cfg"
+if echo "$OPTION1" | grep -iq "^y" ;then
+    printf "\n\n"
+    if [ "$CMS_TARGET" = "WP" ]; then
+        INSTALL_WP
+    else
+        if [ "$CMS_TARGET" = "JM" ]; then
+            INSTALL_JM
+        else
+            if [ "$CMS_TARGET" = "DR" ]; then
+                INSTALL_DR
+            fi
+        fi
+    fi
+else
+    printf "\n\n"
+    RED
+    echo "Installation aborted..."
+    echo
+    echo "Exiting now."
+    printf "\n\n"
+    exit 0
+fi
+}
+
+CHECK_RPASS () {
+printf "\n\n\n"
+GREEN
+printf "Please enter your server's root password"
+WHITE
+echo -n ":"
+read API_PASS
+printf "\n\n\n"
+clear
+RPASS_VALIDATE
+}
+
+RPASS_VALIDATE () {
+curl -k -X GET -u "$API_USER":"$API_PASS" https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
+    if [[ ! -z $(grep "error" rpasscheck) ]]; then 
+        RED
+        echo 
+        echo "The root password entered is invalid."
+        echo
+	WHITE
+        read -p "Would you like to enter it again [y/n]? " RETRY
+            case ${RETRY:0:1} in
+                y|Y )
+                    echo
+                    echo "Restarting..."
+                    sleep 2
+                    CHECK_RPASS;;
+                * )
+                    tput bold
+                    tput setaf 1
+                    echo "Exiting..."
+                    WHITE
+                    printf "\n\n";;
+            esac
+    else
+        GREEN
+        printf "\n\n"
+        echo "Root password accepted."
+	WHITE
+        echo
+        sleep 2
+    fi
+rm -rf rpasscheck
+}
+
+INSTALL_DB () {
+echo
+SEPARATOR
+GREEN
+echo Creating CMS Database and DatabaseUser via WHM API...
+sleep 2
+
+DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
+DB_NAME="$DB_PREFIX"_cmsi
+DBU_NAME="$DB_NAME"u
+DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" && CMS_DB=1
+
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" && CMS_DBU=1
+
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
+
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation 
+    if [[ ! -z $(grep "error" dbvalidation) ]]; then 
+        RED
+        printf "\n\n" 
+        echo "cPanel API call errors reported." 
+        echo 
+        printf "Review the logs at"
+        WHITE
+        printf " /root/support/scripts/DevelopmentScripts/Inst_cms_logs/"
+        RED
+        printf " for more information." 
+        sleep 3 
+    else 
+        printf "\n\n"
+        GREEN 
+        echo "ALL WHM API calls completed successfully."
+        sleep 2
+    fi
+rm -rf dbvalidation
+echo
+clear
+SEPARATOR
+GREEN
+echo
+}
+
+SUBDOMAIN_HT_CHECK () {
+if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
+    if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+        if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+            HTACCESS_WARN=1
+        fi
+    fi
+fi
+}
+
+HT_CHECK_WARN () {
+if [ "$HTACCESS_WARN" = "1" ]; then
+    echo
+    RED
+    echo "WARNING!"
+    echo
+    WHITE
+    echo ".htaccess file in primary domain docroot contains rewrite rules"
+    echo
+    echo "check $TARGET URL below prior to presenting it to customer"
+    SEPARATOR
+fi
+}
+
+INSTALL_WP () {
+CHECK_EXISTING_INSTALL
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+SEPARATOR
+GREEN
+echo "Fetching WordPress Files..."
+echo
+wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
+tar xf latest.tar.gz &&
+mv wordpress/* .
+INSTALL_DB
+cp wp-config-sample.php wp-config.php
+sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+clear
+SEPARATOR
+GREEN
+printf "WordPress has been installed for"
+WHITE
+echo " $TARGET"
+SEPARATOR
+WHITE
+HT_CHECK_WARN
+echo
+echo "Provide your customer the following WordPress URL"
+echo 
+echo "so that they can finalize their installation:"
+echo
+echo "http://$TARGET"
+echo
+SEPARATOR
+rm -rf wordpress/ latest.tar.gz
+exit 0
+}
+
+INSTALL_JM () {
+CHECK_EXISTING_INSTALL
+if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
+    RED
+    echo
+    echo "WARNING!"
+    echo
+    WHITE
+    echo "Joomla requires PHP Version 5.3.1 or higher."
+    echo
+    echo "Please check the additional requirements here"
+    echo "prior to running the installer again: https://docs.joomla.org/J3.x:Installing_Joomla"
+    echo
+    echo "Installation cannot continue."
+    echo
+    echo "Exiting..."
+    sleep 3
+    exit 0
+fi 
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+SEPARATOR
+GREEN
+echo "Fetching Joomla Files..."
+echo
+wget https://github.com/joomla/joomla-cms/releases/download/3.4.1/Joomla_3.4.1-Stable-Full_Package.zip && CMS_FILES=1
+unzip Joomla_3.4.1-Stable-Full_Package.zip &&
+rm -rf Joomla_3.4.1-Stable-Full_Package.zip
+INSTALL_DB
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+clear
+cat > jdbinfo << "EOF"
+==============================================
+             Joomla Installation
+              Step (2) Database
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET
+
+Database Type*: (leave default)
+
+Host Name*:     (leave default)
+
+Username*:      DBU
+
+Password*:      PASS
+
+Database Name*: DB
+
+Table Prefix*:  (leave default)
+
+Old Database    (leave default)
+    Process*
+
+    **Please use or make note of this data 
+    immediately- this paste will expire in 
+                120 minutes**
+EOF
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
+curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
+sed -i -e 's/view/view\/raw/' tempaste
+SEPARATOR
+GREEN
+printf "Joomla has been installed for"
+WHITE
+echo " $TARGET"
+SEPARATOR
+WHITE
+HT_CHECK_WARN
+echo
+echo "Provide your customer the following paste URL"
+echo
+echo "containing their database details- needed for installation"
+echo
+echo "PasteURL: $(cat tempaste)"
+printf "\n\n"
+echo "Provide your customer the following URL"
+echo 
+echo "so that they can finalize their installation:"
+echo
+echo "http://$TARGET"
+echo
+SEPARATOR
+rm -rf jdbinfo tempaste
+exit 0
+}
+
+TARGET_CHECK () {
+if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+        SEPARATOR
+        RED
+        echo "That isn't a valid domain/subdomain on this server."
+        echo
+        echo "Exiting now."
+        sleep 2
+        HELPTEXT
+    else
+        TARGET_TYPE=SUBDOMAIN
+        GET_SUBDOMAIN_PATH
+        CONFIRM_INSTALL
+    fi
+else
+    TARGET_TYPE=MAINDOMAIN
+    GET_MAINDOMAIN_PATH
+    CONFIRM_INSTALL
+fi
+}
+
+CMS_SELECT () {
+echo "Which CMS will be installed?"
+echo
+WHITE
+echo "1) WordPress"
+echo "2) Joomla"
+echo "3) Drupal"
+echo
+echo -n "[enter selection]: "
+read CMS_CHOICE
+    case "$CMS_CHOICE" in
+        
+        1) CMS_TARGET=WP
+           FIRST_FUNCTION;;
+        2) CMS_TARGET=JM
+           FIRST_FUNCTION;;
+        3) CMS_TARGET=DR
+           FIRST_FUNCTION;;
+        *) RED
+           echo
+           echo "Invalid selection."
+           echo 
+           echo "Please enter the number of the CMS to install"
+           sleep 2
+           WHITE
+           clear
+           CMS_SELECT;;
+    
+    esac
+}
+
+FIRST_FUNCTION () {
+clear
+mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+echo
+GREEN
+if [ "$CMS_TARGET" = "WP" ]; then
+    CMS=WORDPRESS
+else
+    if [ "$CMS_TARGET" = "JM" ]; then
+        CMS=JOOMLA
+    else
+        if [ "$CMS_TARGET" = "DR" ]; then
+            CMS=DRUPAL
+        fi
+    fi
+fi
+printf "Enter domain for $CMS installation or "
+WHITE
+printf "'get list'"
+GREEN
+printf " for domain list"
+WHITE
+echo -n ": "
+read FIRST_CHOICE
+if [ "$FIRST_CHOICE" = "get list" ]; then
+    LIST_ACCTS
+else
+    TARGET=FIRST_CHOICE
+    CHECK_RPASS
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+fi
+}
+
+if [ -z "$1" ]; then
+    CMS_SELECT
+else
+    if [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+        if [ -z "$2" ]; then
+            CMS_SELECT
+            TARGET=$1
+            CHECK_RPASS
+            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+        else
+            CMS_SELECT
+            TARGET=$1
+            API_PASS=$2
+            RPASS_VALIDATE
+            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+        fi
+    else
+        case "$1" in
+
+            --help) HELPTEXT;;
+            --list) LIST_ACCTS;;
+            --version) VERSION;;
+            --wp) CMS_TARGET=WP
+                        case "$2" in
+                        
+                            *) if [ -z "$2" ]; then
+                                   FIRST_FUNCTION
+                               else
+                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                       if [ -z "$3" ]; then
+                                           TARGET=$2
+                                           CHECK_RPASS
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                       else
+                                           TARGET=$2
+                                           API_PASS=$3
+                                           RPASS_VALIDATE
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                           fi
+                        esac;;
+            --dr) CMS_TARGET=DR
+                        case "$2" in
+                        
+                            *) if [ -z "$2" ]; then
+                                   FIRST_FUNCTION
+                               else
+                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                       if [ -z "$3" ]; then
+                                           TARGET=$2
+                                           CHECK_RPASS
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                       else
+                                           TARGET=$2
+                                           API_PASS=$3
+                                           RPASS_VALIDATE
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                           fi
+                        esac;;
+            --jm) CMS_TARGET=JM
+                        case "$2" in
+                        
+                            *) if [ -z "$2" ]; then
+                                   FIRST_FUNCTION
+                               else
+                                   if [ "$2" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ]; then
+                                       if [ -z "$3" ]; then
+                                           TARGET=$2
+                                           CHECK_RPASS
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                       else
+                                           TARGET=$2
+                                           API_PASS=$3
+                                           RPASS_VALIDATE
+                                           mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                                           TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                                           fi
+                        esac;;
+            *) CMS_SELECT;;
+    
+        esac
+    fi
+fi
