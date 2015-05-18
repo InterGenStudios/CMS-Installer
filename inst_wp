@@ -4,26 +4,32 @@
 # 
 # To Do List:
 # -----------
-# 1) Finish Trap Purge Functions
+# 1) Add .htaccess check in primary doc root when installing in a subdomain
 # 2) Set up check and adjustment for already existing database
-# 3) Will be adding additional CMSs...
+# 3) Improve error checking during API calls
+# 4) Begin additional CMS functions (joomla, drupal, etc)
+# 5) Start cPanel plugin gui development
 
 trap bashtrap INT
 
 bashtrap () {
     RED
+    printf "\n\n"
     echo "CTRL+C detected in terminal... halting installation..."
     echo
-    echo "Removing WordPress Installation..."
+    echo "Removing CMS Installation Files..."
     echo
     PURGE_INSTALL_FILES
+    sleep 1
     RED
-    echo "Removing created database files..."
+    echo "Removing CMS Database and User..."
     echo
-    PURGE_INSTALL_DATABASE
-    PURGE_INSTALL_DATABASE_USER
+    PURGE_DATABASE
+    PURGE_DATABASE_USER
+    sleep 1
     WHITE
-    echo "Installation removed, exiting."
+    echo "Installation removed, exiting..."
+    sleep 1
     echo
     exit 0
 }
@@ -31,21 +37,36 @@ bashtrap () {
 NC='^[0-9]+$' #RE check for numbers as choices
 SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)"
 API_USER=root
-
+CMS_FILES=0
+CMS_DB=0
+CMS_DBU=0
 
 PURGE_INSTALL_FILES () {
-    WHITE
-    echo 
+WHITE
+if [ "$CMS_FILES" = "1" ]; then
+    cd "$TARGET_PATH"
+        if [ -d "cgi-bin" ]; then
+            mv cgi-bin/ ../
+            rm -rf *
+            mv ../cgi-bin .
+        fi
+else
+    rm -rf *
+fi
 }
 
-PURGE_INSTALL_DATABASE () {
-    WHITE
-    echo 
+PURGE_DATABASE () {
+WHITE
+if [ "$CMS_DB" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?    cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
+fi
 }
 
-PURGE_INSTALL_DATABASE_USER () {
-    WHITE
-    echo "We're working on the purge routines. Should be done soon."
+PURGE_DATABASE_USER () {
+WHITE
+if [ "$CMS_DBU" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
+fi
 }
 
 RED () {
@@ -95,6 +116,9 @@ echo "-------"
 echo "Options:"
 echo
 WHITE
+#echo "--wp: install wordpress"
+#echo "--dr: install drupal"
+#echo "--jm: install joomla"
 echo "--help: print this screen and exit"
 echo "--list: list accounts available for installation"
 echo "--version: show the current installer version and exit"
@@ -248,7 +272,7 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://$SERVER:2087/json-api/listacct
     if [[ ! -z $(grep "error" rpasscheck) ]]; then 
         RED
         echo 
-        echo "The root password given is invalid."
+        echo "The root password entered is invalid."
         echo
 	WHITE
         read -p "Would you like to enter it again [y/n]? " RETRY
@@ -288,9 +312,9 @@ DB_NAME="$DB_PREFIX"_cmsi
 DBU_NAME="$DB_NAME"u
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" && CMS_DB=1
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" && CMS_DBU=1
 
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
 
@@ -326,7 +350,7 @@ SEPARATOR
 GREEN
 echo "Fetching WordPress Files..."
 echo
-wget https://wordpress.org/latest.tar.gz
+wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
 tar xf latest.tar.gz &&
 mv wordpress/* .
 INSTALL_DB
@@ -435,6 +459,9 @@ else
             --help) HELPTEXT;;
             --list) LIST_ACCTS;;
             --version) VERSION;;
+            --wp) WP_ROUTINE;;
+            --dr) DR_ROUTINE;;
+            --jm) JM_ROUTINE;;
             *) FIRST_FUNCTION;;
     
         esac
