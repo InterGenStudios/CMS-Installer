@@ -252,14 +252,14 @@ TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Docu
 CONFIRM_INSTALL () {
 printf "\n\n"
 GREEN
-printf "Install %s\n" "$CMS"
+printf "Install %s" "$CMS"
 printf "for account "
 WHITE
-printf "%s\n" "$TARGET_ACCT"
+printf "%s" "$TARGET_ACCT"
 GREEN
 printf " in the "
 WHITE
-printf "%s\n" "$TARGET"
+printf "%s" "$TARGET"
 GREEN
 if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
     printf " domain, is that correct "
@@ -588,6 +588,8 @@ fi
 }
 
 CMS_SELECT () {
+clear
+GREEN
 echo "Which CMS will be installed?"
 echo
 WHITE
@@ -634,7 +636,7 @@ else
         fi
     fi
 fi
-printf "Enter domain for %s\n" "$CMS"
+printf "Enter domain for %s" "$CMS"
 printf "installation or "
 WHITE
 printf "'get list'"
