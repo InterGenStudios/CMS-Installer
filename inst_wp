@@ -193,7 +193,7 @@ if [ -e "$TARGET_PATH"wp-config.php ]; then
     echo 
     echo "WordPress installation exists in $TARGET_PATH."
     echo
-    echo "Please very a clean directory and run the installer again."
+    echo "Please clean the target directory and run the installer again."
     echo
     echo "Exiting..."
     printf "\n\n"
