@@ -522,11 +522,11 @@ Database Type*: (leave default)
 
 Host Name*:     (leave default)
 
-Username*:      DBU
+Username*:       DBU
 
-Password*:      PASS
+Password*:       PASS
 
-Database Name*: DB
+Database Name*:  DB
 
 Table Prefix*:  (leave default)
 
