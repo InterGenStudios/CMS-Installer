@@ -196,7 +196,7 @@ else
             sleep 1
             LIST_ACCTS
         else
-            TARGET="$(grep "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+            TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
             rm -rf domainlist domainchoices
             CHECK_RPASS
             RPASS_VALIDATE
@@ -567,8 +567,8 @@ exit 0
 }
 
 TARGET_CHECK () {
-if [ "$TARGET" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
-    if [ "$TARGET" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then
+if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
         SEPARATOR
         RED
         echo "That isn't a valid domain/subdomain on this server."
