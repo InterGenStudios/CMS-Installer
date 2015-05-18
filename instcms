@@ -46,11 +46,11 @@ if [ "$CMS_FILES" = "1" ]; then
     cd "$TARGET_PATH"
         if [ -d "cgi-bin" ]; then
             mv cgi-bin/ ../
-            rm -rf *
+            rm -rf ./*
             mv ../cgi-bin .
         fi
 else
-    rm -rf *
+    rm -rf ./*
 fi
 }
 
@@ -252,7 +252,8 @@ TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Docu
 CONFIRM_INSTALL () {
 printf "\n\n"
 GREEN
-printf "Install $CMS for account "
+printf "Install %s\n" "$CMS"
+printf "for account "
 WHITE
 printf "%s\n" "$TARGET_ACCT"
 GREEN
@@ -308,7 +309,7 @@ RPASS_VALIDATE
 }
 
 RPASS_VALIDATE () {
-curl -k -X GET -u "$API_USER":"$API_PASS" https://$SERVER:2087/json-api/listaccts?api.version=1 > rpasscheck 
+curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck 
     if [[ ! -z $(grep "error" rpasscheck) ]]; then 
         RED
         echo 
@@ -387,7 +388,7 @@ echo
 SUBDOMAIN_HT_CHECK () {
 if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
     if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
-        if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+        if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess) ]]; then
             HTACCESS_WARN=1
         fi
     fi
@@ -633,7 +634,8 @@ else
         fi
     fi
 fi
-printf "Enter domain for $CMS installation or "
+printf "Enter domain for %s\n" "$CMS"
+printf "installation or "
 WHITE
 printf "'get list'"
 GREEN
@@ -692,7 +694,10 @@ else
                                            RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                           fi
+                                       fi
+                                   fi
+                               fi
+                               
                         esac;;
             --dr) CMS_TARGET=DR
                         case "$2" in
@@ -712,7 +717,10 @@ else
                                            RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                           fi
+                                       fi
+                                   fi
+                               fi
+                               
                         esac;;
             --jm) CMS_TARGET=JM
                         case "$2" in
@@ -732,7 +740,10 @@ else
                                            RPASS_VALIDATE
                                            mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                                            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                                           fi
+                                       fi
+                                   fi
+                               fi
+                               
                         esac;;
             *) CMS_SELECT;;
     
