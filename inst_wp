@@ -5,9 +5,8 @@
 # To Do List:
 # -----------
 # 1) Finish Trap Purge Functions
-# 2) Set up check for WordPress already installed in target
-# 3) Set up check and adjustment for already existing database
-# 4) Will be adding additional CMSs...
+# 2) Set up check and adjustment for already existing database
+# 3) Will be adding additional CMSs...
 
 trap bashtrap INT
 
@@ -86,7 +85,7 @@ clear
 GREEN
 echo "Inst_wp script help:"
 echo
-echo "Installs WordPress in target domain/subdomain docroot"
+echo "Installs WordPressCMS in target domain/subdomain docroot"
 echo
 echo "USAGE: "
 WHITE
@@ -107,9 +106,9 @@ VERSION () {
 clear
 SEPARATOR
 GREEN
-echo " WordPress Installer"
+echo " WordPress(CMS) Installer"
 WHITE
-echo " Version: 1.0"
+echo " Version: 1.1a"
 SEPARATOR
 echo
 exit 0
@@ -119,7 +118,7 @@ LIST_ACCTS () {
 clear
 echo
 GREEN
-echo "Preparing domain list for WordPress Installation..."
+echo "Preparing domain list for WordPressCMS Installation..."
 sleep 1
 SEPARATOR
 WHITE
@@ -128,7 +127,7 @@ sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
 cat domainchoices
 SEPARATOR
 echo
-echo -n "Select Domain for WordPress Installation [q for quit]? "
+echo -n "Select Domain for WordPressCMS Installation [q for quit]? "
 read DOMAIN_CHOICE
 if [ "$DOMAIN_CHOICE" = Q ]; then
     printf "\n\n"
@@ -162,20 +161,44 @@ else
 fi
 }
 
+CHECK_EXISTING_WPINSTALL () {
+if [ -e "$TARGET_PATH"wp-config.php ]; then
+    RED
+    echo
+    echo "WARNING!"
+    echo 
+    echo "WordPress installation exists in $TARGET_PATH."
+    echo
+    echo "Please very a clean directory and run the installer again."
+    echo
+    echo "Exiting..."
+    printf "\n\n"
+    WHITE
+    exit 0
+else
+    GREEN
+    echo
+    echo "Target path confirmed for installation."
+    WHITE
+fi
+}
+
 GET_MAINDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
 TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
+CHECK_EXISTING_WPINSTALL
 }
 
 GET_SUBDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
 TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"
+CHECK_EXISTING_WPINSTALL
 }
 
 CONFIRM_INSTALL () {
 printf "\n\n"
 GREEN
-printf "Install WordPress for account "
+printf "Install WordPressCMS for account "
 WHITE
 printf "%s\n" "$TARGET_ACCT"
 GREEN
@@ -253,15 +276,15 @@ curl -k -X GET -u $API_USER:$API_PASS https://$SERVER:2087/json-api/listaccts?ap
 rm -rf rpasscheck
 }
 
-INSTALL_WPDB () {
+INSTALL_DB () {
 echo
 SEPARATOR
 GREEN
-echo Creating WordPress Database and DatabaseUser via WHM API...
+echo Creating CMS Database and DatabaseUser via WHM API...
 sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
-DB_NAME="$DB_PREFIX"_khwpdb
+DB_NAME="$DB_PREFIX"_cmsi
 DBU_NAME="$DB_NAME"u
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 
@@ -279,7 +302,7 @@ curl -sk -X GET -u $API_USER:$API_PASS "https://$SERVER:2087/json-api/cpanel?cpa
         echo 
         printf "Review the logs at"
         WHITE
-        printf " /root/support/scripts/DevelopmentScripts/Inst_wp_logs/"
+        printf " /root/support/scripts/DevelopmentScripts/Inst_cms_logs/"
         RED
         printf " for more information." 
         sleep 3 
@@ -306,7 +329,7 @@ echo
 wget https://wordpress.org/latest.tar.gz
 tar xf latest.tar.gz &&
 mv wordpress/* .
-INSTALL_WPDB
+INSTALL_DB
 cp wp-config-sample.php wp-config.php
 sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
@@ -370,10 +393,10 @@ fi
 
 FIRST_FUNCTION () {
 clear
-mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
+mkdir -p /root/support/scripts/DevelopmentScripts/Inst_cms_logs/  ## For Installer Logs
 echo
 GREEN
-printf "Enter domain for WordPress install or "
+printf "Enter domain for WordPressCMS installation or "
 WHITE
 printf "'get list'"
 GREEN
@@ -386,7 +409,7 @@ if [ "$FIRST_CHOICE" = "get list" ]; then
 else
     TARGET=FIRST_CHOICE
     CHECK_RPASS
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_cms_logs/inst_cms_log-"$(date +"%T_%m-%d-%Y")"
 fi
 }
 
@@ -397,14 +420,14 @@ else
         if [ -z "$2" ]; then
             TARGET=$1
             CHECK_RPASS
-            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
-            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_cms_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_cms_logs/inst_cms_log-"$(date +"%T_%m-%d-%Y")"
         else
             TARGET=$1
             API_PASS=$2
             RPASS_VALIDATE
-            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_wp_logs/  ## For Installer Logs
-            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_wp_logs/inst_wp_log-"$(date +"%T_%m-%d-%Y")"
+            mkdir -p /root/support/scripts/DevelopmentScripts/Inst_cms_logs/  ## For Installer Logs
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Inst_cms_logs/inst_cms_log-"$(date +"%T_%m-%d-%Y")"
         fi
     else
         case "$1" in
