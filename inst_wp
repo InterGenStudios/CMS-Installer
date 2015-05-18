@@ -4,11 +4,10 @@
 # 
 # To Do List:
 # -----------
-# 1) Add .htaccess check in primary doc root when installing in a subdomain
-# 2) Set up check and adjustment for already existing database
-# 3) Improve error checking during API calls
-# 4) Begin additional CMS functions (joomla, drupal, etc)
-# 5) Start cPanel plugin gui development
+# 1) Set up check and adjustment for already existing database
+# 2) Improve error checking during API calls
+# 3) Begin additional CMS functions (joomla, drupal, etc)
+# 4) Start cPanel plugin gui development
 
 trap bashtrap INT
 
@@ -210,13 +209,11 @@ fi
 GET_MAINDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
 TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
-CHECK_EXISTING_WPINSTALL
 }
 
 GET_SUBDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
 TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"
-CHECK_EXISTING_WPINSTALL
 }
 
 CONFIRM_INSTALL () {
@@ -346,6 +343,13 @@ echo
 
 INSTALL_WP () {
 CHECK_EXISTING_WPINSTALL
+if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
+    if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+        if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+            HTACCESS_WARN=1
+        fi
+    fi
+fi
 cd "$TARGET_PATH"
 SEPARATOR
 GREEN
@@ -382,6 +386,17 @@ WHITE
 echo " $TARGET"
 SEPARATOR
 WHITE
+if [ "$HTACCESS_WARN" = "1" ]; then
+    echo
+    RED
+    echo "WARNING!"
+    echo
+    WHITE
+    echo ".htaccess file in primary domain docroot contains rewrite rules"
+    echo
+    echo "check $TARGET URL below prior to presenting it to customer"
+    SEPARATOR
+fi
 echo
 echo "Provide your customer the following WordPress URL"
 echo 
