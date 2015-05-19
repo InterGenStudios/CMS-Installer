@@ -799,7 +799,7 @@ else
                     RPASS_VALIDATE
                     mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                     TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                elif
+                elif [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ] && [ -n "$2" ]; then
                     TARGET="$1"
                     API_PASS="$2"
                     CMS_SELECT
