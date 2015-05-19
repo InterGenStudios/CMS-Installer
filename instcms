@@ -231,7 +231,7 @@ else
         EXISTS=JOOMLA
         EXISTING_INSTALL_WARN
     else
-        if [ -e "$TARGET_PATH"COPYRIGHT.txt ] && [ "$(head -1 COPYRIGHT.txt | awk '{print $2}')" = "Drupal" ]; then
+        if [ -e "$TARGET_PATH"COPYRIGHT.txt ]; then
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
