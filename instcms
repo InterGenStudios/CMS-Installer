@@ -282,13 +282,13 @@ if echo "$OPTION1" | grep -iq "^y" ;then
             INSTALL_JM
         else
             if [ "$CMS_TARGET" = "-d" ]; then
-                printf "/n/n"
+                printf "\n\n"
                 RED
                 echo "DRUPAL installation not yet supported."
                 echo
                 echo "(exiting...)"
 		WHITE
-                printf "/n/n"
+                printf "\n\n"
                 exit 0
             fi
         fi
@@ -640,13 +640,13 @@ else
         CMS=JOOMLA
     else
         if [ "$CMS_TARGET" = "-d" ]; then
-            printf "/n/n"
+            printf "\n\n"
             RED
             echo "DRUPAL installation not yet supported."
             echo
             echo "(exiting...)"
 	    WHITE
-            printf "/n/n"
+            printf "\n\n"
             exit 0
         fi
     fi
@@ -692,13 +692,13 @@ else
                         elif [ "$CMS_TARGET" = "-j" ]; then
                             CMS=JOOMLA
                     else
-			printf "/n/n"
+			printf "\n\n"
 			RED
 			echo "DRUPAL installation not yet supported."
 			echo
 			echo "(exiting...)"
 			WHITE
-			printf "/n/n"
+			printf "\n\n"
 			exit 0
                     fi
                     TARGET="$2"
@@ -713,13 +713,13 @@ else
                         elif [ "$CMS_TARGET" = "-j" ]; then
                             CMS=JOOMLA
                     else
-                        printf "/n/n"
+                        printf "\n\n"
                         RED
                         echo "DRUPAL installation not yet supported."
                         echo
                         echo "(exiting...)"
 			WHITE
-                        printf "/n/n"
+                        printf "\n\n"
                         exit 0
                     fi
                     TARGET="$2"
