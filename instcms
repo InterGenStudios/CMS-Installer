@@ -255,7 +255,7 @@ CONFIRM_INSTALL () {
 printf "\n\n"
 GREEN
 printf "Install %s" "$CMS"
-printf "for account "
+printf " for account "
 WHITE
 printf "%s" "$TARGET_ACCT"
 GREEN
