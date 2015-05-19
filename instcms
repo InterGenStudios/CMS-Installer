@@ -6,8 +6,9 @@
 # -----------
 # 1) Set up check and adjustment for already existing database
 # 2) Improve error checking during API calls
-# 3) Add additional CMS functions (Drupal, etc)
-# 4) Start cPanel plugin gui development
+# 3) Add 'auto' get-latest for Joomla & Drupal
+# 4) Completely automate Joomla & Drupal installation
+# 5) Start cPanel plugin gui development
 
 trap bashtrap INT
 
@@ -152,7 +153,7 @@ echo " Email: <info@intergenstudios.com>"
 echo
 echo " Github: https://github.com/InterGenOS/CMS-Installer"
 echo
-echo " Version: 1.1a"
+echo " Version: 1.5"
 SEPARATOR
 echo
 exit 0
@@ -282,26 +283,19 @@ if echo "$OPTION1" | grep -iq "^y" ;then
             INSTALL_JM
         else
             if [ "$CMS_TARGET" = "-d" ]; then
-                printf "\n\n"
-                RED
-                echo "DRUPAL installation not yet supported."
-                echo
-                echo "(exiting...)"
-		WHITE
-                printf "\n\n"
-                exit 0
+                INSTALL_DR
             fi
         fi
     fi
-else
-    printf "\n\n"
-    RED
-    echo "Installation aborted..."
-    echo
-    echo "Exiting now."
-    printf "\n\n"
-    exit 0
-fi
+    else
+        printf "\n\n"
+        RED
+        echo "Installation aborted..."
+        echo
+        echo "Exiting now."
+        printf "\n\n"
+        exit 0
+    fi
 }
 
 CHECK_RPASS () {
@@ -313,7 +307,6 @@ echo -n ":"
 read API_PASS
 printf "\n\n\n"
 clear
-#RPASS_VALIDATE
 }
 
 RPASS_VALIDATE () {
@@ -323,7 +316,7 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
         echo 
         echo "The root password entered is invalid."
         echo
-	WHITE
+	    WHITE
         read -p "Would you like to enter it again [y/n]? " RETRY
             case ${RETRY:0:1} in
                 y|Y )
@@ -342,7 +335,7 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
         GREEN
         printf "\n\n"
         echo "Root password accepted."
-	WHITE
+	    WHITE
         echo
         sleep 2
     fi
@@ -543,13 +536,16 @@ Old Database    (leave default)
     **Please use or make note of this data 
     immediately- this paste will expire in 
                 120 minutes**
+                
+==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 SEPARATOR
 GREEN
-printf "Joomla has been installed for"
+printf "The %s" "$CMS"
+printf " CMS has been installed for"
 WHITE
 echo " $TARGET"
 SEPARATOR
@@ -562,7 +558,8 @@ echo "containing their database details- needed for installation"
 echo
 echo "PasteURL: $(cat tempaste)"
 printf "\n\n"
-echo "Provide your customer the following URL"
+printf "Provide your customer the following %s" "$CMS"
+printf " URL"
 echo 
 echo "so that they can finalize their installation:"
 echo
@@ -570,6 +567,95 @@ echo "http://$TARGET"
 echo
 SEPARATOR
 rm -rf jdbinfo tempaste
+exit 0
+}
+
+INSTALL_DR () {
+CHECK_EXISTING_INSTALL
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+SEPARATOR
+GREEN
+echo "Fetching Drupal Files..."
+sleep 1
+echo
+wget http://ftp.drupal.org/files/projects/drupal-7.37.tar.gz && CMS_FILES=1
+tar xf drupal-7.37.tar.gz &&
+mv drupal-7.37/* . && mv drupal-7.37/.h* . && mv drupal-7.37/.g* .
+INSTALL_DB
+cp sites/default/default.settings.php sites/default/settings.php
+mkdir -p sites/default/files && chmod 755 sites/default/files
+chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
+sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+clear
+cat > ddbinfo << "EOF"
+==============================================
+             Drupal Installation
+              'Set Up Database'
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET
+
+Database name*:      DB
+
+Database username*:  DBU
+
+Database password*:  PASS
+
+|> ADVANCED OPTIONS: (leave default)
+
+    **Please use or make note of this data 
+    immediately- this paste will expire in 
+                120 minutes**
+                
+==============================================
+EOF
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
+curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
+sed -i -e 's/view/view\/raw/' tempaste
+SEPARATOR
+GREEN
+printf "The %s" "$CMS"
+printf " CMS has been installed for"
+WHITE
+echo " $TARGET"
+SEPARATOR
+WHITE
+HT_CHECK_WARN
+echo
+echo "Provide your customer the following paste URL"
+echo
+echo "containing their database details- needed for installation"
+echo
+echo "PasteURL: $(cat tempaste)"
+printf "\n\n"
+printf "Provide your customer the following %s" "$CMS"
+printf " URL"
+echo 
+echo "so that they can finalize their installation:"
+echo
+echo "http://$TARGET"
+echo
+SEPARATOR
+rm -rf drupal-7.37/ drupal-7.37.tar.gz ddbinfo tempaste
 exit 0
 }
 
@@ -640,14 +726,7 @@ else
         CMS=JOOMLA
     else
         if [ "$CMS_TARGET" = "-d" ]; then
-            printf "\n\n"
-            RED
-            echo "DRUPAL installation not yet supported."
-            echo
-            echo "(exiting...)"
-	    WHITE
-            printf "\n\n"
-            exit 0
+            CMS=DRUPAL
         fi
     fi
 fi
@@ -689,17 +768,10 @@ else
                     CMS_TARGET="$1"
                     if [ "$CMS_TARGET" = "-w" ]; then
                         CMS=WORDPRESS
-                        elif [ "$CMS_TARGET" = "-j" ]; then
-                            CMS=JOOMLA
+                    elif [ "$CMS_TARGET" = "-j" ]; then
+                        CMS=JOOMLA
                     else
-			printf "\n\n"
-			RED
-			echo "DRUPAL installation not yet supported."
-			echo
-			echo "(exiting...)"
-			WHITE
-			printf "\n\n"
-			exit 0
+                        CMS=DRUPAL
                     fi
                     TARGET="$2"
                     CHECK_RPASS
@@ -710,17 +782,10 @@ else
                     CMS_TARGET="$1"
                     if [ "$CMS_TARGET" = "-w" ]; then
                         CMS=WORDPRESS
-                        elif [ "$CMS_TARGET" = "-j" ]; then
-                            CMS=JOOMLA
+                    elif [ "$CMS_TARGET" = "-j" ]; then
+                        CMS=JOOMLA
                     else
-                        printf "\n\n"
-                        RED
-                        echo "DRUPAL installation not yet supported."
-                        echo
-                        echo "(exiting...)"
-			WHITE
-                        printf "\n\n"
-                        exit 0
+                        CMS=DRUPAL
                     fi
                     TARGET="$2"
                     API_PASS="$3"
@@ -734,12 +799,25 @@ else
                     RPASS_VALIDATE
                     mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                     TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                else
+                elif
                     TARGET="$1"
+                    API_PASS="$2"
                     CMS_SELECT
                     RPASS_VALIDATE
                     mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
                     TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                else
+                    printf "\n\n"
+                    RED
+                    echo "INVALID OPTION ENTERED"
+                    echo
+                    sleep 1
+                    WHITE
+                    echo "Starting standard installer sequence..."
+                    sleep 1
+                    clear
+                    CMS_SELECT
+                    FIRST_FUNCTION
                 fi
             fi
         fi
