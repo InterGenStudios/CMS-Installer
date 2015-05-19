@@ -1,7 +1,7 @@
 #!/bin/bash
 # CMS-Installer - Installs choice CMS on a cPanel server
 # InterGen - 5-16-15
-# 
+#
 # To Do List:
 # -----------
 # 1) Set up check and adjustment for already existing database
@@ -147,7 +147,7 @@ BLUE
 echo " InterGenStudios"
 WHITE
 echo
-echo " Internet: https://intergenstudios.com" 
+echo " Internet: https://intergenstudios.com"
 echo
 echo " Email: <info@intergenstudios.com>"
 echo
@@ -211,8 +211,8 @@ EXISTING_INSTALL_WARN () {
 RED
 echo
 echo "WARNING!"
-echo 
-echo "$CMS installation exists in $TARGET_PATH."
+echo
+echo "$EXISTS installation exists in $TARGET_PATH."
 echo
 echo "Please clean the target directory and run the installer again."
 echo
@@ -224,12 +224,15 @@ exit 0
 
 CHECK_EXISTING_INSTALL () {
 if [ -e "$TARGET_PATH"wp-config.php ]; then
+    EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
     if [ -e "$TARGET_PATH"joomla.xml ]; then
+        EXISTS=JOOMLA
         EXISTING_INSTALL_WARN
     else
-        if [ -e "$TARGET_PATH"DRUPAL_FILE ]; then
+        if [ -e "$TARGET_PATH"COPYRIGHT.txt ] && [ "$(head -1 COPYRIGHT.txt | awk '{print $2}')" = "Drupal" ]; then
+            EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
             GREEN
@@ -310,13 +313,13 @@ clear
 }
 
 RPASS_VALIDATE () {
-curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck 
-    if [[ ! -z $(grep "error" rpasscheck) ]]; then 
+curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
+    if [[ ! -z $(grep "error" rpasscheck) ]]; then
         RED
-        echo 
+        echo
         echo "The root password entered is invalid."
         echo
-	    WHITE
+            WHITE
         read -p "Would you like to enter it again [y/n]? " RETRY
             case ${RETRY:0:1} in
                 y|Y )
@@ -335,7 +338,7 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
         GREEN
         printf "\n\n"
         echo "Root password accepted."
-	    WHITE
+            WHITE
         echo
         sleep 2
     fi
@@ -360,21 +363,21 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
 
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation 
-    if [[ ! -z $(grep "error" dbvalidation) ]]; then 
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation
+    if [[ ! -z $(grep "error" dbvalidation) ]]; then
         RED
-        printf "\n\n" 
-        echo "cPanel API call errors reported." 
-        echo 
+        printf "\n\n"
+        echo "cPanel API call errors reported."
+        echo
         printf "Review the logs at"
         WHITE
         printf " /root/support/scripts/DevelopmentScripts/Inst_cms_logs/"
         RED
-        printf " for more information." 
-        sleep 3 
-    else 
+        printf " for more information."
+        sleep 3
+    else
         printf "\n\n"
-        GREEN 
+        GREEN
         echo "ALL WHM API calls completed successfully."
         sleep 2
     fi
@@ -452,7 +455,7 @@ WHITE
 HT_CHECK_WARN
 echo
 echo "Provide your customer the following WordPress URL"
-echo 
+echo
 echo "so that they can finalize their installation:"
 echo
 echo "http://$TARGET"
@@ -480,7 +483,7 @@ if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
     echo "Exiting..."
     sleep 3
     exit 0
-fi 
+fi
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
 SEPARATOR
@@ -533,10 +536,10 @@ Table Prefix*:  (leave default)
 Old Database    (leave default)
     Process*
 
-    **Please use or make note of this data 
-    immediately- this paste will expire in 
+    **Please use or make note of this data
+    immediately- this paste will expire in
                 120 minutes**
-                
+
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
@@ -560,7 +563,7 @@ echo "PasteURL: $(cat tempaste)"
 printf "\n\n"
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
-echo 
+echo
 echo "so that they can finalize their installation:"
 echo
 echo "http://$TARGET"
@@ -621,10 +624,10 @@ Database password*:  PASS
 
 |> ADVANCED OPTIONS: (leave default)
 
-    **Please use or make note of this data 
-    immediately- this paste will expire in 
+    **Please use or make note of this data
+    immediately- this paste will expire in
                 120 minutes**
-                
+
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
@@ -648,7 +651,7 @@ echo "PasteURL: $(cat tempaste)"
 printf "\n\n"
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
-echo 
+echo
 echo "so that they can finalize their installation:"
 echo
 echo "http://$TARGET"
@@ -693,7 +696,7 @@ echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
     case "$CMS_CHOICE" in
-        
+
         1) CMS_TARGET="-w"
            FIRST_FUNCTION;;
         2) CMS_TARGET="-j"
@@ -703,13 +706,13 @@ read CMS_CHOICE
         *) RED
            echo
            echo "Invalid selection."
-           echo 
+           echo
            echo "Please enter the number of the CMS to install"
            sleep 2
            WHITE
            clear
            CMS_SELECT;;
-    
+
     esac
 }
 
