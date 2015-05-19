@@ -4,11 +4,18 @@
 #
 # To Do List:
 # -----------
-# 1) Set up check and adjustment for already existing database
-# 2) Improve error checking during API calls
-# 3) Add 'auto' get-latest for Joomla & Drupal
+# !) Add 'backup & remove' if installation exists
+# 2) Set up check and adjustment for already existing database
+# 3) Improve error checking during API calls
 # 4) Completely automate Joomla & Drupal installation
 # 5) Start cPanel plugin gui development
+
+WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
+JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
+DR_CV=7.37="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
+
+
+
 
 trap bashtrap INT
 
@@ -124,9 +131,9 @@ GREEN
 echo "CMS:"
 echo
 WHITE
-echo "-w: install WordPress"
-echo "-j: install Joomla"
-echo "-d: install Drupal"
+echo "-w: install WordPress Version $WP_CV"
+echo "-j: install Joomla Version $JM_CV"
+echo "-d: install Drupal Version $DR_CV"
 printf "\n\n"
 exit 0
 }
@@ -447,7 +454,8 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 SEPARATOR
 GREEN
-printf "WordPress has been installed for"
+printf "WordPress %s" "$WP_CV"
+printf " has been installed for"
 WHITE
 echo " $TARGET"
 SEPARATOR
@@ -490,9 +498,9 @@ SEPARATOR
 GREEN
 echo "Fetching Joomla Files..."
 echo
-wget https://github.com/joomla/joomla-cms/releases/download/3.4.1/Joomla_3.4.1-Stable-Full_Package.zip && CMS_FILES=1
-unzip Joomla_3.4.1-Stable-Full_Package.zip &&
-rm -rf Joomla_3.4.1-Stable-Full_Package.zip
+wget https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
+unzip Joomla_"$JM_CV"-Stable-Full_Package.zip &&
+rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
@@ -514,7 +522,7 @@ INSTALL_DB
 clear
 cat > jdbinfo << "EOF"
 ==============================================
-             Joomla Installation
+          Joomla JM_CV Installation
               Step (2) Database
             Configuration Details
 
@@ -542,13 +550,14 @@ Old Database    (leave default)
 
 ==============================================
 EOF
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 SEPARATOR
 GREEN
 printf "The %s" "$CMS"
-printf " CMS has been installed for"
+printf " CMS Version %s" "$JM_CV"
+printf " has been installed for"
 WHITE
 echo " $TARGET"
 SEPARATOR
@@ -582,9 +591,9 @@ GREEN
 echo "Fetching Drupal Files..."
 sleep 1
 echo
-wget http://ftp.drupal.org/files/projects/drupal-7.37.tar.gz && CMS_FILES=1
-tar xf drupal-7.37.tar.gz &&
-mv drupal-7.37/* . && mv drupal-7.37/.h* . && mv drupal-7.37/.g* .
+wget http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
+tar xf drupal-"$DR_CV".tar.gz &&
+mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
 cp sites/default/default.settings.php sites/default/settings.php
 mkdir -p sites/default/files && chmod 755 sites/default/files
@@ -609,7 +618,7 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
 clear
 cat > ddbinfo << "EOF"
 ==============================================
-             Drupal Installation
+           Drupal DR_CV Installation
               'Set Up Database'
             Configuration Details
 
@@ -630,13 +639,14 @@ Database password*:  PASS
 
 ==============================================
 EOF
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 SEPARATOR
 GREEN
 printf "The %s" "$CMS"
-printf " CMS has been installed for"
+printf " CMS Version %s" "$DR_CV"
+printf " has been installed for"
 WHITE
 echo " $TARGET"
 SEPARATOR
@@ -657,7 +667,7 @@ echo
 echo "http://$TARGET"
 echo
 SEPARATOR
-rm -rf drupal-7.37/ drupal-7.37.tar.gz ddbinfo tempaste
+rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
 exit 0
 }
 
@@ -689,9 +699,9 @@ GREEN
 echo "Which CMS will be installed?"
 echo
 WHITE
-echo "1) WordPress"
-echo "2) Joomla"
-echo "3) Drupal"
+echo "1) WordPress $WP_CV"
+echo "2) Joomla $JM_CV"
+echo "3) Drupal $DR_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
