@@ -115,17 +115,17 @@ echo "-------"
 echo "Options:"
 echo
 WHITE
-echo "--help: print this screen and exit"
-echo "--list: list accounts available for installation"
-echo "--version: show the current installer version and exit"
+echo "-h: print this screen and exit"
+echo "-l: list accounts available for installation"
+echo "-v: show the current installer version and exit"
 echo
 GREEN
 echo "CMS:"
 echo
 WHITE
-echo "--wp: install WordPress"
-echo "--jm: install Joomla"
-echo "--dr: install Drupal"
+echo "-w: install WordPress"
+echo "-j: install Joomla"
+echo "-d: install Drupal"
 printf "\n\n"
 exit 0
 }
@@ -262,7 +262,7 @@ printf " in the "
 WHITE
 printf "%s" "$TARGET"
 GREEN
-if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
     printf " domain, is that correct "
 else
     printf " subdomain, is that correct "
@@ -275,13 +275,13 @@ OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
 stty "$old_stty_cfg"
 if echo "$OPTION1" | grep -iq "^y" ;then
     printf "\n\n"
-    if [ "$CMS_TARGET" = "WP" ]; then
+    if [ "$CMS_TARGET" = "-w" ]; then
         INSTALL_WP
     else
-        if [ "$CMS_TARGET" = "JM" ]; then
+        if [ "$CMS_TARGET" = "-j" ]; then
             INSTALL_JM
         else
-            if [ "$CMS_TARGET" = "DR" ]; then
+            if [ "$CMS_TARGET" = "-d" ]; then
                 INSTALL_DR
             fi
         fi
@@ -602,11 +602,11 @@ echo -n "[enter selection]: "
 read CMS_CHOICE
     case "$CMS_CHOICE" in
         
-        1) CMS_TARGET=WP
+        1) CMS_TARGET="-w"
            FIRST_FUNCTION;;
-        2) CMS_TARGET=JM
+        2) CMS_TARGET="-j"
            FIRST_FUNCTION;;
-        3) CMS_TARGET=DR
+        3) CMS_TARGET="-d"
            FIRST_FUNCTION;;
         *) RED
            echo
@@ -626,13 +626,13 @@ clear
 mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
 echo
 GREEN
-if [ "$CMS_TARGET" = "WP" ]; then
+if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
 else
-    if [ "$CMS_TARGET" = "JM" ]; then
+    if [ "$CMS_TARGET" = "-j" ]; then
         CMS=JOOMLA
     else
-        if [ "$CMS_TARGET" = "DR" ]; then
+        if [ "$CMS_TARGET" = "-d" ]; then
             CMS=DRUPAL
         fi
     fi
@@ -659,70 +659,62 @@ fi
 if [ -z "$1" ]; then
     CMS_SELECT
 else
-    case "$1" in
-    
-        --help) HELPTEXT;;
-        --list) LIST_ACCTS;;
-        --version) VERSION;;
-        --word) CMS_TARGET=WP &
-            if [ -z "$2" ]; then
-                FIRST_FUNCTION
+    if [ "$1" = "-h" ]; then
+        HELPTEXT
+    else
+        if [ "$1" = "-l" ]; then
+            LIST_ACCTS
+        else
+            if [ "$1" = "-v" ]; then
+                VERSION
             else
-                if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                    if [ -z "$3" ]; then
-                        TARGET=$2
-                        CHECK_RPASS
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                if [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ] && [ -z "$2" ]; then
+                    CMS_TARGET="$1"
+                    FIRST_FUNCTION
+                elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ] && [ "$2" = "$(grep "$2" /etc/userdomains | cut -d ':' -f 1)" ] && [ -z "$3" ]; then
+                    CMS_TARGET="$1"
+                    if [ "$CMS_TARGET" = "-w" ]; then
+                        CMS=WORDPRESS
+                        elif [ "$CMS_TARGET" = "-j" ]; then
+                            CMS=JOOMLA
                     else
-                        TARGET=$2
-                        API_PASS=$3
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                        CMS=DRUPAL
                     fi
-                fi
-            fi;;
-        --drup) CMS_TARGET=DR &
-            if [ -z "$2" ]; then
-                FIRST_FUNCTION
-            else
-                if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                    if [ -z "$3" ]; then
-                        TARGET=$2
-                        CHECK_RPASS
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                    TARGET="$2"
+                    CHECK_RPASS
+                    RPASS_VALIDATE
+                    mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ] && [ "$2" = "$(grep "$2" /etc/userdomains | cut -d ':' -f 1)" ] && [ -n "$3" ]; then
+                    CMS_TARGET="$1"
+                    if [ "$CMS_TARGET" = "-w" ]; then
+                        CMS=WORDPRESS
+                        elif [ "$CMS_TARGET" = "-j" ]; then
+                            CMS=JOOMLA
                     else
-                        TARGET=$2
-                        API_PASS=$3
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                        CMS=DRUPAL
                     fi
+                    TARGET="$2"
+                    API_PASS="$3"
+                    RPASS_VALIDATE
+                    mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                elif [ "$1" = "$(grep "$1" /etc/userdomains | cut -d ':' -f 1)" ] && [ -z "$2" ]; then
+                    TARGET="$1"
+                    CMS_SELECT
+                    CHECK_RPASS
+                    RPASS_VALIDATE
+                    mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+                else
+                    TARGET="$1"
+                    CMS_SELECT
+                    RPASS_VALIDATE
+                    mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+                    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
                 fi
-            fi;;
-        --joom) CMS_TARGET=JM &
-            if [ -z "$2" ]; then
-                FIRST_FUNCTION
-            else
-                if [ "$2" = "$(grep \""$1\"" /etc/userdomains | cut -d ':' -f 1)" ]; then
-                    if [ -z "$3" ]; then
-                        TARGET=$2
-                        CHECK_RPASS
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                    else
-                        TARGET=$2
-                        API_PASS=$3
-                        RPASS_VALIDATE
-                        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-                        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
-                    fi
-                fi
-            fi;;
-    esac
+            fi
+        fi
+    fi
 fi
+exit 0
