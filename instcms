@@ -282,7 +282,14 @@ if echo "$OPTION1" | grep -iq "^y" ;then
             INSTALL_JM
         else
             if [ "$CMS_TARGET" = "-d" ]; then
-                INSTALL_DR
+                printf "/n/n"
+                RED
+                echo "DRUPAL installation not yet supported."
+                echo
+                echo "(exiting...)
+		WHITE
+                printf "/n/n"
+                exit 0
             fi
         fi
     fi
@@ -633,7 +640,14 @@ else
         CMS=JOOMLA
     else
         if [ "$CMS_TARGET" = "-d" ]; then
-            CMS=DRUPAL
+            printf "/n/n"
+            RED
+            echo "DRUPAL installation not yet supported."
+            echo
+            echo "(exiting...)
+	    WHITE
+            printf "/n/n"
+            exit 0
         fi
     fi
 fi
@@ -678,7 +692,14 @@ else
                         elif [ "$CMS_TARGET" = "-j" ]; then
                             CMS=JOOMLA
                     else
-                        CMS=DRUPAL
+			printf "/n/n"
+			RED
+			echo "DRUPAL installation not yet supported."
+			echo
+			echo "(exiting...)
+			WHITE
+			printf "/n/n"
+			exit 0
                     fi
                     TARGET="$2"
                     CHECK_RPASS
@@ -692,7 +713,14 @@ else
                         elif [ "$CMS_TARGET" = "-j" ]; then
                             CMS=JOOMLA
                     else
-                        CMS=DRUPAL
+                        printf "/n/n"
+                        RED
+                        echo "DRUPAL installation not yet supported."
+                        echo
+                        echo "(exiting...)
+			WHITE
+                        printf "/n/n"
+                        exit 0
                     fi
                     TARGET="$2"
                     API_PASS="$3"
