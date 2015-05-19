@@ -586,7 +586,6 @@ INSTALL_DB
 cp sites/default/default.settings.php sites/default/settings.php
 mkdir -p sites/default/files && chmod 755 sites/default/files
 chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
-sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
@@ -629,7 +628,7 @@ Database password*:  PASS
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
-curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
+curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 SEPARATOR
 GREEN
