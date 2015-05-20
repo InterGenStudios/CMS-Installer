@@ -457,9 +457,10 @@ cd "$TARGET_PATH"
 clear
 HEADER
 GREEN
-echo "Fetching WordPress Files..."
+echo "Fetching WordPress files..."
 echo
 wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
+echo "Moving WordPress files into place..."
 tar xf latest.tar.gz &&
 mv wordpress/* .
 INSTALL_DB
@@ -530,10 +531,11 @@ cd "$TARGET_PATH"
 clear
 HEADER
 GREEN
-echo "Fetching Joomla Files..."
+echo "Fetching Joomla files..."
 echo
 wget https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
-unzip Joomla_"$JM_CV"-Stable-Full_Package.zip &&
+echo "Moving Joomla files into place..."
+unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
@@ -587,7 +589,6 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
-clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
@@ -624,10 +625,10 @@ cd "$TARGET_PATH"
 clear
 HEADER
 GREEN
-echo "Fetching Drupal Files..."
-sleep 1
+echo "Fetching Drupal files..."
 echo
 wget http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
+echo "Moving Drupal files into place..."
 tar xf drupal-"$DR_CV".tar.gz &&
 mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
@@ -678,7 +679,6 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
-clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
