@@ -23,6 +23,7 @@ DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d
 trap bashtrap INT
 
 bashtrap () {
+    SEPARATOR
     RED
     printf "\n\n"
     echo "CTRL+C detected in terminal... halting installation..."
@@ -30,17 +31,16 @@ bashtrap () {
     echo "Removing CMS Installation Files..."
     echo
     PURGE_INSTALL_FILES
-    sleep 1
-    RED
     echo "Removing CMS Database and User..."
     echo
     PURGE_DATABASE
     PURGE_DATABASE_USER
-    sleep 1
     WHITE
     echo "Installation removed, exiting..."
-    sleep 1
     echo
+    printf "\n\n"
+    SEPARATOR
+    printf "\n\n\n\n\n"
     exit 0
 }
 
@@ -57,10 +57,10 @@ if [ "$CMS_FILES" = "1" ]; then
     cd "$TARGET_PATH"
         if [ -d "cgi-bin" ]; then
             mv cgi-bin/ ../
-            rm -rf ./*
+            rm -rf ./* && rm -rf ./.??*
             mv ../cgi-bin/ .
         else
-            rm -rf ./*
+            rm -rf ./* && rm -rf ./.??*
         fi
 fi
 }
@@ -113,8 +113,21 @@ echo
 WHITE
 }
 
+HEADER () {
+echo
+GREEN
+echo -n "============================================================="
+WHITE
+echo "     CMS-INSTALLER v.$vers"
+GREEN
+echo -n "============================================================="
+WHITE
+printf "\n\n\n"
+}
+
 HELPTEXT () {
 clear
+HEADER
 GREEN
 echo "CMS-Installer help:"
 echo
@@ -122,7 +135,7 @@ echo "Installs choice CMS in target domain/subdomain docroot"
 echo
 echo "USAGE: "
 WHITE
-echo "instcms [options]  -or-  instcms [cms] [domain_name] [rootpass]"
+echo "instcms {[options],[domain_name],[cms]} / [cms] [domain_name] / [cms] [domain_name] [rootpass]"
 GREEN
 echo "-------"
 echo "Options:"
@@ -144,6 +157,7 @@ exit 0
 }
 
 VERSION () {
+vers=1.8
 clear
 SEPARATOR
 if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
@@ -165,7 +179,7 @@ echo " Email: <info@intergenstudios.com>"
 echo
 echo " Github: https://github.com/InterGenOS/CMS-Installer"
 echo
-echo " Version: 1.5"
+echo " Version: $vers"
 SEPARATOR
 echo
 exit 0
@@ -173,7 +187,7 @@ exit 0
 
 LIST_ACCTS () {
 clear
-echo
+HEADER
 GREEN
 echo "Preparing domain list for CMS Installation..."
 sleep 1
@@ -222,8 +236,9 @@ fi
 }
 
 EXISTING_INSTALL_WARN () {
+clear
+HEADER
 RED
-echo
 echo "WARNING!"
 echo
 echo "$EXISTS installation exists in $TARGET_PATH."
@@ -249,8 +264,9 @@ else
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
+            clear
+            HEADER
             GREEN
-            echo
             echo "Target path confirmed for installation."
             WHITE
         fi
@@ -269,7 +285,8 @@ TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Docu
 }
 
 CONFIRM_INSTALL () {
-printf "\n\n"
+clear
+HEADER
 GREEN
 printf "Install %s" "$CMS"
 printf " for account "
@@ -306,6 +323,8 @@ if echo "$OPTION1" | grep -iq "^y" ;then
     fi
     else
         printf "\n\n"
+        clear
+        HEADER
         RED
         echo "Installation aborted..."
         echo
@@ -316,7 +335,8 @@ if echo "$OPTION1" | grep -iq "^y" ;then
 }
 
 CHECK_RPASS () {
-printf "\n\n\n"
+clear
+HEADER
 GREEN
 printf "Please enter your server's root password"
 WHITE
@@ -329,11 +349,13 @@ clear
 RPASS_VALIDATE () {
 curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
     if [[ ! -z $(grep "error" rpasscheck) ]]; then
+        clear
+        HEADER
         RED
         echo
         echo "The root password entered is invalid."
         echo
-            WHITE
+        WHITE
         read -p "Would you like to enter it again [y/n]? " RETRY
             case ${RETRY:0:1} in
                 y|Y )
@@ -349,10 +371,11 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
                     printf "\n\n";;
             esac
     else
+        clear
+        HEADER
         GREEN
-        printf "\n\n"
         echo "Root password accepted."
-            WHITE
+        WHITE
         echo
         sleep 2
     fi
@@ -360,8 +383,8 @@ rm -rf rpasscheck
 }
 
 INSTALL_DB () {
-echo
-SEPARATOR
+clear
+HEADER
 GREEN
 echo Creating CMS Database and DatabaseUser via WHM API...
 sleep 2
@@ -370,7 +393,7 @@ DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
 DB_NAME="$DB_PREFIX"_cmsi
 DBU_NAME="$DB_NAME"u
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-
+WHITE
 curl -sk -X GET -u "$API_USER":"$API_PASS" 
 "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" 
 && CMS_DB=1
@@ -386,6 +409,8 @@ curl -sk -X GET -u "$API_USER":"$API_PASS"
 "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" 
 > dbvalidation
     if [[ ! -z $(grep "error" dbvalidation) ]]; then
+        clear
+        HEADER
         RED
         printf "\n\n"
         echo "cPanel API call errors reported."
@@ -397,7 +422,8 @@ curl -sk -X GET -u "$API_USER":"$API_PASS"
         printf " for more information."
         sleep 3
     else
-        printf "\n\n"
+        clear
+        HEADER
         GREEN
         echo "ALL WHM API calls completed successfully."
         sleep 2
@@ -422,7 +448,8 @@ fi
 
 HT_CHECK_WARN () {
 if [ "$HTACCESS_WARN" = "1" ]; then
-    echo
+    clear
+    HEADER
     RED
     echo "WARNING!"
     echo
@@ -438,7 +465,8 @@ INSTALL_WP () {
 CHECK_EXISTING_INSTALL
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
-SEPARATOR
+clear
+HEADER
 GREEN
 echo "Fetching WordPress Files..."
 echo
@@ -466,7 +494,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
 clear
-SEPARATOR
+HEADER
 GREEN
 printf "WordPress %s" "$WP_CV"
 printf " has been installed for"
@@ -490,6 +518,8 @@ exit 0
 INSTALL_JM () {
 CHECK_EXISTING_INSTALL
 if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
+    clear
+    HEADER
     RED
     echo
     echo "WARNING!"
@@ -508,7 +538,8 @@ if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
 fi
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
-SEPARATOR
+clear
+HEADER
 GREEN
 echo "Fetching Joomla Files..."
 echo
@@ -567,7 +598,8 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
-SEPARATOR
+clear
+HEADER
 GREEN
 printf "The %s" "$CMS"
 printf " CMS Version %s" "$JM_CV"
@@ -580,10 +612,10 @@ HT_CHECK_WARN
 echo
 echo "Provide your customer the following paste URL"
 echo
-echo "containing their database details- needed for installation"
+echo "containing their database details needed for installation"
 echo
 echo "PasteURL: $(cat tempaste)"
-printf "\n\n"
+printf "\n\n\n\n"
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
 echo
@@ -600,7 +632,8 @@ INSTALL_DR () {
 CHECK_EXISTING_INSTALL
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
-SEPARATOR
+clear
+HEADER
 GREEN
 echo "Fetching Drupal Files..."
 sleep 1
@@ -656,7 +689,8 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
-SEPARATOR
+clear
+HEADER
 GREEN
 printf "The %s" "$CMS"
 printf " CMS Version %s" "$DR_CV"
@@ -672,7 +706,7 @@ echo
 echo "containing their database details- needed for installation"
 echo
 echo "PasteURL: $(cat tempaste)"
-printf "\n\n"
+printf "\n\n\n\n"
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
 echo
@@ -688,7 +722,8 @@ exit 0
 TARGET_CHECK () {
 if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
     if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
-        SEPARATOR
+        clear
+        HEADER
         RED
         echo "That isn't a valid domain/subdomain on this server."
         echo
@@ -709,6 +744,7 @@ fi
 
 CMS_SELECT_2 () {
 clear
+HEADER
 GREEN
 echo "Which CMS will be installed?"
 echo
@@ -739,6 +775,7 @@ read CMS_CHOICE
 
 CMS_SELECT () {
 clear
+HEADER
 GREEN
 echo "Which CMS will be installed?"
 echo
@@ -786,8 +823,8 @@ fi
 
 FIRST_FUNCTION () {
 clear
+HEADER
 mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-echo
 GREEN
 if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
