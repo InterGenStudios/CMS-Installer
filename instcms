@@ -442,7 +442,7 @@ if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     RED
     echo "----------------------------------------------------------------"
     YELLOW
-    printf "          >>>>>>>>>>>>>>> "
+    printf "         >>>>>>>>>>>>>>>  "
     RED
     printf "WARNING!"
     YELLOW
@@ -618,7 +618,7 @@ GREEN
 printf "==>  "
 WHITE
 printf "%s" "$(cat tempaste)"
-echo
+printf "\n\n"
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
 echo "and advise them to finalize their installation:"
@@ -712,7 +712,7 @@ GREEN
 printf "==>  "
 WHITE
 printf "%s" "$(cat tempaste)"
-echo
+printf "\n\n"
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
 echo "and advise them to finalize their installation:"
