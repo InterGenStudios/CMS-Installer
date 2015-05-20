@@ -29,19 +29,19 @@ bashtrap () {
     echo "Removing CMS Installation Files..."
     echo
     PURGE_INSTALL_FILES
-    sleep 1
     RED
     echo "Removing CMS Database and User..."
     echo
     PURGE_DATABASE
     PURGE_DATABASE_USER
-    sleep 1
     WHITE
     echo "Installation removed, exiting..."
-    printf "\n\n"
+    echo
+    RED
     echo -n "======================================================"
+    WHITE
+    printf "\n\n\n\n\n"
     sleep 1
-    printf "\n\n"
     exit 0
 }
 
@@ -247,29 +247,36 @@ else
             rm -rf domainlist domainchoices
             CHECK_RPASS
             RPASS_VALIDATE
-	    if [ "$CMS_TARGET" = "-w" ] || [ "$CMS_TARGET" = "-j" ] || [ "$CMS_TARGET" = "-d" ]; then
+            if [ "$CMS_TARGET" = "-w" ] || [ "$CMS_TARGET" = "-j" ] || [ "$CMS_TARGET" = "-d" ]; then
                 TARGET_CHECK
-	    else
-		CMS_SELECT_2
-            	TARGET_CHECK
-	    fi
+            else
+                CMS_SELECT_2
+                TARGET_CHECK
+            fi
         fi
     fi
 fi
 }
 
 EXISTING_INSTALL_WARN () {
+clear
 RED
-echo
+echo -n "======================================================"
+printf "\n\n"
 echo "WARNING!"
 echo
 echo "$EXISTS installation exists in $TARGET_PATH."
 echo
 echo "Please clean the target directory and run the installer again."
 echo
-echo "Exiting..."
-printf "\n\n"
 WHITE
+echo "Exiting..."
+RED
+echo
+echo -n "======================================================"
+WHITE
+printf "\n\n\n\n\n"
+sleep 1
 exit 0
 }
 
@@ -470,20 +477,8 @@ if [ "$HTACCESS_WARN" = "1" ]; then
 fi
 }
 
-INSTALL_WP () {
-CHECK_EXISTING_INSTALL
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-SEPARATOR
-GREEN
-echo "Fetching WordPress Files..."
-echo
-wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
-tar xf latest.tar.gz &&
-mv wordpress/* .
-INSTALL_DB
-cp wp-config-sample.php wp-config.php
-sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+TIDY_INSTALL_FILES () {
+chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
@@ -501,6 +496,23 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
+}
+
+INSTALL_WP () {
+CHECK_EXISTING_INSTALL
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+SEPARATOR
+GREEN
+echo "Fetching WordPress Files..."
+echo
+wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
+tar xf latest.tar.gz &&
+mv wordpress/* .
+INSTALL_DB
+cp wp-config-sample.php wp-config.php
+sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+TIDY_INSTALL_FILES
 clear
 SEPARATOR
 GREEN
@@ -552,23 +564,7 @@ wget https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM
 unzip Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
-        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
-        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
-        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
-        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-    else
-        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        done
-    fi
-/usr/local/cpanel/scripts/restartsrv_httpd
+TIDY_INSTALL_FILES
 clear
 cat > jdbinfo << "EOF"
 ==============================================
@@ -647,24 +643,7 @@ mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
 cp sites/default/default.settings.php sites/default/settings.php
 mkdir -p sites/default/files && chmod 755 sites/default/files
-chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
-        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
-        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
-        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
-        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-    else
-        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        done
-    fi
-/usr/local/cpanel/scripts/restartsrv_httpd
+TIDY_INSTALL_FILES
 clear
 cat > ddbinfo << "EOF"
 ==============================================
