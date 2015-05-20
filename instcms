@@ -13,7 +13,7 @@
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
 JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
-
+vers=1.8
 
 
 
@@ -113,13 +113,13 @@ WHITE
 HEADER () {
 echo
 GREEN
-echo -n "=============================================================\n"
+echo "============================================================="
 WHITE
 echo "     CMS-INSTALLER v.$vers"
 GREEN
-echo -n "=============================================================\n"
+echo "============================================================="
 WHITE
-printf "\n\n\n"
+printf "\n\n\n\n"
 }
 
 HELPTEXT () {
@@ -154,7 +154,6 @@ exit 0
 }
 
 VERSION () {
-vers=1.8
 clear
 SEPARATOR
 if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
