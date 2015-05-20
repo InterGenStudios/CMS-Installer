@@ -446,7 +446,10 @@ if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     RED
     printf "WARNING!"
     YELLOW
-    printf " <<<<<<<<<<<<<<<<<"
+    printf " <<<<<<<<<<<<<<<<<\n"
+    RED
+    echo "----------------------------------------------------------------"
+    YELLOW
     echo
     echo ".htaccess file in primary domain docroot contains rewrite rules!"
     WHITE
@@ -607,20 +610,21 @@ printf " CMS Version %s" "$JM_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
+echo
 WHITE
 HT_CHECK_WARN
 echo
 echo "Provide the Database Info URL to your customer"
-YELLOW
+GREEN
 echo "(needed for finalizing installation)"
 echo
-GREEN
 printf "==>  "
 WHITE
 printf "%s" "$(cat tempaste)"
 printf "\n\n"
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
+printf "\n"
 echo "and advise them to finalize their installation:"
 echo
 GREEN
@@ -701,20 +705,21 @@ printf " CMS Version %s" "$JM_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
+echo
 WHITE
 HT_CHECK_WARN
 echo
 echo "Provide the Database Info URL to your customer"
-YELLOW
+GREEN
 echo "(needed for finalizing installation)"
 echo
-GREEN
 printf "==>  "
 WHITE
 printf "%s" "$(cat tempaste)"
 printf "\n\n"
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
+printf "\n"
 echo "and advise them to finalize their installation:"
 echo
 GREEN
