@@ -240,6 +240,7 @@ fi
 EXISTING_INSTALL_WARN () {
 clear
 HEADER
+SEPARATOR
 RED
 echo "WARNING!"
 echo
@@ -248,6 +249,7 @@ echo
 echo "Please clean the target directory and run the installer again."
 echo
 echo "Exiting..."
+SEPARATOR
 printf "\n\n"
 WHITE
 exit 0
@@ -388,6 +390,7 @@ clear
 HEADER
 GREEN
 echo Creating CMS Database and DatabaseUser via WHM API...
+echo
 sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
