@@ -442,16 +442,19 @@ if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     RED
     echo "----------------------------------------------------------------"
     YELLOW
-    printf "       >>>>>>>>>>>>>>> "
+    printf "          >>>>>>>>>>>>>>> "
     RED
     printf "WARNING!"
-    YELLOW " <<<<<<<<<<<<<<<<<"
+    YELLOW
+    printf " <<<<<<<<<<<<<<<<<"
     echo
     echo ".htaccess file in primary domain docroot contains rewrite rules!"
     WHITE
     echo
     echo "check http://$TARGET prior to presenting it to customer"
+    RED
     echo "----------------------------------------------------------------"
+    WHITE
 fi
 }
 
