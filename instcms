@@ -249,11 +249,36 @@ echo
 echo "Please clean the target directory and run the installer again."
 echo
 echo "Exiting..."
+echo
 SEPARATOR
 printf "\n\n"
 WHITE
 exit 0
 }
+
+CHECK_EXISTING_DATA () {
+FILE=""
+DIR="$TARGET_PATH"
+
+if [ "$(ls -A $DIR | grep -v cgi)" ]; then
+     clear
+     HEADER
+     SEPARATOR
+     RED
+     echo "WARNING!"
+     echo
+     echo "Data exists in $TARGET_PATH."
+     echo
+     echo "Please clean the target directory and run the installer again."
+     echo
+     echo "Exiting..."
+     echo
+     SEPARATOR
+     printf "\n\n"
+     WHITE
+fi
+}
+
 
 CHECK_EXISTING_INSTALL () {
 if [ -e "$TARGET_PATH"wp-config.php ]; then
@@ -472,6 +497,7 @@ fi
 
 INSTALL_WP () {
 CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
 clear
@@ -530,6 +556,7 @@ exit 0
 
 INSTALL_JM () {
 CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
 if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
     clear
     HEADER
@@ -648,6 +675,7 @@ exit 0
 
 INSTALL_DR () {
 CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
 clear
