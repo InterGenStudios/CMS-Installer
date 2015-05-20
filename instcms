@@ -20,6 +20,8 @@ vers=1.9
 trap bashtrap INT
 
 bashtrap () {
+    clear
+    HEADER
     SEPARATOR
     RED
     printf "\n\n"
@@ -223,9 +225,13 @@ else
             rm -rf domainlist domainchoices
             CHECK_RPASS
             RPASS_VALIDATE
-	        CMS_SELECT_2
-	        CONVERT_CMS_TARGET
-            TARGET_CHECK
+            if [ ! -n "$CMS_TARGET" ]; then 
+	            CMS_SELECT_2
+	            CONVERT_CMS_TARGET
+                TARGET_CHECK
+            else
+                TARGET_CHECK
+            fi
         fi
     fi
 fi
@@ -502,6 +508,7 @@ printf "WordPress %s" "$WP_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
+echo
 WHITE
 HT_CHECK_WARN
 echo
@@ -801,10 +808,13 @@ read CMS_CHOICE
     case "$CMS_CHOICE" in
 
         1) CMS_TARGET="-w"
+           CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         2) CMS_TARGET="-j"
+           CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         3) CMS_TARGET="-d"
+           CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         *) RED
            echo
