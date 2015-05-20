@@ -440,15 +440,18 @@ fi
 HT_CHECK_WARN () {
 if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     RED
-    echo
-    echo "WARNING!"
-    echo
+    echo "----------------------------------------------------------------"
     YELLOW
+    printf "       >>>>>>>>>>>>>>> "
+    RED
+    printf "WARNING!"
+    YELLOW " <<<<<<<<<<<<<<<<<"
+    echo
     echo ".htaccess file in primary domain docroot contains rewrite rules!"
     WHITE
     echo
-    echo "check the $TARGET URL below prior to presenting it to customer"
-    echo
+    echo "check http://$TARGET prior to presenting it to customer"
+    echo "----------------------------------------------------------------"
 fi
 }
 
@@ -496,11 +499,14 @@ echo " $TARGET"
 WHITE
 HT_CHECK_WARN
 echo
-echo "Provide your customer the following WordPress URL"
+echo "Provide the following URL to your customer"
 echo
-echo "so that they can finalize their installation:"
+echo "so they can finalize their installation:"
 echo
-echo "http://$TARGET"
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"
 printf "\n\n\n"
 rm -rf wordpress/ latest.tar.gz
 exit 0
@@ -604,8 +610,11 @@ echo
 echo "Provide the Database Info URL to your customer"
 YELLOW
 echo "(needed for finalizing installation)"
+echo
+GREEN
+printf "==>  "
 WHITE
-echo "PasteURL:  $(cat tempaste)"
+printf "%s" "$(cat tempaste)"
 echo
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
@@ -695,8 +704,11 @@ echo
 echo "Provide the Database Info URL to your customer"
 YELLOW
 echo "(needed for finalizing installation)"
+echo
+GREEN
+printf "==>  "
 WHITE
-echo "PasteURL:  $(cat tempaste)"
+printf "%s" "$(cat tempaste)"
 echo
 printf "Provide the following %s" "$CMS"
 printf " URL to your customer"
