@@ -20,6 +20,7 @@ DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d
 trap bashtrap INT
 
 bashtrap () {
+    clear
     RED
     printf "\n\n"
     echo "CTRL+C detected in terminal... halting installation..."
