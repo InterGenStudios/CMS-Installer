@@ -348,7 +348,6 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
         clear
         HEADER
         RED
-        echo
         echo "The root password entered is invalid."
         printf "\n\n\n"
         WHITE
@@ -440,17 +439,16 @@ fi
 
 HT_CHECK_WARN () {
 if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
-    SEPARATOR
     RED
     echo
     echo "WARNING!"
     echo
-    echo ".htaccess file in primary domain docroot contains rewrite rules"
+    YELLOW
+    echo ".htaccess file in primary domain docroot contains rewrite rules!"
     WHITE
     echo
     echo "check the $TARGET URL below prior to presenting it to customer"
     echo
-    SEPARATOR
 fi
 }
 
@@ -465,7 +463,7 @@ echo "Fetching WordPress files..."
 echo
 wget -q https://wordpress.org/latest.tar.gz && CMS_FILES=1
 echo "Moving WordPress files into place..."
-sleep 1
+sleep 2
 tar xf latest.tar.gz &&
 mv wordpress/* .
 INSTALL_DB
@@ -495,8 +493,6 @@ printf "WordPress %s" "$WP_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
-echo
-SEPARATOR
 WHITE
 HT_CHECK_WARN
 echo
@@ -505,8 +501,7 @@ echo
 echo "so that they can finalize their installation:"
 echo
 echo "http://$TARGET"
-echo
-SEPARATOR
+printf "\n\n\n"
 rm -rf wordpress/ latest.tar.gz
 exit 0
 }
@@ -603,27 +598,24 @@ printf " CMS Version %s" "$JM_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
-echo
-SEPARATOR
 WHITE
 HT_CHECK_WARN
 echo
-echo "Provide your customer the following paste URL"
+echo "Provide the Database Info URL to your customer"
+YELLOW
+echo "(needed for finalizing installation)"
+WHITE
+echo "PasteURL:  $(cat tempaste)"
 echo
-echo "containing their database details needed for installation"
+printf "Provide the following %s" "$CMS"
+printf " URL to your customer"
+echo "and advise them to finalize their installation:"
 echo
-echo "PasteURL: $(cat tempaste)"
-echo
-SEPARATOR
-echo
-printf "Provide your customer the following %s" "$CMS"
-printf " URL"
-echo
-echo "so that they can finalize their installation:"
-echo
-echo "http://$TARGET"
-echo
-SEPARATOR
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"
+printf "\n\n\n"
 rm -rf jdbinfo tempaste
 exit 0
 }
@@ -693,30 +685,28 @@ sed -i -e 's/view/view\/raw/' tempaste
 HEADER
 GREEN
 printf "The %s" "$CMS"
-printf " CMS Version %s" "$DR_CV"
+printf " CMS Version %s" "$JM_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
-SEPARATOR
 WHITE
 HT_CHECK_WARN
 echo
-echo "Provide your customer the following paste URL"
+echo "Provide the Database Info URL to your customer"
+YELLOW
+echo "(needed for finalizing installation)"
+WHITE
+echo "PasteURL:  $(cat tempaste)"
 echo
-echo "containing their database details needed for installation"
+printf "Provide the following %s" "$CMS"
+printf " URL to your customer"
+echo "and advise them to finalize their installation:"
 echo
-echo "PasteURL: $(cat tempaste)"
-echo
-SEPARATOR
-echo
-printf "Provide your customer the following %s" "$CMS"
-printf " URL"
-echo
-echo "so that they can finalize their installation:"
-echo
-echo "http://$TARGET"
-echo
-SEPARATOR
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"
+printf "\n\n\n"
 rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
 exit 0
 }
