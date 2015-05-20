@@ -13,7 +13,7 @@
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
 JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
-vers=1.8
+vers=1.9
 
 
 
@@ -105,7 +105,7 @@ tput sgr0
 SEPARATOR () {
 echo
 BLUE
-echo "========================================================="
+echo "============================================================================"
 echo
 WHITE
 }
@@ -113,11 +113,11 @@ WHITE
 HEADER () {
 echo
 GREEN
-echo "============================================================="
+echo "============================================================================"
 WHITE
-echo "     CMS-INSTALLER v.$vers"
+echo "  CMS-INSTALLER v.$vers"
 GREEN
-echo "============================================================="
+echo "============================================================================"
 WHITE
 printf "\n\n\n\n"
 }
@@ -350,7 +350,7 @@ curl -k -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listac
         RED
         echo
         echo "The root password entered is invalid."
-        echo
+        printf "\n\n\n"
         WHITE
         read -p "Would you like to enter it again [y/n]? " RETRY
             case ${RETRY:0:1} in
@@ -386,11 +386,11 @@ echo Creating CMS Database and DatabaseUser via WHM API...
 sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
-DB_NAME="$DB_PREFIX"_cmsi
+DB_NAME="$DB_PREFIX"_cmsi &&
 if [ "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")" = "$DB_NAME" ]; then
     DB_NAME="$DB_NAME"1
 fi
-DBU_NAME="$DB_NAME"u
+DBU_NAME="$DB_NAME"u &&
 if [ "$(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME")" = "$DBU_NAME" ]; then
     DBU_NAME="$DBU_NAME"1
 fi
@@ -424,34 +424,32 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         sleep 2
     fi
 rm -rf dbvalidation
-echo
-clear
-SEPARATOR
-GREEN
-echo
 }
 
 SUBDOMAIN_HT_CHECK () {
 if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
     if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
         if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess) ]]; then
-            HTACCESS_WARN=1
+            HTACCESS_WARN=YES
+        else
+            HTACCESS_WARN=NO
         fi
     fi
 fi
 }
 
 HT_CHECK_WARN () {
-if [ "$HTACCESS_WARN" = "1" ]; then
-    clear
-    HEADER
+if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
+    SEPARATOR
     RED
+    echo
     echo "WARNING!"
     echo
-    WHITE
     echo ".htaccess file in primary domain docroot contains rewrite rules"
+    WHITE
     echo
-    echo "check $TARGET URL below prior to presenting it to customer"
+    echo "check the $TARGET URL below prior to presenting it to customer"
+    echo
     SEPARATOR
 fi
 }
@@ -465,8 +463,9 @@ HEADER
 GREEN
 echo "Fetching WordPress files..."
 echo
-wget https://wordpress.org/latest.tar.gz && CMS_FILES=1
+wget -q https://wordpress.org/latest.tar.gz && CMS_FILES=1
 echo "Moving WordPress files into place..."
+sleep 1
 tar xf latest.tar.gz &&
 mv wordpress/* .
 INSTALL_DB
@@ -496,6 +495,7 @@ printf "WordPress %s" "$WP_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
+echo
 SEPARATOR
 WHITE
 HT_CHECK_WARN
@@ -541,6 +541,7 @@ echo "Fetching Joomla files..."
 echo
 wget https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
 echo "Moving Joomla files into place..."
+sleep 1
 unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
@@ -602,6 +603,7 @@ printf " CMS Version %s" "$JM_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
+echo
 SEPARATOR
 WHITE
 HT_CHECK_WARN
@@ -611,7 +613,9 @@ echo
 echo "containing their database details needed for installation"
 echo
 echo "PasteURL: $(cat tempaste)"
-printf "\n\n\n\n"
+echo
+SEPARATOR
+echo
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
 echo
@@ -633,8 +637,9 @@ HEADER
 GREEN
 echo "Fetching Drupal files..."
 echo
-wget http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
+wget -q http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
 echo "Moving Drupal files into place..."
+sleep 1
 tar xf drupal-"$DR_CV".tar.gz &&
 mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
@@ -698,10 +703,12 @@ HT_CHECK_WARN
 echo
 echo "Provide your customer the following paste URL"
 echo
-echo "containing their database details- needed for installation"
+echo "containing their database details needed for installation"
 echo
 echo "PasteURL: $(cat tempaste)"
-printf "\n\n\n\n"
+echo
+SEPARATOR
+echo
 printf "Provide your customer the following %s" "$CMS"
 printf " URL"
 echo
