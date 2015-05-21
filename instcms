@@ -348,8 +348,8 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
         WHITE
         echo "(this may take a moment)"
         sleep 1
-        tar zcf "$TARGET_ACCT"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET_ACCT"_backup.tar.gz /root/support/ &&
+        tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
+        mv "$TARGET"_backup.tar.gz /root/support/ &&
         echo
         clear
         HEADER
