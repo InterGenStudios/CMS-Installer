@@ -282,15 +282,15 @@ fi
 
 
 CHECK_EXISTING_INSTALL () {
-if [ -e "$TARGET_PATH"wp-config.php ]; then
+if [ ! -z $(grep -irm 1 wordpress $TARGET_PATH) ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
-    if [ -e "$TARGET_PATH"joomla.xml ]; then
+    if [ ! -z $(grep -irm 1 joomla $TARGET_PATH) ]; then
         EXISTS=JOOMLA
         EXISTING_INSTALL_WARN
     else
-        if [ -e "$TARGET_PATH"COPYRIGHT.txt ]; then
+        if [ ! -z $(grep -irm 1 drupal $TARGET_PATH) ]; then
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
@@ -432,12 +432,12 @@ DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 WHITE
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" && CMS_DB=1
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" && CMS_DBU=1
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbvalidation && CMS_DBU=1
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES"
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbuvalidation
 
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbvalidation
-    if [[ ! -z $(grep "error" dbvalidation) ]]; then
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
+    if [[ ! -z $(grep "error" dbvalidation) ]] || [[ ! -z $(grep "error" dbuvalidation) ]] || [[ ! -z $(grep "error" dbivalidation) ]]; then
         clear
         HEADER
         RED
@@ -450,11 +450,12 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         printf " for more information."
         printf "\n\n"
         WHITE
-        echo "Purging any database/user creations"
+        echo "Purging any database/user installations"
         PURGE_DATABASE
         PURGE_DATABASE_USER
         echo
         echo "Exiting..."
+        rm -rf *validation
         exit 0
     else
         clear
@@ -463,7 +464,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         echo "ALL WHM API calls completed successfully."
         sleep 2
     fi
-rm -rf dbvalidation
+rm -rf *validation
 }
 
 SUBDOMAIN_HT_CHECK () {
@@ -590,7 +591,7 @@ HEADER
 GREEN
 echo "Fetching Joomla files..."
 echo
-wget https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
+wget -q https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
 echo "Moving Joomla files into place..."
 sleep 1
 unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
