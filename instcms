@@ -282,15 +282,15 @@ fi
 
 
 CHECK_EXISTING_INSTALL () {
-if [ ! -z $(grep -irm 1 wordpress $TARGET_PATH | head -1) ]; then
+if [ -n $(grep -ir -m 1 wordpress $TARGET_PATH | head -1) ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
-    if [ ! -z $(grep -irm 1 joomla $TARGET_PATH) ]; then
+    if [ -n $(grep -ir -m 1 joomla $TARGET_PATH) ]; then
         EXISTS=JOOMLA
         EXISTING_INSTALL_WARN
     else
-        if [ ! -z $(grep -irm 1 drupal $TARGET_PATH) ]; then
+        if [ -n $(grep -irm 1 drupal $TARGET_PATH) ]; then
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
