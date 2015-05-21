@@ -925,6 +925,8 @@ elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
         TARGET="$1"
         CMS_SELECT_2
         CONVERT_CMS_TARGET
+        CHECK_RPASS
+        RPASS_VALIDATE
         mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
         TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
     else
