@@ -251,7 +251,7 @@ WHITE
 printf ", and run the\n"
 echo -n "installer again? "
 read backup
-    case "$backup" in
+    case "${backup:0:1}" in
         
         y|Y ) 
             clear
@@ -281,7 +281,7 @@ read backup
                 CONFIRM_INSTALL
             fi
             ;;
-        n|N )
+        * )
             clear
             HEADER
             WHITE
@@ -292,14 +292,6 @@ read backup
             printf "\n\n\"
             exit 0
             ;;
-        *)
-            echo
-            RED
-            echo "INVALID OPTION GIVEN"
-            echo "Only 'y' or 'n' will be accepted."
-            sleep 2
-            clear
-            BACKUP_OPTION
     esac
 }
 
