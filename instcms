@@ -262,13 +262,13 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     WHITE
     echo "(this may take a moment)"
     if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
-        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
+        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     else
         if [ "$(echo $EXISTS)" = "DRUPAL" ]; then
-            mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
+            mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
         else
             if [ "$(echo $EXISTS)" = "JOOMLA" ]; then
-                mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
+                mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
             fi
         fi
     fi
