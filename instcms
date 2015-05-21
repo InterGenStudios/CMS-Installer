@@ -282,7 +282,7 @@ fi
 
 
 CHECK_EXISTING_INSTALL () {
-if [ ! -z $(grep -irm 1 wordpress $TARGET_PATH) ]; then
+if [ ! -z $(grep -irm 1 wordpress $TARGET_PATH | head -1) ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
