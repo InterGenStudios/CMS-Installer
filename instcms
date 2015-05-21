@@ -411,7 +411,7 @@ TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
 
 GET_SUBDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
-TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"
+TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"/
 }
 
 CONFIRM_INSTALL () {
