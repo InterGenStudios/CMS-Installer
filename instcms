@@ -440,7 +440,6 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         clear
         HEADER
         RED
-        printf "\n\n"
         echo "cPanel API call errors reported."
         echo
         printf "Review the logs at"
@@ -448,7 +447,14 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         printf " /root/support/scripts/DevelopmentScripts/Inst_cms_logs/"
         RED
         printf " for more information."
-        sleep 3
+        printf "\n\n"
+        WHITE
+        echo "Purging any database/user creations"
+        PURGE_DATABASE
+        PURGE_DATABASE_USER
+        echo
+        echo "Exiting..."
+        exit 0
     else
         clear
         HEADER
