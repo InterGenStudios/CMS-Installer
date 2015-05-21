@@ -317,22 +317,65 @@ FILE=""
 DIR="$TARGET_PATH"
 
 if [ "$(ls -A $DIR | grep -v cgi)" ]; then
-     clear
-     HEADER
-     SEPARATOR
-     RED
-     echo "WARNING!"
-     echo
-     echo "Data exists in $TARGET_PATH."
-     echo
-     echo "Please clean the target directory and run the installer again."
-     echo
-     echo "Exiting..."
-     echo
-     SEPARATOR
-     printf "\n\n"
-     WHITE
-     exit 0
+    clear
+    HEADER
+    SEPARATOR
+    RED
+    echo "WARNING!"
+    echo
+    echo "Data exists in $TARGET_PATH."
+    echo
+    WHITE
+    echo "Would you like to make a backup of"
+    echo
+    GREEN
+    echo "$TARGET_PATH"
+    echo
+    WHITE
+    echo "move it to "
+    echo
+    BLUE
+    echo "/root/support/"
+    echo
+    WHITE
+    echo -n "and run the installer again [y/N]? " 
+    read BACKUP
+    if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
+        clear
+        HEADER
+        GREEN
+        echo "Backing up $TARGET_PATH..."
+        WHITE
+        echo "(this may take a moment)"
+        sleep 1
+        tar zcf "$TARGET_ACCT"_backup.tar.gz "$TARGET_PATH" &&
+        mv "$TARGET_ACCT"_backup.tar.gz /root/support/ &&
+        echo
+        clear
+        HEADER
+        GREEN
+        echo "Backup of the data in $TARGET_PATH complete."
+        echo
+        echo "Clearing $TARGET_PATH for new installation..."
+        rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
+        mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
+        echo 
+        echo "$TARGET_PATH cleared."
+        echo
+        echo "Restarting installer..."
+        sleep 2
+        CONFIRM_INSTALL
+    else
+        clear
+        HEADER
+        WHITE
+        echo "Without backing up and moving the current data in"
+        echo "$TARGET_PATH the installer cannot continue."
+        echo 
+        echo "Exiting..."
+        echo
+        exit 0
+    fi
 fi
 }
 
