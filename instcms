@@ -517,10 +517,28 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
 
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
     if [ -n "$(grep "error" dbvalidation)" ]; then
+        RED
+        echo
+        echo "dbvalidation error reported"
+        echo
+        cat dbvalidation
+        sleep 1
         INSTALL_DB_ERROR
     elif [ -n "$(grep "error" dbuvalidation)" ]; then
+        RED
+        echo
+        echo "dbuvalidation error reported"
+        echo
+        cat dbuvalidation
+        sleep 1
         INSTALL_DB_ERROR
     elif [ -n "$(grep "error" dbivalidation)" ]; then
+        RED
+        echo
+        echo "dbivalidation error reported"
+        echo
+        cat dbivalidation
+        sleep 1
         INSTALL_DB_ERROR
     else
         clear
