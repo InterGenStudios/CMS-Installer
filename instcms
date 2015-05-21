@@ -282,7 +282,7 @@ fi
 
 
 CHECK_EXISTING_INSTALL () {
-if [ -n $(grep -ir -m 1 wordpress $TARGET_PATH | head -1) ]; then
+if [ -e $TARGET_PATH/wp* ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
@@ -298,6 +298,7 @@ else
             HEADER
             GREEN
             echo "Target path confirmed for installation."
+            sleep 1
             WHITE
         fi
     fi
