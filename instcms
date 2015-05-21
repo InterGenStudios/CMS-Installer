@@ -237,6 +237,63 @@ else
 fi
 }
 
+BACKUP_OPTION () {
+echo
+WHITE
+printf "Would you like to make a backup of the "
+GREEN
+printf "%s" "$TARGET_PATH\n"
+WHITE
+printf "directory, move it to "
+BLUE
+printf "/root/support"
+WHITE
+printf "and run the\n"
+echo -n "installer again?"
+old_stty_cfg=$(stty -g)
+stty raw -echo
+backup=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+stty $old_stty_cfg
+if echo "$backup" | grep -iq "^y" ;then
+    clear
+    HEADER
+    GREEN
+    echo "Backing up $TARGET_PATH..."
+    WHITE
+    echo "(this may take a moment)
+    if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
+        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
+        tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
+        mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/ &&
+        echo
+        clear
+        HEADER
+        GREEN
+        echo "Backup of the $EXISTS installation in $TARGET_PATH complete."
+        echo
+        echo "Clearing $TARGET_PATH for new installation..."
+        rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
+        echo 
+        echo "$TARGET_PATH cleared."
+        echo
+        echo "Restarting installer..."
+        sleep 2
+        unset EXISTS
+        CONFIRM_INSTALL
+    fi
+else
+    clear
+    HEADER
+    WHITE
+    echo "Without backing up and moving the current data in"
+    echo "$TARGET_PATH, the installer cannot continue."
+    echo 
+    echo "Exiting..."
+    printf "\n\n\"
+    exit 0
+fi
+}
+
 EXISTING_INSTALL_WARN () {
 clear
 HEADER
@@ -246,14 +303,7 @@ echo "WARNING!"
 echo
 echo "$EXISTS installation exists in $TARGET_PATH."
 echo
-echo "Please clean the target directory and run the installer again."
-echo
-echo "Exiting..."
-echo
-SEPARATOR
-printf "\n\n"
-WHITE
-exit 0
+BACKUP_OPTION
 }
 
 CHECK_EXISTING_DATA () {
