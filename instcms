@@ -246,9 +246,9 @@ printf "%s\n" "$TARGET_PATH"
 WHITE
 printf "directory, move it to "
 BLUE
-printf "/root/support"
+printf "/root/support/"
 WHITE
-printf "and run the\n"
+printf ", and run the\n"
 echo -n "installer again? "
 read backup
     case "$backup" in
@@ -259,7 +259,7 @@ read backup
             GREEN
             echo "Backing up $TARGET_PATH..."
             WHITE
-            echo "(this may take a moment)
+            echo "(this may take a moment)"
             if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
                 mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
                 tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
