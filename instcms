@@ -261,7 +261,6 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     echo "Backing up $TARGET_PATH..."
     WHITE
     echo "(this may take a moment)"
-    sleep 1
     if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
     mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
     tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
@@ -271,17 +270,10 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     HEADER
     GREEN
     echo "Backup of the $EXISTS installation in $TARGET_PATH complete."
-    sleep 1
     echo
     echo "Clearing $TARGET_PATH for new installation..."
-    sleep 1
-    if [[ "$(echo $(find $TARGET_PATH -type d -name 'cgi-bin | cut -d '/' -f 2))" == "cgi-bin" ]]; then
-        mv "$TARGET_PATH"cgi-bin ../
-        rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
-        mv /home/"$TARGET_ACCT"/cgi-bin "$TARGET_PATH"
-    else
-        rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
-    fi
+    rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
+    mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
     echo 
     echo "$TARGET_PATH cleared."
     echo
@@ -515,7 +507,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         PURGE_DATABASE_USER
         echo
         echo "Exiting..."
-        rm -rf *validation
+        rm -rf ./*validation
         exit 0
     else
         clear
@@ -524,7 +516,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         echo "ALL WHM API calls completed successfully."
         sleep 2
     fi
-rm -rf *validation
+rm -rf ./*validation
 }
 
 SUBDOMAIN_HT_CHECK () {
