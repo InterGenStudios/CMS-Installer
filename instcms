@@ -53,30 +53,27 @@ CMS_DBU=0
 PURGE_INSTALL_FILES () {
 WHITE
 if [ "$CMS_FILES" = "1" ]; then
-    cd "$TARGET_PATH"
-        if [ -d "cgi-bin" ]; then
-            mv cgi-bin/ ../
+        if [ -d "$TARGET_PATH"cgi-bin ]; then
+            mv "$TARGET_PATH"cgi-bin ../
             rm -rf ./* && rm -rf ./.??*
-            mv ../cgi-bin/ .
+            mv /home/"$TARGET_ACCT"/cgi-bin "$TARGET_PATH"
         else
-            rm -rf ./* && rm -rf ./.??*
+            rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??*
         fi
 fi
 }
 
 PURGE_DATABASE () {
 WHITE
-if [ "$CMS_DB" = "1" ]; then
-    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?    
-cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
+if [ "$(echo $CMS_DB)" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?    cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
 fi
 }
 
 PURGE_DATABASE_USER () {
 WHITE
-if [ "$CMS_DBU" = "1" ]; then
-    curl -sk -X GET -u "$API_USER":"$API_PASS" 
-"https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
+if [ "$(echo $CMS_DBU)" = "1" ]; then
+    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
 fi
 }
 
@@ -341,15 +338,15 @@ fi
 
 
 CHECK_EXISTING_INSTALL () {
-if [ -n "$(grep -ir -m 1 wordpress "$TARGET_PATH" | head -1)" ]; then
+if [ -f "$TARGET_PATH"wp-config.php ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
 else
-    if [ -n "$(grep -ir -m 1 joomla $TARGET_PATH)" ]; then
+    if [ -f "$TARGET_PATH"configuration.php ]; then
         EXISTS=JOOMLA
         EXISTING_INSTALL_WARN
     else
-        if [ -n "$(grep -irm 1 drupal $TARGET_PATH)" ]; then
+        if [ -f "$TARGET_PATH"sites/default/settings.php ]; then
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
@@ -503,11 +500,11 @@ sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
 DB_NAME="$DB_PREFIX"_cmsi &&
-if [ "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")" = "$DB_NAME" ]; then
+if [ "$(echo $(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME"))" = "$DB_NAME" ]; then
     DB_NAME="$DB_NAME"1
 fi
 DBU_NAME="$DB_NAME"u &&
-if [ "$(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME")" = "$DBU_NAME" ]; then
+if [ "$(echo $(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME"))" = "$DBU_NAME" ]; then
     DBU_NAME="$DBU_NAME"1
 fi
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
