@@ -499,11 +499,11 @@ echo
 sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
-DB_NAME="$DB_PREFIX"_cmsi &&
+DB_NAME="$DB_PREFIX"_"$(date +%s | sha256sum | base64 | head -c 10)" &&
 if [ "$(echo $(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME"))" = "$DB_NAME" ]; then
     DB_NAME="$DB_NAME"1
 fi
-DBU_NAME="$DB_NAME"u &&
+DBU_NAME="$DB_PREFIX"_"$(date +%s | sha256sum | base64 | head -c 10)" &&
 if [ "$(echo $(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME"))" = "$DBU_NAME" ]; then
     DBU_NAME="$DBU_NAME"1
 fi
