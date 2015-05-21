@@ -240,13 +240,13 @@ fi
 BACKUP_OPTION () {
 echo
 WHITE
-echo "Would you like to make a backup of the "
+echo "Would you like to make a backup of"
 echo
 GREEN
 echo "$TARGET_PATH"
 echo
 WHITE
-echo "directory, move it to "
+echo "move it to "
 echo
 BLUE
 echo "/root/support/"
@@ -261,17 +261,20 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     echo "Backing up $TARGET_PATH..."
     WHITE
     echo "(this may take a moment)"
+    sleep 1
     if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
     mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql &&
-    tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
+    tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz -C "$TARGET_PATH" &&
     mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/ &&
     echo
     clear
     HEADER
     GREEN
     echo "Backup of the $EXISTS installation in $TARGET_PATH complete."
+    sleep 1
     echo
     echo "Clearing $TARGET_PATH for new installation..."
+    sleep 1
     rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
     echo 
     echo "$TARGET_PATH cleared."
