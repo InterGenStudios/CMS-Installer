@@ -276,6 +276,7 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
      SEPARATOR
      printf "\n\n"
      WHITE
+     exit 0
 fi
 }
 
