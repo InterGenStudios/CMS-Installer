@@ -319,9 +319,13 @@ DIR="$TARGET_PATH"
 if [ "$(ls -A $DIR | grep -v cgi)" ]; then
     clear
     HEADER
-    SEPARATOR
+    YELLOW
+    echo "--------"
     RED
     echo "WARNING!"
+    YELLOW
+    echo "--------"
+    RED
     echo
     echo "Data exists in $TARGET_PATH."
     echo
