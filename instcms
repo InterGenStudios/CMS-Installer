@@ -13,7 +13,7 @@
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
 JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
-vers=1.9
+vers=2.1
 
 
 
@@ -246,7 +246,7 @@ WHITE
 echo "move it to "
 echo
 BLUE
-echo "/root/support/"
+echo "/root/support/scripts/CMS-Installer_backups/"
 echo
 WHITE
 echo -n "and run the installer again [y/N]? " 
@@ -256,6 +256,7 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     HEADER
     GREEN
     echo "Backing up $TARGET_PATH..."
+    mkdir -p /root/support/scripts/CMS-Installer_backups
     WHITE
     echo "(this may take a moment)"
     if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
@@ -270,7 +271,7 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
         fi
     fi
     tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
-    mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/ &&
+    mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
     echo
     clear
     HEADER
@@ -303,9 +304,13 @@ else
 EXISTING_INSTALL_WARN () {
 clear
 HEADER
-SEPARATOR
+YELLOW
+echo "--------"
 RED
 echo "WARNING!"
+YELLOW
+echo "--------"
+RED
 echo
 echo "$EXISTS installation exists in $TARGET_PATH."
 echo
@@ -339,7 +344,7 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
     echo "move it to "
     echo
     BLUE
-    echo "/root/support/"
+    echo "/root/support/scripts/CMS-Installer_backups/"
     echo
     WHITE
     echo -n "and run the installer again [y/N]? " 
@@ -352,8 +357,9 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
         WHITE
         echo "(this may take a moment)"
         sleep 1
+        mkdir -p /root/support/scripts/CMS-Installer_backups
         tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET"_backup.tar.gz /root/support/ &&
+        mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
@@ -523,7 +529,7 @@ echo "cPanel API call errors reported."
 echo
 printf "Review the logs at"
 WHITE
-printf " /root/support/scripts/DevelopmentScripts/Inst_cms_logs/"
+printf " /root/support/scripts/CMS-Installer_logs/"
 RED
 printf " for more information."
 printf "\n\n"
@@ -1015,7 +1021,7 @@ fi
 FIRST_FUNCTION () {
 clear
 HEADER
-mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
+mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
 GREEN
 if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
@@ -1038,12 +1044,12 @@ WHITE
 echo -n ": "
 read FIRST_CHOICE
 if [ "$FIRST_CHOICE" = "get list" ]; then
-    LIST_ACCTS 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
 else
     TARGET=FIRST_CHOICE
     CHECK_RPASS
     RPASS_VALIDATE
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
 fi
 }
 
@@ -1065,8 +1071,8 @@ elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
         CONVERT_CMS_TARGET
         CHECK_RPASS
         RPASS_VALIDATE
-        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
     else
         RED
         echo
@@ -1091,8 +1097,8 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
         fi
         CHECK_RPASS
         RPASS_VALIDATE
-        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
     else 
         API_PASS="$2"
         if [ "$CMS_TARGET" = "-w" ]; then
@@ -1104,8 +1110,8 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
         fi
         RPASS_VALIDATE
         LIST_ACCTS
-        mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
     fi
 elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
     CMS_TARGET="$1"
@@ -1119,8 +1125,8 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
         CMS=DRUPAL
     fi
     RPASS_VALIDATE
-    mkdir -p /root/support/scripts/DevelopmentScripts/Instcms_logs/  ## For Installer Logs
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/DevelopmentScripts/Instcms_logs/instcms_log-"$(date +"%T_%m-%d-%Y")"
+    mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
 else
     printf "\n\n"
     RED
