@@ -729,7 +729,6 @@ echo "Fetching Joomla files..."
 echo
 wget -q https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
 echo "Moving Joomla files into place..."
-sleep 1
 unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
@@ -750,7 +749,6 @@ INSTALL_DB
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-clear
 cat > jdbinfo << "EOF"
 ==============================================
           Joomla JM_CV Installation
@@ -784,6 +782,7 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
+clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
@@ -829,7 +828,6 @@ echo "Fetching Drupal files..."
 echo
 wget -q http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
 echo "Moving Drupal files into place..."
-sleep 1
 tar xf drupal-"$DR_CV".tar.gz &&
 mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
@@ -853,7 +851,6 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-clear
 cat > ddbinfo << "EOF"
 ==============================================
            Drupal DR_CV Installation
@@ -880,6 +877,7 @@ EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
+clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
