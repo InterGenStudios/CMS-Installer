@@ -782,7 +782,7 @@ Old Database    (leave default)
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
-curl -s -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
+curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 HEADER
 GREEN
@@ -878,7 +878,7 @@ Database password*:  PASS
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
-curl -s -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
+curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 HEADER
 GREEN
