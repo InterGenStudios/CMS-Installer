@@ -66,7 +66,7 @@ fi
 PURGE_DATABASE () {
 WHITE
 if [ "$(echo $CMS_DB)" = "1" ]; then
-    curl -# -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
+    curl -# -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/jsonapi/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
 fi
 }
 
@@ -782,7 +782,7 @@ Old Database    (leave default)
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
-curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
+curl -# -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 HEADER
 GREEN
@@ -878,7 +878,7 @@ Database password*:  PASS
 ==============================================
 EOF
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
-curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
+curl -# -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo http://nobits.ml/api/create > tempaste
 sed -i -e 's/view/view\/raw/' tempaste
 HEADER
 GREEN
