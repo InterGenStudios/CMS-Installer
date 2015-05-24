@@ -914,8 +914,8 @@ exit 0
 }
 
 TARGET_CHECK () {
-if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
-    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+    if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then
         clear
         HEADER
         RED
