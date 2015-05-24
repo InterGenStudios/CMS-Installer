@@ -4,11 +4,51 @@
 #
 # To Do List:
 # -----------
-# !) Add 'backup & remove' if installation exists
-# 2) Set up check and adjustment for already existing database
-# 3) Improve error checking during API calls
-# 4) Completely automate Joomla & Drupal installation
-# 5) Start cPanel plugin gui development
+# 1) Start cPanel plugin gui development
+#
+#===========  Variable Usage  ==============#
+#--------- Begin Variables List ------------#
+#
+#1 - Initially as arguments for routing, then during checks throughout
+#2 - Initially as arguments for routing, then during checks throughout
+#3 - Initially as arguments for routing, then during checks throughout
+#API_PASS - Hold root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+#API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+#BACKUP - Holds choice y/n in BACKUP_OPTION ()
+#CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
+#CMS_CHOICE
+#CMS_DB
+#CMS_DBU
+#CMS_FILES
+#CMS_TARGET
+#DB_NAME
+#DB_PREFIX
+#DBU_NAME
+#DBU_PASS
+#DIR
+#DOMAIN_CHOICE
+#DR_CV - Holds current Drupal release # -
+#EXISTS
+#expire
+#FILE
+#FIRST_CHOICE
+#HTACCESS_WARN
+#JM_CV - Holds current Joomla release # - 
+#name
+#NC
+#OPTION1
+#RETRY
+#SERVER - Holds server IP -
+#SUBDOMAIN
+#TARGET - Holds name of target Domain/Subdomain -
+#TARGET_ACCT - Holds target cPanel account name - 
+#TARGET_PATH - Holds target web docroot -
+#TARGET_TYPE
+#vers - Holds CMS-Installer version number - used in HELPTEXT (), HEADER ()
+#WP_CV - Holds current WordPress release # - 
+#
+#----------- End Variables List -------------#
+#============================================#
 
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
 JM_CV="$(curl -sA "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
@@ -1138,3 +1178,5 @@ else
     CMS_SELECT
     FIRST_FUNCTION
 fi 
+#unset CMS_TARGET TARGET API_PASS CMS 1 2 3 FIRST_CHOICE CMS_CHOICE WP_CV JM_CV DR_CV TARGET_TYPE name expire TARGET_ACCT SUBDOMAIN CMS_FILES TARGET_PATH DBU_NAME DB_NAME DBU_PASS HTACCESS_WARN API_USER SERVER CMS_DB DB_PREFIX RETRY OPTION1 EXISTS BACKUP DIR FILE DOMAIN_CHOICE NC vers CMS_DBU
+#exit 0
