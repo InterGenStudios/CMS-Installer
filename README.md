@@ -7,12 +7,7 @@
 ```
 
 - To do list:
-  1) Finish trap purge functions - done
-  2) Add .htaccess check in main docroot with subdomain target - done
-  3) Set up check and adjustment for already existing database
-  4) Improve error checking during API calls
-  5) Begin additional CMS functions (joomla, drupal, etc) - joomla complete
-  6) Start cPanel plugin gui development
+  1) Start cPanel Plugin GUI Development
   
 ```
 
