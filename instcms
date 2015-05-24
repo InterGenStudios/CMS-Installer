@@ -1046,7 +1046,7 @@ read FIRST_CHOICE
 if [ "$FIRST_CHOICE" = "get list" ]; then
     LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
 else
-    TARGET=FIRST_CHOICE
+    TARGET=$FIRST_CHOICE
     CHECK_RPASS
     RPASS_VALIDATE
     TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
