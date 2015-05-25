@@ -1,59 +1,81 @@
 #!/bin/bash
-# CMS-Installer - Installs choice CMS on a cPanel server
-# InterGen - 5-16-15
-#
-# To Do List:
-# -----------
+# -------------------------------------------------------
+# CMS-Installer:   Installs choice CMS on a cPanel server
+# CMS-Installer Version:   2.1
+# URL: http://cms-installer.ml
+# Github: https://github.com/InterGenOS/CMS-Installer
+# ---------------------------------------------------
+# InterGenStudios:   5-16-15 
+# Copyright (c) 2015:   Christopher 'InterGen' Cork   InterGenStudios
+# URL: https://intergenstudios.com
+# --------------------------------
+# License: GPL-2.0+
+# URL: http://opensource.org/licenses/gpl-license.php
+# ---------------------------------------------------
+# CMS-Installer is free software:
+# You may redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, either version 2 of the License, or (at your discretion)
+# any later version.
+# ------------------
+
+#-------------#
+# To Do List: #
+#-------------#
 # 1) Start cPanel plugin gui development
-#
-#===========  Variable Usage  ==============#
-#--------- Begin Variables List ------------#
-#
-#1 - Initially as arguments for routing, then during checks throughout
-#2 - Initially as arguments for routing, then during checks throughout
-#3 - Initially as arguments for routing, then during checks throughout
-#API_PASS - Holds root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
-#API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
-#BACKUP - Holds choice y/n in BACKUP_OPTION ()
-#CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
-#CMS_CHOICE - Holds number ID of target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
-#CMS_DB - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
-#CMS_DBU - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
-#CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-#CMS_TARGET - Holds target CMS argument/choice flag, Used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in initial script
-#DB_NAME - Holds name of database created with API calls, Used in PURGE_DATABASE (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-#DB_PREFIX
-#DBU_NAME
-#DBU_PASS
-#DIR
-#DOMAIN_CHOICE
-#DR_CV - Holds current Drupal release # -
-#EXISTS
-#expire
-#FILE
-#FIRST_CHOICE
-#HTACCESS_WARN
-#JM_CV - Holds current Joomla release # - 
-#name
-#NC
-#OPTION1
-#RETRY
-#SERVER - Holds server IP -
-#SUBDOMAIN
-#TARGET - Holds name of target Domain/Subdomain -
-#TARGET_ACCT - Holds target cPanel account name - 
-#TARGET_PATH - Holds target web docroot -
-#TARGET_TYPE
-#vers - Holds CMS-Installer version number - used in HELPTEXT (), HEADER ()
-#WP_CV - Holds current WordPress release # - 
-#
-#----------- End Variables List -------------#
-#============================================#
+#  )
+#  )
+
+#------------------------------#
+# BEGIN VARIABLE DOCUMENTATION #
+#------------------------------#
+
+# 1 - Initially as arguments for routing, then during checks throughout
+# 2 - Initially as arguments for routing, then during checks throughout
+# 3 - Initially as arguments for routing, then during checks throughout
+# API_PASS - Holds root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+# API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+# BACKUP - Holds choice y/n in BACKUP_OPTION ()
+# CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
+# CMS_CHOICE - Holds number ID of target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
+# CMS_DB - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+# CMS_DBU - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+# CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# CMS_TARGET - Holds target CMS argument/choice flag, Used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in initial script
+# DB_NAME - Holds name of database created with API calls, Used in PURGE_DATABASE (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# DB_PREFIX
+# DBU_NAME
+# DBU_PASS
+# DIR
+# DOMAIN_CHOICE
+# DR_CV - Holds current Drupal release # -
+# EXISTS
+# expire
+# FILE
+# FIRST_CHOICE
+# HTACCESS_WARN
+# JM_CV - Holds current Joomla release # - 
+# name
+# NC
+# OPTION1
+# RETRY
+# SERVER - Holds server IP -
+# SUBDOMAIN
+# TARGET - Holds name of target Domain/Subdomain -
+# TARGET_ACCT - Holds target cPanel account name - 
+# TARGET_PATH - Holds target web docroot -
+# TARGET_TYPE
+# vers - Holds CMS-Installer version number - used in HELPTEXT (), HEADER ()
+# WP_CV - Holds current WordPress release # - 
+
+#----------------------------#
+# END VARIABLE DOCUMENTATION #
+#----------------------------#
 
 
-#-------------------------------#
-# INITIAL VARIABLE DECLARATIONS #
-#-------------------------------#
+#-------------------------------------#
+# BEGIN INITIAL VARIABLE DECLARATIONS #
+#-------------------------------------#
 
 NC='^[0-9]+$' # Regex check for numbers as choices
 SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)" # Set server IP for script
@@ -69,7 +91,13 @@ DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d
 # ^ Sets latest Drupal version
 vers=2.1 # CMS-Installer version
 
+#-----------------------------------#
+# END INITIAL VARIABLE DECLARATIONS #
+#-----------------------------------#
 
+#------------------------#
+# BEGIN SCRIPT FUNCTIONS #
+#------------------------#
 
 trap bashtrap INT
 
@@ -1100,6 +1128,14 @@ else
 fi
 }
 
+#----------------------#
+# END SCRIPT FUNCTIONS #
+#----------------------#
+
+#-------------------#
+# BEGIN CORE SCRIPT #
+#-------------------#
+
 if [ ! -n "$1" ]; then # If no arguments are given, and only 'instcms' was used at initial script call
     CMS_SELECT
 elif [ ! -z "$1" ] && [ ! -n "$2" ]; then # Flow control for only 1 argument passed during initial script call
@@ -1187,8 +1223,21 @@ else # Flow control for too many options entered
     CMS_SELECT
     FIRST_FUNCTION
 fi 
+
+#-----------------#
+# END CORE SCRIPT #
+#-----------------#
+
+#-------------------------#
+# BEGIN POST SCRIPT NOTES #
+#-------------------------#
+
 #unset CMS_TARGET TARGET API_PASS CMS 1 2 3 FIRST_CHOICE CMS_CHOICE WP_CV JM_CV DR_CV TARGET_TYPE name expire TARGET_ACCT SUBDOMAIN CMS_FILES TARGET_PATH DBU_NAME DB_NAME DBU_PASS HTACCESS_WARN API_USER SERVER CMS_DB DB_PREFIX RETRY OPTION1 EXISTS BACKUP DIR FILE DOMAIN_CHOICE NC vers CMS_DBU
 #exit 0
 #
 # For use in Create Account feature:
 # curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/createacct?api.version=1&username="$NEW_USERNAME"&domain="$NEW_DOMAIN_NAME"&password="$NEW_PASSWORD"&ip="$DEDICATED_IP"&contactemail="$USER_EMAIL"&dkim="$USE_DKIM"&spf="$USE_SPF"
+
+#-----------------------#
+# END POST SCRIPT NOTES #
+#-----------------------#
