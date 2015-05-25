@@ -76,8 +76,9 @@
 # BEGIN - MAKE SURE WE'RE RUNNING AS ROOT #
 #-----------------------------------------#
 
-if [ "$(id -u)" != "0" ]; then 
+if [ "$(id -u)" != "1" ]; then 
     echo "This program must be run as root"
+    printf "\n\n"
     exit 1
 fi
 
@@ -630,7 +631,7 @@ clear
 RPASS_VALIDATE () {
 # Using an API call to make sure root password is correct
 curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
-    if [[ ! -z $(grep "error" rpasscheck) ]]; then
+    if [ ! -z $(grep "error" rpasscheck) ]; then
         clear
         HEADER
         RED
@@ -808,7 +809,7 @@ INSTALL_DB
 cp wp-config-sample.php wp-config.php
 sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
         find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
