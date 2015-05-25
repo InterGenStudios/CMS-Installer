@@ -78,16 +78,16 @@
 #-------------------------------------#
 
 NC='^[0-9]+$' # Regex check for numbers as choices
-SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)" # Set server IP for script
+SERVER="$(/sbin/ifconfig | grep -A 1 0: | tail -1 | awk '{print $2}' | sed 's/addr://')" # Set server IP for script
 API_USER=root # Set user as root for {script,API Calls} - probably redundant I suppose
 CMS_FILES=0 # Flag for purge functions
 CMS_DB=0 # Flag for purge functions
 CMS_DBU=0 # Flag for purge functions
-WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
+WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed 's/.tar.gz//')"
 # ^ Sets latest WordPress version
-JM_CV="$(curl -sA "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -shttp://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
+JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -A 8 "/joomla/joomla-cms/releases/latest" | grep target | sed -e 's/>/ /g' -e 's/</ /g' | awk '{print $3}')"
 # ^ Sets latest Joomla version
-DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
+DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 # ^ Sets latest Drupal version
 vers=2.1 # CMS-Installer version
 
