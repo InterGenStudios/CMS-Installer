@@ -839,7 +839,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-echo "WordPress has been installed for"
+echo -n "WordPress $WP_CV has been installed for"
 WHITE
 echo
 echo "$TARGET"
