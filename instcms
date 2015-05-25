@@ -79,7 +79,7 @@
 
 NC='^[0-9]+$' # Regex check for numbers as choices
 SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)" # Set server IP for script
-API_USER=root # Set user as root for script - probably redundant I suppose
+API_USER=root # Set user as root for {script,API Calls} - probably redundant I suppose
 CMS_FILES=0 # Flag for purge functions
 CMS_DB=0 # Flag for purge functions
 CMS_DBU=0 # Flag for purge functions
