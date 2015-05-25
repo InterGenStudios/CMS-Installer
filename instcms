@@ -12,16 +12,16 @@
 #1 - Initially as arguments for routing, then during checks throughout
 #2 - Initially as arguments for routing, then during checks throughout
 #3 - Initially as arguments for routing, then during checks throughout
-#API_PASS - Hold root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+#API_PASS - Holds root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 #API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 #BACKUP - Holds choice y/n in BACKUP_OPTION ()
 #CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
-#CMS_CHOICE - Holds target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
+#CMS_CHOICE - Holds number ID of target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
 #CMS_DB - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 #CMS_DBU - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 #CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-#CMS_TARGET
-#DB_NAME
+#CMS_TARGET - Holds target CMS argument/choice flag, Used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in initial script
+#DB_NAME - Holds name of database created with API calls, Used in PURGE_DATABASE (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
 #DB_PREFIX
 #DBU_NAME
 #DBU_PASS
@@ -618,7 +618,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
 # ^ API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
 # ^ API call to verify association, and command to dump output to a file for error checking
-    if [ -n "$(grep "error" dbvalidation)" ]; then
+    if [ -n "$(grep "error" dbvalidation)" ]; then # Check for errors in database creation
         RED
         echo
         echo "dbvalidation error reported"
@@ -626,7 +626,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         cat dbvalidation
         sleep 1
         INSTALL_DB_ERROR
-    elif [ -n "$(grep "error" dbuvalidation)" ]; then
+    elif [ -n "$(grep "error" dbuvalidation)" ]; then # Check for errors in database user creation
         RED
         echo
         echo "dbuvalidation error reported"
@@ -634,7 +634,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         cat dbuvalidation
         sleep 1
         INSTALL_DB_ERROR
-    elif [ -n "$(grep "error" dbivalidation)" ]; then
+    elif [ -n "$(grep "error" dbivalidation)" ]; then # Check for errors in user-database association
         RED
         echo
         echo "dbivalidation error reported"
@@ -649,7 +649,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         echo "ALL WHM API calls completed successfully."
         sleep 2
     fi
-rm -rf ./*validation
+rm -rf ./*validation # Remove database/user creation error checking logs
 }
 
 SUBDOMAIN_HT_CHECK () {
@@ -662,7 +662,7 @@ if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
         fi
     fi
 fi
-}
+} # Checks for rewrite rules in htaccess files of main domain if installing into subdomain, and sets flag if any are found
 
 HT_CHECK_WARN () {
 if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
@@ -686,7 +686,7 @@ if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     echo "----------------------------------------------------------------"
     WHITE
 fi
-}
+} # Notifies user of any htaccess file rewrite rules in main domain if installing into subdomain
 
 INSTALL_WP () {
 CHECK_EXISTING_INSTALL
@@ -706,7 +706,7 @@ mv wordpress/* .
 INSTALL_DB
 cp wp-config-sample.php wp-config.php
 sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
         find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
@@ -719,7 +719,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
         find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \; # End fixperms style corrections- making sure all files are owned properly, with correct permissions
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
@@ -732,7 +732,7 @@ WHITE
 echo " $TARGET"
 echo
 WHITE
-HT_CHECK_WARN
+HT_CHECK_WARN # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
 echo
 echo "Provide the following URL to your customer"
 echo
@@ -745,7 +745,7 @@ printf "http://%s" "$TARGET"
 printf "\n\n\n"
 rm -rf wordpress/ latest.tar.gz
 exit 0
-}
+} # Installs the WordPress CMS, and provides URL for customer to finalize the installation
 
 INSTALL_JM () {
 CHECK_EXISTING_INSTALL
@@ -781,7 +781,7 @@ echo "Moving Joomla files into place..."
 unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
         find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
@@ -794,11 +794,11 @@ INSTALL_DB
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
         find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \; # End fixperms style corrections- making sure all files are owned properly, with correct permissions
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-cat > jdbinfo << "EOF"
+cat > jdbinfo << "EOF" # BEGIN pastefile template for database information presentation to customer
 ==============================================
           Joomla JM_CV Installation
               Step (2) Database
@@ -827,10 +827,10 @@ Old Database    (leave default)
                 120 minutes**
 
 ==============================================
-EOF
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
-curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
-sed -i -e 's/view/view\/raw/' tempaste
+EOF # END pastefile template for database information presentation to customer
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo # Adds database info into template
+curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste # Creates paste for database info using 'stikked'
+sed -i -e 's/view/view\/raw/' tempaste # converts 'stikked' paste to raw output URL
 clear
 HEADER
 GREEN
@@ -841,7 +841,7 @@ WHITE
 echo " $TARGET"
 echo
 WHITE
-HT_CHECK_WARN
+HT_CHECK_WARN # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
 echo
 echo "Provide the Database Info URL to your customer"
 GREEN
@@ -863,7 +863,7 @@ printf "http://%s" "$TARGET"
 printf "\n\n\n"
 rm -rf jdbinfo tempaste
 exit 0
-}
+} # Installs the Joomla CMS, and provides both domain URL and database info URL for customer to finalize the installation
 
 INSTALL_DR () {
 CHECK_EXISTING_INSTALL
@@ -882,7 +882,7 @@ mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
 INSTALL_DB
 cp sites/default/default.settings.php sites/default/settings.php
 mkdir -p sites/default/files && chmod 755 sites/default/files
-chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
+chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./* # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
@@ -896,11 +896,11 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
         find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \; # End fixperms style corrections- making sure all files are owned properly, with correct permissions
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-cat > ddbinfo << "EOF"
+cat > ddbinfo << "EOF" # BEGIN pastefile template for database information presentation to customer
 ==============================================
            Drupal DR_CV Installation
               'Set Up Database'
@@ -922,10 +922,10 @@ Database password*:  PASS
                 120 minutes**
 
 ==============================================
-EOF
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
-curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
-sed -i -e 's/view/view\/raw/' tempaste
+EOF # END pastefile template for database information presentation to customer
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo # Adds database info into template
+curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste # Creates paste for database info using 'stikked'
+sed -i -e 's/view/view\/raw/' tempaste # converts 'stikked' paste to raw output URL
 clear
 HEADER
 GREEN
@@ -936,7 +936,7 @@ WHITE
 echo " $TARGET"
 echo
 WHITE
-HT_CHECK_WARN
+HT_CHECK_WARN # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
 echo
 echo "Provide the Database Info URL to your customer"
 GREEN
@@ -958,11 +958,11 @@ printf "http://%s" "$TARGET"
 printf "\n\n\n"
 rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
 exit 0
-}
+} # Installs the Drupal CMS, and provides both domain URL and database info URL for customer to finalize the installation
 
 TARGET_CHECK () {
-if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
-    if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then
+if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then # Flow control check for a main domain installation
+    if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then # Flow control check for a subdomain installation
         clear
         HEADER
         RED
@@ -972,14 +972,14 @@ if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1
         sleep 2
         HELPTEXT
     else
-        TARGET_TYPE=SUBDOMAIN
-        GET_SUBDOMAIN_PATH
-        CONFIRM_INSTALL
+        TARGET_TYPE=SUBDOMAIN # Set flow control for subdomain
+        GET_SUBDOMAIN_PATH # Get docroot path
+        CONFIRM_INSTALL # Send to final confirmation
     fi
 else
-    TARGET_TYPE=MAINDOMAIN
-    GET_MAINDOMAIN_PATH
-    CONFIRM_INSTALL
+    TARGET_TYPE=MAINDOMAIN # Set flow control for maindomain
+    GET_MAINDOMAIN_PATH # Get docroot path
+    CONFIRM_INSTALL # Send to final confirmation
 fi
 }
 
@@ -1012,7 +1012,7 @@ read CMS_CHOICE
            CMS_SELECT_2;;
 
     esac
-}
+} # Second CMS selection function for flows outside of basic FIRST_FUNCTION routines
 
 CMS_SELECT () {
 clear
@@ -1049,7 +1049,7 @@ read CMS_CHOICE
            CMS_SELECT;;
 
     esac
-}
+} # First CMS selection function used with basic flow controls and FIRST_FUNCTION routines
 
 CONVERT_CMS_TARGET () {
 if [ "$CMS_TARGET" = "-w" ]; then
@@ -1063,12 +1063,12 @@ else
         fi
     fi
 fi
-}
+} # Associates CMS target flag with the actual CMS name
 
 FIRST_FUNCTION () {
 clear
 HEADER
-mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
+mkdir -p /root/support/scripts/CMS-Installer_logs/  # Create Installer Log directory
 GREEN
 if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
@@ -1080,7 +1080,7 @@ else
             CMS=DRUPAL
         fi
     fi
-fi
+fi # Associates CMS target flag with the actual CMS name
 printf "Enter domain for %s" "$CMS"
 printf " installation or "
 WHITE
@@ -1090,36 +1090,36 @@ printf " for domain list"
 WHITE
 echo -n ": "
 read FIRST_CHOICE
-if [ "$FIRST_CHOICE" = "get list" ]; then
-    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+if [ "$FIRST_CHOICE" = "get list" ]; then # 2nd route to -l option, allowing domain target to be picked from numbered list
+    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
 else
-    TARGET=$FIRST_CHOICE
+    TARGET=$FIRST_CHOICE # Allows target domain to be manually entered
     CHECK_RPASS
     RPASS_VALIDATE
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
 fi
 }
 
-if [ ! -n "$1" ]; then
+if [ ! -n "$1" ]; then # If no arguments are given, and only 'instcms' was used at initial script call
     CMS_SELECT
-elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
-    if [ "$1" = "-h" ]; then
+elif [ ! -z "$1" ] && [ ! -n "$2" ]; then # Flow control for only 1 argument passed during initial script call
+    if [ "$1" = "-h" ]; then # Flow control for '-h' as the only argument passed during initial script call
         HELPTEXT
-    elif [ "$1" = "-l" ]; then
+    elif [ "$1" = "-l" ]; then # Flow control for '-l' as the only argument passed during initial script call
         LIST_ACCTS
-    elif [ "$1" = "-v" ]; then
+    elif [ "$1" = "-v" ]; then # Flow control for '-v' as the only argument passed during initial script call
         VERSION
-    elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ]; then
+    elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ]; then # Flow control for either '-j', '-w', or '-d' as the only argument passed during initial script call
         CMS_TARGET="$1"
         FIRST_FUNCTION
-    elif [ "$(grep "$1" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$1" ]; then
+    elif [ "$(grep "$1" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$1" ]; then # Flow control for target {sub}domain as the only argument passed during initial script call
         TARGET="$1"
         CMS_SELECT_2
         CONVERT_CMS_TARGET
         CHECK_RPASS
         RPASS_VALIDATE
-        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  # Create Installer Log directory
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
     else
         RED
         echo
@@ -1131,10 +1131,10 @@ elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
         CMS_SELECT
         FIRST_FUNCTION
     fi
-elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
-    CMS_TARGET="$1"
+elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then # Flow control for 2 arguments passed during initial script call
+    CMS_TARGET="$1" # Per Options layout in HELPTEXT, if 2 arguments are passed- cms target should be one, followed by domain target- but we'll let the root pass be used as $2 as well
     if [ $"(grep "$2" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$2"  ]; then
-        TARGET="$2"
+        TARGET="$2" # If second argument passed matches a domain in httpd conf, set it as $2
         if [ "$CMS_TARGET" = "-w" ]; then
             CMS=WORDPRESS
         elif [ "$CMS_TARGET" = "-j" ]; then
@@ -1144,10 +1144,10 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
         fi
         CHECK_RPASS
         RPASS_VALIDATE
-        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  # Create Installer Log directory
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
     else 
-        API_PASS="$2"
+        API_PASS="$2" # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         if [ "$CMS_TARGET" = "-w" ]; then
             CMS=WORDPRESS
         elif [ "$CMS_TARGET" = "-j" ]; then
@@ -1157,13 +1157,13 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
         fi
         RPASS_VALIDATE
         LIST_ACCTS
-        mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+        mkdir -p /root/support/scripts/CMS-Installer_logs/  # Create Installer Log directory
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
     fi
-elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
-    CMS_TARGET="$1"
-    TARGET="$2"
-    API_PASS="$3"
+elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
+    CMS_TARGET="$1" # Per Options layout in HELPTEXT, if 3 arguments are passed $1 is the cms target
+    TARGET="$2" # Per Options layout in HELPTEXT, if 3 arguments are passed $2 is the target {sub}domain
+    API_PASS="$3" # Per Options layout in HELPTEXT, if 3 arguments are passed $3 is the root password of the server
     if [ "$CMS_TARGET" = "-w" ]; then
         CMS=WORDPRESS
     elif [ "$CMS_TARGET" = "-j" ]; then
@@ -1172,9 +1172,9 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
         CMS=DRUPAL
     fi
     RPASS_VALIDATE
-    mkdir -p /root/support/scripts/CMS-Installer_logs/  ## For Installer Logs
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
-else
+    mkdir -p /root/support/scripts/CMS-Installer_logs/  # Create Installer Log directory
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" # Creates installation log with timestamp
+else # Flow control for too many options entered
     printf "\n\n"
     RED
     echo "INVALID OPTION(s) ENTERED"
