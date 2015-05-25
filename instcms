@@ -813,7 +813,7 @@ wget -q https://wordpress.org/latest.tar.gz && CMS_FILES=1
 echo "Moving WordPress files into place..."
 sleep 2
 tar xf latest.tar.gz &&
-mv wordpress/* .
+mv "$TARGET_PATH"wordpress/* "$TARGET_PATH"
 INSTALL_DB
 cp wp-config-sample.php wp-config.php
 sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
@@ -839,7 +839,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-echo WordPress "$WP_CV" has been installed for
+echo "WordPress has been installed for"
 WHITE
 echo
 echo "$TARGET"
