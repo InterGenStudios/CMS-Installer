@@ -76,8 +76,17 @@
 # BEGIN - MAKE SURE WE'RE RUNNING AS ROOT #
 #-----------------------------------------#
 
-if [ "$(id -u)" != "1" ]; then 
-    echo "This program must be run as root"
+if [ "$(id -u)" != "0" ]; then
+    tput bold
+    tput setaf 1
+    printf "\n\n"
+    echo "--------"
+    echo "WARNING!"
+    echo "--------"
+    echo
+    tput sgr0
+    echo "CMS-Installer must be run as root"
+    echo "(Exiting now...)"
     printf "\n\n"
     exit 1
 fi
