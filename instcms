@@ -325,14 +325,14 @@ echo
 echo -n "Select Domain for CMS Installation [q for quit]? "
 read DOMAIN_CHOICE
 # Need to review how to set both upper and lower case as a single check- the following two Q checks are probably redundant
-if [ "$DOMAIN_CHOICE" = Q ]; then
+if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ]; then
     printf "\n\n"
     echo "Quiting..."
     rm -rf domainlist domainchoices
     printf "\n\n"
     exit 0
 else
-    if [ "$DOMAIN_CHOICE" = q ]; then
+    if [ "$(echo "$DOMAIN_CHOICE")" = "q" ]; then
         printf "\n\n"
         echo "Quiting..."
         rm -rf domainlist domainchoices
@@ -466,7 +466,7 @@ CHECK_EXISTING_DATA () {
 FILE=""
 DIR="$TARGET_PATH"
 
-if [ "$(ls -A $DIR | grep -v cgi)" ]; then
+if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
     clear
     HEADER
     YELLOW
@@ -494,7 +494,7 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
     WHITE
     echo -n "and run the installer again [y/N]? " 
     read BACKUP
-    if [ "$(echo $BACKUP)" = "y" ] || [ "$(echo $BACKUP)" = "Y" ]; then
+    if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
         clear
         HEADER
         GREEN
@@ -598,13 +598,13 @@ OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
 stty "$old_stty_cfg"
 if echo "$OPTION1" | grep -iq "^y" ;then
     printf "\n\n"
-    if [ "$CMS_TARGET" = "-w" ]; then
+    if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
         INSTALL_WP
     else
-        if [ "$CMS_TARGET" = "-j" ]; then
+        if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
             INSTALL_JM
         else
-            if [ "$CMS_TARGET" = "-d" ]; then
+            if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
                 INSTALL_DR
             fi
         fi
@@ -640,7 +640,7 @@ clear
 RPASS_VALIDATE () {
 # Using an API call to make sure root password is correct
 curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
-    if [ ! -z $(grep "error" rpasscheck) ]; then
+    if [ ! -z "$(grep "error" rpasscheck)" ]; then
         clear
         HEADER
         RED
@@ -707,11 +707,11 @@ sleep 2
 
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
 DB_NAME="$DB_PREFIX"_cmsi"$(date +%s | sha256sum | base64 | head -c 3)" &&
-if [ "$(echo $(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME"))" = "$DB_NAME" ]; then
+if [ "$(echo "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")")" = "$DB_NAME" ]; then
     DB_NAME="$DB_NAME"1
 fi
 DBU_NAME="$DB_PREFIX"_"$(date +%s | sha256sum | base64 | head -c 5)" &&
-if [ "$(echo $(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME"))" = "$DBU_NAME" ]; then
+if [ "$(echo "$(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME")")" = "$DBU_NAME" ]; then
     DBU_NAME="$DBU_NAME"1
 fi
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
@@ -764,7 +764,7 @@ rm -rf ./*validation
 SUBDOMAIN_HT_CHECK () {
 if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
     if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
-        if [[ ! -z $(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess) ]]; then
+        if [ -n "$(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess)" ]; then
             HTACCESS_WARN=YES
         else
             HTACCESS_WARN=NO
@@ -825,7 +825,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
@@ -839,7 +839,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-printf "WordPress $WP_CV"
+printf "WordPress %s" "$WP_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
@@ -865,7 +865,7 @@ exit 0
 INSTALL_JM () {
 CHECK_EXISTING_INSTALL
 CHECK_EXISTING_DATA
-if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
+if [ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]; then
     clear
     HEADER
     RED
@@ -897,14 +897,14 @@ unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
 rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
 INSTALL_DB
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
         find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
@@ -1008,14 +1008,14 @@ cp sites/default/default.settings.php sites/default/settings.php
 mkdir -p sites/default/files && chmod 755 sites/default/files
 # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
 chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
-    if [ "$TARGET_TYPE" = MAINDOMAIN ]; then
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
         find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
@@ -1195,13 +1195,13 @@ read CMS_CHOICE
 
 # Associates CMS target flag with the actual CMS name
 CONVERT_CMS_TARGET () {
-if [ "$CMS_TARGET" = "-w" ]; then
+if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
     CMS=WORDPRESS
 else
-    if [ "$CMS_TARGET" = "-j" ]; then
+    if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
         CMS=JOOMLA
     else
-        if [ "$CMS_TARGET" = "-d" ]; then
+        if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
         fi
     fi
@@ -1215,13 +1215,13 @@ HEADER
 mkdir -p /root/support/scripts/CMS-Installer_logs/
 GREEN
 # Associates CMS target flag with the actual CMS name
-if [ "$CMS_TARGET" = "-w" ]; then
+if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
     CMS=WORDPRESS
 else
-    if [ "$CMS_TARGET" = "-j" ]; then
+    if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
         CMS=JOOMLA
     else
-        if [ "$CMS_TARGET" = "-d" ]; then
+        if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
         fi
     fi
@@ -1236,7 +1236,7 @@ WHITE
 echo -n ": "
 read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
-if [ "$FIRST_CHOICE" = "get list" ]; then
+if [ "$(echo "$FIRST_CHOICE")" = "get list" ]; then
     # Creates installation log with timestamp
     LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
 else
@@ -1258,21 +1258,21 @@ fi
 #---------------------#
 
 # If no arguments are given, and only 'instcms' was used at initial script call
-if [ ! -n "$1" ]; then
+if [ -z "$1" ]; then
     CMS_SELECT
 # Flow control for only 1 argument passed during initial script call
-elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
+elif [ -n "$1" ] && [ -z "$2" ]; then
     # Flow control for '-h' as the only argument passed during initial script call
-    if [ "$1" = "-h" ]; then
+    if [ "$(echo "$1")" = "-h" ]; then
         HELPTEXT
     # Flow control for '-l' as the only argument passed during initial script call
-    elif [ "$1" = "-l" ]; then
+    elif [ "$(echo "$1")" = "-l" ]; then
         LIST_ACCTS
     # Flow control for '-v' as the only argument passed during initial script call
-    elif [ "$1" = "-v" ]; then
+    elif [ "$(echo "$1")" = "-v" ]; then
         VERSION
     # Flow control for either '-j', '-w', or '-d' as the only argument passed during initial script call
-    elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ]; then
+    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ]; then
         CMS_TARGET="$1"
         FIRST_FUNCTION
     # Flow control for target {sub}domain as the only argument passed during initial script call
@@ -1298,15 +1298,15 @@ elif [ ! -z "$1" ] && [ ! -n "$2" ]; then
         FIRST_FUNCTION
     fi
 # Flow control for 2 arguments passed during initial script call
-elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
+elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
     # Per Options layout in HELPTEXT, if 2 arguments are passed- cms target should be one, followed by domain target- but we'll let the root pass be used as $2 as well
     CMS_TARGET="$1"
-    if [ $"(grep "$2" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$2"  ]; then
+    if [ "$(grep "$2" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$2"  ]; then
         # If second argument passed matches a domain in httpd conf, set it as $2
         TARGET="$2"
-        if [ "$CMS_TARGET" = "-w" ]; then
+        if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
             CMS=WORDPRESS
-        elif [ "$CMS_TARGET" = "-j" ]; then
+        elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
             CMS=JOOMLA
         else
             CMS=DRUPAL
@@ -1320,9 +1320,9 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
-        if [ "$CMS_TARGET" = "-w" ]; then
+        if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
             CMS=WORDPRESS
-        elif [ "$CMS_TARGET" = "-j" ]; then
+        elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
             CMS=JOOMLA
         else
             CMS=DRUPAL
@@ -1335,16 +1335,16 @@ elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -n "$3" ]; then
         TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
     fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
-elif [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
+elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     # Per Options layout in HELPTEXT, if 3 arguments are passed $1 is the cms target
     CMS_TARGET="$1"
     # Per Options layout in HELPTEXT, if 3 arguments are passed $2 is the target {sub}domain
     TARGET="$2"
     # Per Options layout in HELPTEXT, if 3 arguments are passed $3 is the root password of the server
     API_PASS="$3"
-    if [ "$CMS_TARGET" = "-w" ]; then
+    if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
         CMS=WORDPRESS
-    elif [ "$CMS_TARGET" = "-j" ]; then
+    elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
         CMS=JOOMLA
     else
         CMS=DRUPAL
