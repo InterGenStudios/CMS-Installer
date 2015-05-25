@@ -906,7 +906,7 @@ INSTALL_DB
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
-jdbinfo <<EndOfJoomlaFile
+cat > jdbinfo <<EndOfJoomlaFile
 ==============================================
           Joomla JM_CV Installation
               Step (2) Database
@@ -1017,7 +1017,7 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
-ddbinfo <<EndOfDrupalFile
+cat > ddbinfo <<EndOfDrupalFile
 ==============================================
            Drupal DR_CV Installation
               'Set Up Database'
