@@ -52,12 +52,12 @@
 # EXISTS - Holds name of identified pre-existing CMS installation, Used in BACKUP_OPTION (), EXISTING_INSTALL_WARN (), CHECK_EXISTING_INSTALL ()
 # expire - Holds paste URL life-span in minutes, Used in INSTALL_JM (), INSTALL_DR ()
 # FILE - Empty variable used in existing data check, Used in CHECK_EXISTING_DATA ()
-# FIRST_CHOICE - 
-# HTACCESS_WARN
+# FIRST_CHOICE - Holds intial selection of flow control, Used in FIRST_FUNCTION ()
+# HTACCESS_WARN - Holds flag for an identified htaccess file in maindomain during subdomain installation, Used in SUBDOMAIN_HT_CHECK (), HT_CHECK_WARN ()
 # JM_CV - Holds current Joomla release #, Used in initial variable declarations, HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
-# name
-# NC
-# OPTION1
+# name - Holds name of paste URL creator, Used in INSTALL_JM (), INSTALL_DR ()
+# NC - Holds regex variable for integers, Used in initial variable declarations, LIST_ACCTS ()
+# OPTION1 - 
 # RETRY
 # SERVER - Holds server IP -
 # SUBDOMAIN
