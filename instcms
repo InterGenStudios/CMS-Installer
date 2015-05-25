@@ -826,7 +826,8 @@ INSTALL_DB
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-cat > jdbinfo << "EOF" # BEGIN pastefile template for database information presentation to customer
+# BEGIN pastefile template for database information presentation to customer
+cat > jdbinfo << "EOF"
 ==============================================
           Joomla JM_CV Installation
               Step (2) Database
@@ -855,7 +856,8 @@ Old Database    (leave default)
                 120 minutes**
 
 ==============================================
-EOF # END pastefile template for database information presentation to customer
+EOF 
+# END pastefile template for database information presentation to customer
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo # Adds database info into template
 curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste # Creates paste for database info using 'stikked'
 sed -i -e 's/view/view\/raw/' tempaste # converts 'stikked' paste to raw output URL
@@ -928,7 +930,8 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./* # Begin fixperms style corrections- m
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-cat > ddbinfo << "EOF" # BEGIN pastefile template for database information presentation to customer
+# BEGIN pastefile template for database information presentation to customer
+cat > ddbinfo << "EOF"
 ==============================================
            Drupal DR_CV Installation
               'Set Up Database'
@@ -950,7 +953,8 @@ Database password*:  PASS
                 120 minutes**
 
 ==============================================
-EOF # END pastefile template for database information presentation to customer
+EOF 
+# END pastefile template for database information presentation to customer
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo # Adds database info into template
 curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste # Creates paste for database info using 'stikked'
 sed -i -e 's/view/view\/raw/' tempaste # converts 'stikked' paste to raw output URL
