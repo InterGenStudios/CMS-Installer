@@ -16,10 +16,10 @@
 #API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 #BACKUP - Holds choice y/n in BACKUP_OPTION ()
 #CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
-#CMS_CHOICE
-#CMS_DB
-#CMS_DBU
-#CMS_FILES
+#CMS_CHOICE - Holds target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
+#CMS_DB - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+#CMS_DBU - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
+#CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
 #CMS_TARGET
 #DB_NAME
 #DB_PREFIX
@@ -50,10 +50,24 @@
 #----------- End Variables List -------------#
 #============================================#
 
+
+#-------------------------------#
+# INITIAL VARIABLE DECLARATIONS #
+#-------------------------------#
+
+NC='^[0-9]+$' # Regex check for numbers as choices
+SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)" # Set server IP for script
+API_USER=root # Set user as root for script - probably redundant I suppose
+CMS_FILES=0 # Flag for purge functions
+CMS_DB=0 # Flag for purge functions
+CMS_DBU=0 # Flag for purge functions
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep -Po "wordpress-(.*).tar.gz" |sed 's/wordpress-//g'|cut -d. -f1-3)"
-JM_CV="$(curl -sA "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
+# ^ Sets latest WordPress version
+JM_CV="$(curl -sA "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -shttp://www.joomla.org/download.html |grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n")"
+# ^ Sets latest Joomla version
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep -Po "drupal\-(?:\d*\.?\d+\.?\d+).tar.gz" | grep -Po "(?:\d*\.?\d+\.?\d+)" |tr "\n" "\n" | head -1)"
-vers=2.1
+# ^ Sets latest Drupal version
+vers=2.1 # CMS-Installer version
 
 
 
@@ -81,16 +95,9 @@ bashtrap () {
     SEPARATOR
     printf "\n\n\n\n\n"
     exit 0
-}
+} # Ran if CTRL+C is sent
 
-NC='^[0-9]+$' #RE check for numbers as choices
-SERVER="$(/sbin/ifconfig | awk '/^eth/ { printf("%s\t",$1) } /inet addr:/ { gsub(/.*:/,"",$2); if ($2 !~ /^127/) print $2; }' | head -1)"
-API_USER=root
-CMS_FILES=0
-CMS_DB=0
-CMS_DBU=0
-
-PURGE_INSTALL_FILES () {
+PURGE_INSTALL_FILES () { 
 WHITE
 if [ "$CMS_FILES" = "1" ]; then
         if [ -d "$TARGET_PATH"cgi-bin ]; then
@@ -101,45 +108,45 @@ if [ "$CMS_FILES" = "1" ]; then
             rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??*
         fi
 fi
-}
+} # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
 
 PURGE_DATABASE () {
 WHITE
 if [ "$(echo $CMS_DB)" = "1" ]; then
     curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/jsonapi/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
 fi
-}
+} # Purges any database created during installation if bashtrap is triggered, provided the 'CMS_DB' flag has been set
 
 PURGE_DATABASE_USER () {
 WHITE
 if [ "$(echo $CMS_DBU)" = "1" ]; then
     curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
 fi
-}
+} # Purges any database user created during installation if bashtrap is triggered, provided the 'CMS_DBU' flag has been set
 
 RED () {
 tput bold
 tput setaf 1
-}
+} # Colors trailing text Red
 
 GREEN () {
 tput bold
 tput setaf 2
-}
+} # Colors trailing text Green
 
 YELLOW () {
 tput bold
 tput setaf 3
-}
+} # Colors trailing text Yellow
 
 BLUE () {
 tput bold
 tput setaf 4
-}
+} # Colors trailing text Blue
 
 WHITE () {
 tput sgr0
-}
+} # Clears any preceding text color declarations
 
 SEPARATOR () {
 echo
@@ -147,7 +154,7 @@ BLUE
 echo "============================================================================"
 echo
 WHITE
-}
+} # Simple divider
 
 HEADER () {
 echo
@@ -159,7 +166,7 @@ GREEN
 echo "============================================================================"
 WHITE
 printf "\n\n"
-}
+} # Creates uniform look during script execution by being called after any clear command
 
 HELPTEXT () {
 clear
@@ -190,7 +197,7 @@ echo "-j: install Joomla Version $JM_CV"
 echo "-d: install Drupal Version $DR_CV"
 printf "\n\n"
 exit 0
-}
+} # Shows available usage options
 
 VERSION () {
 clear
@@ -218,7 +225,7 @@ echo " Version: $vers"
 SEPARATOR
 echo
 exit 0
-}
+} # Propaganda splash screen - with flair if the server has figlet installed
 
 LIST_ACCTS () {
 clear
@@ -229,13 +236,13 @@ sleep 1
 SEPARATOR
 WHITE
 grep ':' /etc/userdomains | grep -v nobody | awk '{print $1}' | cut -d ':' -f 1 | sort > domainlist
-sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
+sed = domainlist | sed 'N;s/\n/\t/' > domainchoices # Sed command to add line numbers to the list of available domains/subdomains
 cat domainchoices
 SEPARATOR
 echo
-echo -n "Select Domain for CMS Installation [q for quit]? "
+echo -n "Select Domain for CMS Installation [q for quit]? " # Giving them a quick out
 read DOMAIN_CHOICE
-if [ "$DOMAIN_CHOICE" = Q ]; then
+if [ "$DOMAIN_CHOICE" = Q ]; then # Need to review how to set both upper and lower case as a single check- this is probably redundant
     printf "\n\n"
     echo "Quiting..."
     rm -rf domainlist domainchoices
@@ -249,7 +256,7 @@ else
         printf "\n\n"
         exit 0
     else
-        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then # Loop the script if an invalid choice is given
             echo
             RED
             echo "\"$DOMAIN_CHOICE\" is not a valid selection."
@@ -258,21 +265,21 @@ else
             sleep 1
             LIST_ACCTS
         else
-            TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+            TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')" # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
             rm -rf domainlist domainchoices
-            CHECK_RPASS
+            CHECK_RPASS # Validates given root password prior to doing anything
             RPASS_VALIDATE
             if [ ! -n "$CMS_TARGET" ]; then 
 	            CMS_SELECT_2
 	            CONVERT_CMS_TARGET
-                TARGET_CHECK
+                TARGET_CHECK # Send flow to CMS selection if none has been chosen yet
             else
-                TARGET_CHECK
+                TARGET_CHECK # Send them to target verification if CMS has already been selected
             fi
         fi
     fi
 fi
-}
+} # Creates numbered list of domains for installation target options
 
 BACKUP_OPTION () {
 echo
@@ -296,22 +303,22 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     HEADER
     GREEN
     echo "Backing up $TARGET_PATH..."
-    mkdir -p /root/support/scripts/CMS-Installer_backups
+    mkdir -p /root/support/scripts/CMS-Installer_backups # Set up the backup directory
     WHITE
     echo "(this may take a moment)"
     if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
-        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql # Grabs the wordpress database for the backup
     else
         if [ "$(echo $EXISTS)" = "DRUPAL" ]; then
-            mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+            mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql # Grabs the drupal database for the backup
         else
             if [ "$(echo $EXISTS)" = "JOOMLA" ]; then
-                mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+                mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql # grabs the joomla database for the backup
             fi
         fi
     fi
     tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
-    mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+    mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ && # Put the backup away for safe-keeping
     echo
     clear
     HEADER
@@ -327,7 +334,7 @@ if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
     echo "Restarting installer..."
     sleep 2
     unset EXISTS
-    CONFIRM_INSTALL
+    CONFIRM_INSTALL # Loop once the backup is completed
 else
     clear
     HEADER
@@ -337,9 +344,9 @@ else
     echo 
     echo "Exiting..."
     echo
-    exit 0
+    exit 0 # Backup or get out
     fi
-}
+} # David said I had to make this, so 'Tah-dah!'
 
 EXISTING_INSTALL_WARN () {
 clear
@@ -355,7 +362,7 @@ echo
 echo "$EXISTS installation exists in $TARGET_PATH."
 echo
 BACKUP_OPTION
-}
+} # Notifies the user if an installation is detected in target docroot
 
 CHECK_EXISTING_DATA () {
 FILE=""
@@ -427,7 +434,7 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
         exit 0
     fi
 fi
-}
+} # Same routine as the installation check and backup, but for data other than wordpress/joomla/drupal installations. Need to have it generically look for database info and grab it if it's there.
 
 
 CHECK_EXISTING_INSTALL () {
@@ -452,17 +459,17 @@ else
         fi
     fi
 fi
-}
+} # IDs any wordpress/joomla/drupal installations that are already present in target docroot
 
 GET_MAINDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
 TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
-}
+} # Sets target docroot and cpanel account for a main domain docroot installation
 
 GET_SUBDOMAIN_PATH () {
 TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
 TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"/
-}
+} # Sets target docroot and cpanel account for a subdomain docroot installation
 
 CONFIRM_INSTALL () {
 clear
@@ -502,7 +509,7 @@ if echo "$OPTION1" | grep -iq "^y" ;then
         fi
     fi
     else
-        printf "\n\n"
+        printf "\n\n" # Quick out if they see an incorrect choice listed
         clear
         HEADER
         RED
@@ -512,7 +519,7 @@ if echo "$OPTION1" | grep -iq "^y" ;then
         printf "\n\n"
         exit 0
     fi
-}
+} # Affirming choices prior to actually doing anything
 
 CHECK_RPASS () {
 clear
@@ -524,10 +531,11 @@ echo -n ":"
 read API_PASS
 printf "\n\n\n"
 clear
-}
+} # Get server's root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 
 RPASS_VALIDATE () {
 curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
+# ^ API call just to make sure root password is correct
     if [[ ! -z $(grep "error" rpasscheck) ]]; then
         clear
         HEADER
@@ -535,7 +543,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
         echo "The root password entered is invalid."
         printf "\n\n\n"
         WHITE
-        read -p "Would you like to enter it again [y/n]? " RETRY
+        read -p "Would you like to enter it again [y/n]? " RETRY # Quick loop option if bad root pass detected
             case ${RETRY:0:1} in
                 y|Y )
                     echo
@@ -559,7 +567,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
         sleep 2
     fi
 rm -rf rpasscheck
-}
+} # Validate root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 
 INSTALL_DB_ERROR () {
 clear
@@ -581,7 +589,7 @@ echo
 echo "Exiting..."
 rm -rf ./*validation
 exit 0
-}
+} # Something bad has happened to cause this
 
 INSTALL_DB () {
 clear
@@ -603,12 +611,13 @@ fi
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 WHITE
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" && CMS_DB=1
-
+# ^ API call to create the database, and command to set purge flag
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbvalidation && CMS_DBU=1
-
+# ^ API call to create the database user and password, command to dump output into a file for error checking, and command to set purge flag
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbuvalidation
-
+# ^ API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
+# ^ API call to verify association, and command to dump output to a file for error checking
     if [ -n "$(grep "error" dbvalidation)" ]; then
         RED
         echo
