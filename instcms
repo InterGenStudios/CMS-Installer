@@ -30,9 +30,9 @@
 # BEGIN VARIABLE DOCUMENTATION #
 #------------------------------#
 
-# 1 - Initially as arguments for routing, then during checks throughout
-# 2 - Initially as arguments for routing, then during checks throughout
-# 3 - Initially as arguments for routing, then during checks throughout
+# 1 - Initially used to hold arguments for flow control, then during checks throughout
+# 2 - Initially used to hold arguments for flow control, then during checks throughout
+# 3 - Initially used to hold arguments for flow control, then during checks throughout
 # API_PASS - Holds root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 # API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 # BACKUP - Holds choice y/n in BACKUP_OPTION ()
@@ -43,18 +43,18 @@
 # CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
 # CMS_TARGET - Holds target CMS argument/choice flag, Used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in initial script
 # DB_NAME - Holds name of database created with API calls, Used in PURGE_DATABASE (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-# DB_PREFIX
-# DBU_NAME
-# DBU_PASS
-# DIR
-# DOMAIN_CHOICE
-# DR_CV - Holds current Drupal release # -
-# EXISTS
-# expire
-# FILE
-# FIRST_CHOICE
+# DB_PREFIX - Sets account name as prefix for database{user}, Used in INSTALL_DB ()
+# DBU_NAME - Holds database username, Used in PURGE_DATABASE_USER (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# DBU_PASS - Holds database user password, Used in INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# DIR - Used in checking for pre-existing data in target docroot, Used in CHECK_EXISTING_DATA ()
+# DOMAIN_CHOICE - Holds selection of target domain, Used in LIST_ACCTS ()
+# DR_CV - Holds current Drupal release #, Used in initial variable declarations, HELPTEXT (), INSTALL_DR (), CMS_SELECT_2 (), CMS_SELECT ()
+# EXISTS - Holds name of identified pre-existing CMS installation, Used in BACKUP_OPTION (), EXISTING_INSTALL_WARN (), CHECK_EXISTING_INSTALL ()
+# expire - Holds paste URL life-span in minutes, Used in INSTALL_JM (), INSTALL_DR ()
+# FILE - Empty variable used in existing data check, Used in CHECK_EXISTING_DATA ()
+# FIRST_CHOICE - 
 # HTACCESS_WARN
-# JM_CV - Holds current Joomla release # - 
+# JM_CV - Holds current Joomla release #, Used in initial variable declarations, HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
 # name
 # NC
 # OPTION1
@@ -65,8 +65,8 @@
 # TARGET_ACCT - Holds target cPanel account name - 
 # TARGET_PATH - Holds target web docroot -
 # TARGET_TYPE
-# vers - Holds CMS-Installer version number - used in HELPTEXT (), HEADER ()
-# WP_CV - Holds current WordPress release # - 
+# vers - Holds CMS-Installer version number, Used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
+# WP_CV - Holds current WordPress release #, Used in initial variable declarations, HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
 
 #----------------------------#
 # END VARIABLE DOCUMENTATION #
