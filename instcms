@@ -1094,9 +1094,9 @@ exit 0
 
 TARGET_CHECK () {
 # Flow control check for a main domain installation
-if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
     # Flow control check for a subdomain installation
-    if [ "$(echo $TARGET)" != "$(grep $TARGET /etc/userdomains | cut -d ':' -f 1)" ]; then
+    if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
         clear
         HEADER
         RED
