@@ -906,7 +906,7 @@ INSTALL_DB
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
-cat > jdbinfo << "EOF"
+cat > jdbinfo << 'EOF'
 ==============================================
           Joomla JM_CV Installation
               Step (2) Database
@@ -935,7 +935,7 @@ Old Database    (leave default)
                 120 minutes**
 
 ==============================================
-EOF 
+EOF
 ## END pastefile template for database information presentation to customer
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
@@ -1017,7 +1017,7 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
-cat > ddbinfo << "EOF"
+cat > ddbinfo << 'EOF'
 ==============================================
            Drupal DR_CV Installation
               'Set Up Database'
