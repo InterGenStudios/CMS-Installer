@@ -402,7 +402,7 @@ if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
     else
         if [ "$(echo "$EXISTS")" = "DRUPAL" ]; then
             # Grabs the drupal database for the backup
-            mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+            mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
         else
             if [ "$(echo "$EXISTS")" = "JOOMLA" ]; then
                 # Grabs the joomla database for the backup
@@ -762,7 +762,7 @@ rm -rf ./*validation
 
 # Checks for rewrite rules in htaccess files of main domain if installing into subdomain, and sets flag if any are found
 SUBDOMAIN_HT_CHECK () {
-if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
+if [ "$(echo "$TARGET_TYPE")" = "SUBDOMAIN" ]; then
     if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
         if [ -n "$(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess)" ]; then
             HTACCESS_WARN=YES
@@ -825,7 +825,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
@@ -839,7 +839,7 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-echo "WordPress $WP_CV has been installed for"
+echo WordPress "$WP_CV" has been installed for
 WHITE
 echo
 echo "$TARGET"
@@ -865,7 +865,7 @@ exit 0
 INSTALL_JM () {
 CHECK_EXISTING_INSTALL
 CHECK_EXISTING_DATA
-if [ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]; then
+if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
     clear
     HEADER
     RED
@@ -904,7 +904,7 @@ INSTALL_DB
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
@@ -1015,7 +1015,7 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
-        for SUBDOMAIN in "$(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)"
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
         do
         find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
         find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
