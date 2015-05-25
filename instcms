@@ -167,7 +167,7 @@ bashtrap () {
 # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
 PURGE_INSTALL_FILES () { 
 WHITE
-if [ "$(echo $CMS_FILES)" = "1" ]; then
+if [ "$(echo "$CMS_FILES")" = "1" ]; then
         if [ -d "$TARGET_PATH"cgi-bin ]; then
             mv "$TARGET_PATH"cgi-bin ../
             rm -rf ./* && rm -rf ./.??*
@@ -181,7 +181,7 @@ fi
 # Purges any database created during installation if bashtrap is triggered, provided the 'CMS_DB' flag has been set
 PURGE_DATABASE () {
 WHITE
-if [ "$(echo $CMS_DB)" = "1" ]; then
+if [ "$(echo "$CMS_DB")" = "1" ]; then
     curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/jsonapi/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
 fi
 }
@@ -189,7 +189,7 @@ fi
 # Purges any database user created during installation if bashtrap is triggered, provided the 'CMS_DBU' flag has been set
 PURGE_DATABASE_USER () {
 WHITE
-if [ "$(echo $CMS_DBU)" = "1" ]; then
+if [ "$(echo "$CMS_DBU")" = "1" ]; then
     curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
 fi
 }
@@ -387,7 +387,7 @@ echo
 WHITE
 echo -n "and run the installer again [y/N]? " 
 read BACKUP
-if [ "$(echo $BACKUP)" = "y" ] || [ "$(echo $BACKUP)" = "Y" ]; then 
+if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then 
     clear
     HEADER
     GREEN
@@ -396,15 +396,15 @@ if [ "$(echo $BACKUP)" = "y" ] || [ "$(echo $BACKUP)" = "Y" ]; then
     mkdir -p /root/support/scripts/CMS-Installer_backups
     WHITE
     echo "(this may take a moment)"
-    if [ "$(echo $EXISTS)" = "WORDPRESS" ]; then
+    if [ "$(echo "$EXISTS")" = "WORDPRESS" ]; then
         # Grabs the wordpress database for the backup
         mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     else
-        if [ "$(echo $EXISTS)" = "DRUPAL" ]; then
+        if [ "$(echo "$EXISTS")" = "DRUPAL" ]; then
             # Grabs the drupal database for the backup
             mysqldump "$(grep -A 5 "$databases = array (" "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
         else
-            if [ "$(echo $EXISTS)" = "JOOMLA" ]; then
+            if [ "$(echo "$EXISTS")" = "JOOMLA" ]; then
                 # Grabs the joomla database for the backup
                 mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
             fi
@@ -839,10 +839,10 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-printf "WordPress %s" "$WP_CV"
-printf " has been installed for"
+echo "WordPress $WP_CV has been installed for"
 WHITE
-echo " $TARGET"
+echo
+echo "$TARGET"
 echo
 WHITE
 # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
