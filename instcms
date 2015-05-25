@@ -26,9 +26,9 @@
 #  )
 #  )
 
-#------------------------------#
-# BEGIN VARIABLE DOCUMENTATION #
-#------------------------------#
+#--------------------------------#
+# BEGIN - VARIABLE DOCUMENTATION #
+#--------------------------------#
 
 # 1 - Initially used to hold arguments for flow control, then during checks throughout
 # 2 - Initially used to hold arguments for flow control, then during checks throughout
@@ -68,14 +68,26 @@
 # vers - Holds CMS-Installer version number, Used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
 # WP_CV - Holds current WordPress release #, Used in initial variable declarations, HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
 
-#----------------------------#
-# END VARIABLE DOCUMENTATION #
-#----------------------------#
+#------------------------------#
+# END - VARIABLE DOCUMENTATION #
+#------------------------------#
 
+#-----------------------------------------#
+# BEGIN - MAKE SURE WE'RE RUNNING AS ROOT #
+#-----------------------------------------#
 
-#-------------------------------------#
-# BEGIN INITIAL VARIABLE DECLARATIONS #
-#-------------------------------------#
+if [ "$(id- -u)" -ne "0" ]; then 
+    echo "This program must be run as root"
+    exit 1
+fi
+
+#---------------------------------------#
+# END - MAKE SURE WE'RE RUNNING AS ROOT #
+#---------------------------------------#
+
+#---------------------------------------#
+# BEGIN - INITIAL VARIABLE DECLARATIONS #
+#---------------------------------------#
 
 # Regex check for numbers as choices
 NC='^[0-9]+$'
@@ -101,19 +113,19 @@ WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '
 # Sets latest Joomla version
 JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -A 8 "/joomla/joomla-cms/releases/latest" | grep target | sed -e 's/>/ /g' -e 's/</ /g' | awk '{print $3}')"
 
-# ^ Sets latest Drupal version
+# Sets latest Drupal version
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 
 # CMS-Installer version
 vers=2.1
 
-#-----------------------------------#
-# END INITIAL VARIABLE DECLARATIONS #
-#-----------------------------------#
+#-------------------------------------#
+# END - INITIAL VARIABLE DECLARATIONS #
+#-------------------------------------#
 
-#------------------------#
-# BEGIN SCRIPT FUNCTIONS #
-#------------------------#
+#--------------------------#
+# BEGIN - SCRIPT FUNCTIONS #
+#--------------------------#
 
 # Ran if CTRL+C is sent
 trap bashtrap INT
@@ -145,7 +157,7 @@ bashtrap () {
 # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
 PURGE_INSTALL_FILES () { 
 WHITE
-if [ "$CMS_FILES" = "1" ]; then
+if [ "$(echo $CMS_FILES)" = "1" ]; then
         if [ -d "$TARGET_PATH"cgi-bin ]; then
             mv "$TARGET_PATH"cgi-bin ../
             rm -rf ./* && rm -rf ./.??*
@@ -318,7 +330,7 @@ else
         exit 0
     else
         # Loop the script if an invalid choice is given
-        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+        if [ $(echo $DOMAIN_CHOICE) != $NC ]; then
             echo
             RED
             echo "\"$DOMAIN_CHOICE\" is not a valid selection."
@@ -333,7 +345,7 @@ else
             # Validates given root password prior to doing anything
             CHECK_RPASS
             RPASS_VALIDATE
-            if [ ! -n "$CMS_TARGET" ]; then 
+            if [ -z "$CMS_TARGET" ]; then 
 	            CMS_SELECT_2
 	            CONVERT_CMS_TARGET
                 # Send flow to CMS selection if none has been chosen yet
@@ -365,7 +377,7 @@ echo
 WHITE
 echo -n "and run the installer again [y/N]? " 
 read BACKUP
-if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then 
+if [ "$(echo $BACKUP)" = "y" ] || [ "$(echo $BACKUP)" = "Y" ]; then 
     clear
     HEADER
     GREEN
@@ -472,7 +484,7 @@ if [ "$(ls -A $DIR | grep -v cgi)" ]; then
     WHITE
     echo -n "and run the installer again [y/N]? " 
     read BACKUP
-    if [[ "$(echo $BACKUP)" == "y" ]] || [[ "$(echo $BACKUP)" == "Y" ]]; then
+    if [ "$(echo $BACKUP)" = "y" ] || [ "$(echo $BACKUP)" = "Y" ]; then
         clear
         HEADER
         GREEN
@@ -695,12 +707,10 @@ fi
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 WHITE
 # API call to create the database, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" && CMS_DB=1
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" > dbvalidation && CMS_DB=1
 # API call to create the database user and password, command to dump output into a file for error checking, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbvalidation && CMS_DBU=1
+curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbuvalidation && CMS_DBU=1
 # API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbuvalidation
-# API call to verify association, and command to dump output to a file for error checking
 curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
     # Check for errors in database creation
     if [ -n "$(grep "error" dbvalidation)" ]; then
@@ -1229,13 +1239,13 @@ else
 fi
 }
 
-#----------------------#
-# END SCRIPT FUNCTIONS #
-#----------------------#
+#------------------------#
+# END - SCRIPT FUNCTIONS #
+#------------------------#
 
-#-------------------#
-# BEGIN CORE SCRIPT #
-#-------------------#
+#---------------------#
+# BEGIN - CORE SCRIPT #
+#---------------------#
 
 # If no arguments are given, and only 'instcms' was used at initial script call
 if [ ! -n "$1" ]; then
@@ -1349,13 +1359,13 @@ else
     FIRST_FUNCTION
 fi 
 
-#-----------------#
-# END CORE SCRIPT #
-#-----------------#
+#-------------------#
+# END - CORE SCRIPT #
+#-------------------#
 
-#-------------------------#
-# BEGIN POST SCRIPT NOTES #
-#-------------------------#
+#---------------------------#
+# BEGIN - POST SCRIPT NOTES #
+#---------------------------#
 
 #unset CMS_TARGET TARGET API_PASS CMS 1 2 3 FIRST_CHOICE CMS_CHOICE WP_CV JM_CV DR_CV TARGET_TYPE name expire TARGET_ACCT SUBDOMAIN CMS_FILES TARGET_PATH DBU_NAME DB_NAME DBU_PASS HTACCESS_WARN API_USER SERVER CMS_DB DB_PREFIX RETRY OPTION1 EXISTS BACKUP DIR FILE DOMAIN_CHOICE NC vers CMS_DBU
 #exit 0
@@ -1363,6 +1373,6 @@ fi
 # For use in Create Account feature:
 # curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/createacct?api.version=1&username="$NEW_USERNAME"&domain="$NEW_DOMAIN_NAME"&password="$NEW_PASSWORD"&ip="$DEDICATED_IP"&contactemail="$USER_EMAIL"&dkim="$USE_DKIM"&spf="$USE_SPF"
 
-#-----------------------#
-# END POST SCRIPT NOTES #
-#-----------------------#
+#-------------------------#
+# END - POST SCRIPT NOTES #
+#-------------------------#
