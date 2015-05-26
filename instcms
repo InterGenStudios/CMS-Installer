@@ -148,19 +148,20 @@ bashtrap () {
     printf "\n\n"
     echo "CTRL+C detected in terminal... halting installation..."
     echo
-    echo "Removing CMS Installation Files..."
+    WHITE
+    echo "Removing any CMS Installation Files downloaded by the installer..."
     echo
     PURGE_INSTALL_FILES
-    echo "Removing CMS Database and User..."
+    echo "Removing any CMS Databases or Users created by the installer..."
     echo
     PURGE_DATABASE
     PURGE_DATABASE_USER
     WHITE
-    echo "Installation removed, exiting..."
+    echo "Installation traces removed, exiting..."
     echo
-    printf "\n\n"
     SEPARATOR
-    printf "\n\n\n\n\n"
+    sleep 1
+    clear
     exit 0
 }
 
@@ -238,7 +239,7 @@ echo
 GREEN
 echo "============================================================================"
 WHITE
-echo "  CMS-INSTALLER v.$vers"
+echo "  CMS-INSTALLER v$vers"
 GREEN
 echo "============================================================================"
 WHITE
@@ -258,7 +259,9 @@ echo "USAGE: "
 WHITE
 echo "instcms {[options],[domain_name],[cms]} / [cms] [domain_name] / [cms] [domain_name] [rootpass]"
 GREEN
+echo
 echo "-------"
+echo
 echo "Options:"
 echo
 WHITE
@@ -327,16 +330,22 @@ read DOMAIN_CHOICE
 # Need to review how to set both upper and lower case as a single check- the following two Q checks are probably redundant
 if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ]; then
     printf "\n\n"
+    RED
     echo "Quiting..."
     rm -rf domainlist domainchoices
-    printf "\n\n"
+    WHITE
+    sleep 1
+    clear
     exit 0
 else
     if [ "$(echo "$DOMAIN_CHOICE")" = "q" ]; then
         printf "\n\n"
+        RED
         echo "Quiting..."
         rm -rf domainlist domainchoices
-        printf "\n\n"
+        WHITE
+        sleep 1
+        clear
         exit 0
     else
         # Loop the script if an invalid choice is given
@@ -436,11 +445,13 @@ else
     WHITE
     echo "Without backing up and moving the current data in"
     echo "$TARGET_PATH the installer cannot continue."
-    echo 
-    echo "Exiting..."
     echo
+    RED
+    echo "Exiting..."
+    sleep 1
+    clear
     # Backup or get out
-    exit 0
+    exit 1
     fi
 }
 
@@ -526,10 +537,12 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         WHITE
         echo "Without backing up and moving the current data in"
         echo "$TARGET_PATH the installer cannot continue."
-        echo 
-        echo "Exiting..."
         echo
-        exit 0
+        RED
+        echo "Exiting..."
+        sleep 1
+        clear
+        exit 1
     fi
 fi
 }
@@ -617,9 +630,11 @@ if echo "$OPTION1" | grep -iq "^y" ;then
         RED
         echo "Installation aborted..."
         echo
-        echo "Exiting now."
-        printf "\n\n"
-        exit 0
+        WHITE
+        echo "Exiting now..."
+        sleep 1
+        clear
+        exit 1
     fi
 }
 
@@ -660,7 +675,9 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
                     tput setaf 1
                     echo "Exiting..."
                     WHITE
-                    printf "\n\n";;
+                    sleep 1
+                    clear
+                    exit 1;;
             esac
     else
         clear
@@ -671,6 +688,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
         echo
         sleep 2
     fi
+# Remove temporary password verification file
 rm -rf rpasscheck
 }
 
@@ -694,7 +712,9 @@ PURGE_DATABASE_USER
 echo
 echo "Exiting..."
 rm -rf ./*validation
-exit 0
+sleep 2
+printf "\n\n"
+exit 1
 }
 
 INSTALL_DB () {
@@ -754,9 +774,9 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel
         HEADER
         GREEN
         echo "ALL WHM API calls completed successfully."
-        sleep 2
+        sleep 1
     fi
-# Remove database/user creation error checking logs
+# Remove database/user creation error-checking logs
 rm -rf ./*validation
 }
 
@@ -882,7 +902,7 @@ if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
     echo
     echo "Exiting..."
     sleep 3
-    exit 0
+    exit 1
 fi
 SUBDOMAIN_HT_CHECK
 cd "$TARGET_PATH"
@@ -984,6 +1004,7 @@ printf "==>  "
 WHITE
 printf "http://%s" "$TARGET"
 printf "\n\n\n"
+# Remove PASTE URL tempfiles
 rm -rf jdbinfo tempaste
 exit 0
 }
@@ -1088,6 +1109,7 @@ printf "==>  "
 WHITE
 printf "http://%s" "$TARGET"
 printf "\n\n\n"
+# Remove PASTE URL tempfiles
 rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
 exit 0
 }
@@ -1102,7 +1124,8 @@ if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' 
         RED
         echo "That isn't a valid domain/subdomain on this server."
         echo
-        echo "Exiting now."
+        WHITE
+        echo "Exiting to HelpText..."
         sleep 2
         HELPTEXT
     else
