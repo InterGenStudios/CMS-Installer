@@ -1313,7 +1313,7 @@ INSTALL_DB
     fi
 MODX_ADMIN="$DB_PREFIX"-admin
 MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-sed -i -e "s/modx_modx/$DB_NAME/" -e "s/db_username/$DBU_NAME/" -e "s/db_password/$DBU_PASS/" -e "s/username/$MODX_ADMIN/" -e "s|cmspassword>password</cmspassword|cmspassword>$MODX_PASS</cmspassword|" -e "s/email@address.com/admin@$TARGET/" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$TARGET_PATHcore/</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$TARGET_PATHmanager/</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$TARGET_PATHconnectors/</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_path>/modx/</context_web_path>|<context_web_path>/</context_web_path>|" "$TARGET_PATH"setup/config.xml
+sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e "s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e "s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e "s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e "s/email@address.com/admin@$TARGET/" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$TARGET_PATHcore/</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$TARGET_PATHmanager/</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$TARGET_PATHconnectors/</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_path>/modx/</context_web_path>|<context_web_path>/</context_web_path>|" "$TARGET_PATH"setup/config.xml
 clear
 HEADER
 GREEN
@@ -1321,7 +1321,8 @@ echo "Running ModXRevolution Installer..."
 sleep 1
 echo "(this may take a minute...or two..)"
 echo
-php $TARGET_PATHsetup/index.php --installmode=new &&
+cd $TARGET_PATHsetup
+php -f index.php --installmode=new &&
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
 cat > mxdbinfo <<EndOfModXRevolutionFile
