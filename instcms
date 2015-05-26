@@ -469,6 +469,7 @@ else
     sleep 1
     clear
     # Backup or get out
+    WHITE
     exit 1
     fi
 }
@@ -560,6 +561,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         echo "Exiting..."
         sleep 1
         clear
+        WHITE
         exit 1
     fi
 fi
@@ -750,6 +752,7 @@ echo "Exiting..."
 rm -rf ./*validation
 sleep 2
 printf "\n\n"
+WHITE
 exit 1
 }
 
