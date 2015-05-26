@@ -1325,7 +1325,8 @@ echo "Running ModXRevolution Installer..."
 sleep 1
 echo "(this may take a minute...or two..)"
 echo
-cd $TARGET_PATHsetup
+cd $TARGET_PATH
+cd setup
 php index.php --installmode=new
 sleep 2
 /usr/local/cpanel/scripts/restartsrv_httpd
