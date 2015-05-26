@@ -129,6 +129,9 @@ DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/dru
 # Sets latest ocPortal version
 OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
 
+# Sets latest ModXRevolution version
+MX_CV="$(curl -s http://modx.com/download/ | grep -i revolution | grep -m 1 '\-pl' | sed 's/-/ /' | awk '{print $3}')"
+
 # CMS-Installer version
 vers=2.1
 
@@ -280,6 +283,7 @@ echo "-w: install WordPress Version $WP_CV"
 echo "-j: install Joomla Version $JM_CV"
 echo "-d: install Drupal Version $DR_CV"
 echo "-o: install ocPortal Version $OC_CV"
+echo "-m: install ModXRevo Version $MX_CV"
 printf "\n\n"
 exit 0
 }
@@ -424,6 +428,11 @@ if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
                 if [ "$(echo "$EXISTS")" = "OCPORTAL" ]; then
                     # Grabs the ocportal database for the backup
                     mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+                else
+                    if [ "$(echo "$EXISTS")" = "MXREVO" ]; then
+                        # Grabs the mxrevolution database for the backup
+                        mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+                    fi
                 fi
             fi
         fi
@@ -574,12 +583,17 @@ else
                 EXISTS=OCPORTAL
                 EXISTING_INSTALL_WARN
             else
-                clear
-                HEADER
-                GREEN
-                echo "Target path confirmed for installation."
-                sleep 1
-                WHITE
+                if [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
+                    EXISTS=MODXREVO
+                    EXISTING_INSTALL_WARN
+                else
+                    clear
+                    HEADER
+                    GREEN
+                    echo "Target path confirmed for installation."
+                    sleep 1
+                    WHITE
+                fi
             fi
         fi
     fi
@@ -636,6 +650,10 @@ if echo "$OPTION1" | grep -iq "^y" ;then
             else
                 if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
                     INSTALL_OC
+                else
+                    if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                        INSTALL_MX
+                    fi
                 fi
             fi
         fi
@@ -988,7 +1006,7 @@ EndOfJoomlaFile
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 # Creates paste for database info using 'stikked'
-curl -d name=JoomlaInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
+curl -d name=JoomlaInstaller -d expire=120 -d private=1 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
 # converts 'stikked' paste to raw output URL
 sed -i -e 's/view/view\/raw/' tempaste
 clear
@@ -1093,7 +1111,7 @@ EndOfDrupalFile
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 # Creates paste for database info using 'stikked'
-curl -d name=DrupalInstaller -d expire=120 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
+curl -d name=DrupalInstaller -d expire=120 -d private=1 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
 # converts 'stikked' paste to raw output URL
 sed -i -e 's/view/view\/raw/' tempaste
 clear
@@ -1213,7 +1231,7 @@ EndOfocPortalFile
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/OC_CV/$OC_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ocdbinfo
 # Creates paste for database info using 'stikked'
-curl -d name=ocPortalInstaller -d expire=120 --data-urlencode text@ocdbinfo -s http://nobits.ml/api/create > tempaste
+curl -d name=ocPortalInstaller -d expire=120 -d private=1 --data-urlencode text@ocdbinfo -s http://nobits.ml/api/create > tempaste
 # converts 'stikked' paste to raw output URL
 sed -i -e 's/view/view\/raw/' tempaste
 clear
@@ -1250,6 +1268,120 @@ printf "/install.php"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf ocdbinfo tempaste
+exit 0
+}
+
+# Installs the ModXRevolution CMS, and provides both Admin Login Info URL and Admin Login URL for customer
+INSTALL_MX () {
+CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+clear
+HEADER
+GREEN
+echo "Fetching ModXRevolution files..."
+echo
+wget -q http://modx.com/download/direct/modx-"$MX_CV"-pl.zip && CMS_FILES=1
+echo "Moving ModXRevolution files into place..."
+unzip -q modx-"$MX_CV"-pl.zip
+mv mv modx-"$MX_CV"-pl/* . &&
+rm -rf modx-"$MX_CV"-pl.zip
+cp setup/config.dist.new.xml setup/config.xml
+chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"*
+INSTALL_DB
+    # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+        done
+    fi
+MODX_ADMIN="$DB_PREFIX"-admin
+MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+sed -i -e "s/modx_modx/$DB_NAME/" -e "s/db_username/$DBU_NAME/" -e "s/db_password/$DBU_PASS/" -e "s/username/$MODX_ADMIN/" -e "s/password/$MODX_PASS/" -e "s/email@address.com/admin@$TARGET/" -e "s|/www/modx/core/|$TARGET_PATHcore/|" -e "s|/www/modx/manager/|$TARGET_PATHmanager/|" -e "s|>/modx/manager/<|>/manager/<|" -e "s|/www/modx/connectors/|$TARGET_PATHconnectors/|" -e "s|>/modx/connectors/<|>/connectors/<|" -e "s|>/www/modx/<|>$TARGET_PATH<|" -e "s|>/modx/<|>/<|" "$TARGET_PATH"setup/config.xml
+clear
+HEADER
+GREEN
+echo "Running ModXRevolution Installer..."
+sleep 1
+echo "(this may take a minute...or two..)"
+echo
+php $TARGET_PATHsetup/index.php --installmode=new &&
+/usr/local/cpanel/scripts/restartsrv_httpd
+## BEGIN pastefile template for database information presentation to customer
+cat > mxdbinfo <<EndOfModXRevolutionFile
+=========================================================
+            ModXRevolution MX_CV Installation
+                Admin Login Information
+
+Domain:                     DOMAIN
+
+Admin URL:                  http://TARGET/manager
+
+Admin username:             ADMIN_NAME
+
+Admin password:             ADMIN_PASS              
+
+Admin email given:          admin@TARGET
+(change this on login)
+
+  * Please use or make note of this data immediately! * 
+        * This paste will expire in 120 minutes *
+
+=========================================================
+EndOfModXRevolutionFile
+## END pastefile template for database information presentation to customer
+# Adds database info into template
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/MX_CV/$MX_CV/" -e "s/TARGET/$TARGET/g" -e "s/ADMIN_NAME/$MODX_ADMIN/" -e "s/ADMIN_PASS/$MODX_PASS/" mxdbinfo
+# Creates paste for database info using 'stikked'
+curl -d name=ModXRevoInstaller -d expire=120 -d private=1 --data-urlencode text@mxdbinfo -s http://nobits.ml/api/create > tempaste
+# converts 'stikked' paste to raw output URL
+sed -i -e 's/view/view\/raw/' tempaste
+clear
+HEADER
+GREEN
+printf "The %s" "$CMS"
+printf " CMS Version %s" "$MX_CV"
+printf " has been installed for"
+WHITE
+echo " $TARGET"
+echo
+WHITE
+# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+HT_CHECK_WARN
+echo
+echo "Provide the Admin Login URL to your customer"
+GREEN
+echo
+printf "==>  "
+WHITE
+printf "%s" "$(cat tempaste)"
+printf "\n\n"
+printf "Provide the following %s" "$CMS"
+printf " URL to your customer"
+printf "\n"
+echo "and advise them to change the admin email on login:"
+echo
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"
+printf "/manager"
+printf "\n\n\n"
+# Remove PASTE URL tempfiles
+rm -rf mxdbinfo tempaste
 exit 0
 }
 
@@ -1297,6 +1429,7 @@ echo "1) WordPress $WP_CV"
 echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
 echo "4) ocPortal $OC_CV"
+echo "5) ModXRevo $MX_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1306,6 +1439,7 @@ read CMS_CHOICE
         2) CMS_TARGET="-j";;
         3) CMS_TARGET="-d";;
         4) CMS_TARGET="-o";;
+        5) CMS_TARGET="-m";;
         *) RED
            echo
            echo "Invalid selection."
@@ -1331,6 +1465,7 @@ echo "1) WordPress $WP_CV"
 echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
 echo "4) ocPortal $OC_CV"
+echo "5) ModXRevo $MX_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1346,6 +1481,9 @@ read CMS_CHOICE
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         4) CMS_TARGET="-o"
+           CONVERT_CMS_TARGET
+           FIRST_FUNCTION;;
+        5) CMS_TARGET="-m"
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         *) RED
@@ -1374,6 +1512,10 @@ else
         else
             if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
                 CMS=OCPORTAL
+            else
+                if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                    CMS=MODXREVO
+                fi
             fi
         fi
     fi
@@ -1398,6 +1540,10 @@ else
         else
             if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
                 CMS=OCPORTAL
+            else
+                if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                    CMS=MODXREVO
+                fi
             fi
         fi
     fi
@@ -1448,7 +1594,7 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
     elif [ "$(echo "$1")" = "-v" ]; then
         VERSION
     # Flow control for either '-j', '-w', or '-d' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ] || [ "$(echo "$1")" = "-o" ]; then
+    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ] || [ "$(echo "$1")" = "-o" ] || [ "$(echo "$1")" = "-m" ]; then
         CMS_TARGET="$1"
         FIRST_FUNCTION
     # Flow control for target {sub}domain as the only argument passed during initial script call
@@ -1486,8 +1632,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=JOOMLA
         elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
-        else
+        elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
             CMS=OCPORTAL
+        else
+            CMS=MODXREVO
         fi
         CHECK_RPASS
         RPASS_VALIDATE
@@ -1504,8 +1652,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=JOOMLA
         elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
-        else
+        elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
             CMS=OCPORTAL
+        else
+            CMS=MODXREVO
         fi
         RPASS_VALIDATE
         LIST_ACCTS
@@ -1528,8 +1678,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
         CMS=JOOMLA
     elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
         CMS=DRUPAL
-    else
+    elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
         CMS=OCPORTAL
+    else
+        CMS=MODXREVO
     fi
     RPASS_VALIDATE
     # Create Installer Log directory
