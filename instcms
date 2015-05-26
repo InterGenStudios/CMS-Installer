@@ -1238,7 +1238,7 @@ read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
 if [ "$(echo "$FIRST_CHOICE")" = "get list" ]; then
     # Creates installation log with timestamp
-    LIST_ACCTS 2>&1 | tee | sed 's/[\x01-\x1F\x7F]//g' >> /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" 
+    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")" 
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
