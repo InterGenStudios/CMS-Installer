@@ -126,6 +126,9 @@ JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -A 8 "/joo
 # Sets latest Drupal version
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 
+# Sets latest ocPortal version
+OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+
 # CMS-Installer version
 vers=2.1
 
@@ -276,6 +279,7 @@ WHITE
 echo "-w: install WordPress Version $WP_CV"
 echo "-j: install Joomla Version $JM_CV"
 echo "-d: install Drupal Version $DR_CV"
+echo "-o: install ocPortal Version $OC_CV"
 printf "\n\n"
 exit 0
 }
@@ -415,7 +419,12 @@ if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
         else
             if [ "$(echo "$EXISTS")" = "JOOMLA" ]; then
                 # Grabs the joomla database for the backup
-                mysqldump "$(grep "public \$db =" "$TARGET_PATH"/configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+                mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+            else
+                if [ "$(echo "$EXISTS")" = "OCPORTAL" ]; then
+                    # Grabs the ocportal database for the backup
+                    mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+                fi
             fi
         fi
     fi
@@ -561,12 +570,17 @@ else
             EXISTS=DRUPAL
             EXISTING_INSTALL_WARN
         else
-            clear
-            HEADER
-            GREEN
-            echo "Target path confirmed for installation."
-            sleep 1
-            WHITE
+            if [ -f "$TARGET_PATH"fixperms.sh ]; then
+                EXISTS=OCPORTAL
+                EXISTING_INSTALL_WARN
+            else
+                clear
+                HEADER
+                GREEN
+                echo "Target path confirmed for installation."
+                sleep 1
+                WHITE
+            fi
         fi
     fi
 fi
@@ -619,6 +633,10 @@ if echo "$OPTION1" | grep -iq "^y" ;then
         else
             if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
                 INSTALL_DR
+            else
+                if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+                    INSTALL_OC
+                fi
             fi
         fi
     fi
@@ -1114,6 +1132,127 @@ rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
 exit 0
 }
 
+# Installs the ocPortal CMS, and provides both domain URL and database info URL for customer to finalize the installation
+INSTALL_OC () {
+CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+clear
+HEADER
+GREEN
+echo "Fetching ocPortal files..."
+echo
+wget -q http://ocportal.com/site/dload.php?id=1037 && CMS_FILES=1
+echo "Moving ocPortal files into place..."
+mv dload.php\?id\=1037 ocportal.zip
+unzip -q ocportal.zip &&
+rm -rf ocportal.zip
+INSTALL_DB
+    # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+## BEGIN pastefile template for database information presentation to customer
+cat > ocdbinfo <<EndOfocPortalFile
+=========================================================
+              ocPortal OC_CV Installation
+                    Step 4 of 10
+                Configuration Details
+
+Domain:                     DOMAIN
+
+Base URL:                   http://TARGET
+
+Table prefix:              (leave it as default)
+
+Master Password:           (set by the end user)
+
+Use persistent 
+ database connections:     (leave box unchecked)
+
+Send error e-mails
+        to ocProducts:     (set by the end user)
+
+Administration account
+             username:     (set by the end user)
+
+Administration account
+             password:     (set by the end user)
+
+Database name:              DB
+
+Database hostname:          localhost
+
+Database username:          DBU
+
+Database password:          PASS
+
+
+  * Please use or make note of this data immediately! * 
+        * This paste will expire in 120 minutes *
+
+=========================================================
+EndOfocPortalFile
+## END pastefile template for database information presentation to customer
+# Adds database info into template
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/OC_CV/$OC_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ocdbinfo
+# Creates paste for database info using 'stikked'
+curl -d name=ocPortalInstaller -d expire=120 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
+# converts 'stikked' paste to raw output URL
+sed -i -e 's/view/view\/raw/' tempaste
+clear
+HEADER
+GREEN
+printf "The %s" "$CMS"
+printf " CMS Version %s" "$OC_CV"
+printf " has been installed for"
+WHITE
+echo " $TARGET"
+echo
+WHITE
+# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+HT_CHECK_WARN
+echo
+echo "Provide the Database Info URL to your customer"
+GREEN
+echo "(needed for finalizing installation)"
+echo
+printf "==>  "
+WHITE
+printf "%s" "$(cat tempaste)"
+printf "\n\n"
+printf "Provide the following %s" "$CMS"
+printf " URL to your customer"
+printf "\n"
+echo "and advise them to finalize their installation:"
+echo
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"
+printf "/install.php"
+printf "\n\n\n"
+# Remove PASTE URL tempfiles
+rm -rf ocdbinfo tempaste
+exit 0
+}
+
 TARGET_CHECK () {
 # Flow control check for a main domain installation
 if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
@@ -1157,6 +1296,7 @@ WHITE
 echo "1) WordPress $WP_CV"
 echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
+echo "4) ocPortal $OC_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1165,6 +1305,7 @@ read CMS_CHOICE
         1) CMS_TARGET="-w";;
         2) CMS_TARGET="-j";;
         3) CMS_TARGET="-d";;
+        4) CMS_TARGET="-o";;
         *) RED
            echo
            echo "Invalid selection."
@@ -1189,6 +1330,7 @@ WHITE
 echo "1) WordPress $WP_CV"
 echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
+echo "4) ocPortal $OC_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1201,6 +1343,9 @@ read CMS_CHOICE
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         3) CMS_TARGET="-d"
+           CONVERT_CMS_TARGET
+           FIRST_FUNCTION;;
+        4) CMS_TARGET="-o"
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         *) RED
@@ -1226,6 +1371,10 @@ else
     else
         if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
+        else
+            if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+                CMS=OCPORTAL
+            fi
         fi
     fi
 fi
@@ -1246,6 +1395,10 @@ else
     else
         if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
+        else
+            if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+                CMS=OCPORTAL
+            fi
         fi
     fi
 fi
@@ -1295,7 +1448,7 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
     elif [ "$(echo "$1")" = "-v" ]; then
         VERSION
     # Flow control for either '-j', '-w', or '-d' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ]; then
+    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ] || [ "$(echo "$1")" = "-o" ]; then
         CMS_TARGET="$1"
         FIRST_FUNCTION
     # Flow control for target {sub}domain as the only argument passed during initial script call
@@ -1331,8 +1484,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=WORDPRESS
         elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
             CMS=JOOMLA
-        else
+        elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
+        else
+            CMS=OCPORTAL
         fi
         CHECK_RPASS
         RPASS_VALIDATE
@@ -1347,8 +1502,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=WORDPRESS
         elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
             CMS=JOOMLA
-        else
+        elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
             CMS=DRUPAL
+        else
+            CMS=OCPORTAL
         fi
         RPASS_VALIDATE
         LIST_ACCTS
@@ -1369,8 +1526,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
         CMS=WORDPRESS
     elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
         CMS=JOOMLA
-    else
+    elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
         CMS=DRUPAL
+    else
+        CMS=OCPORTAL
     fi
     RPASS_VALIDATE
     # Create Installer Log directory
