@@ -840,7 +840,7 @@ clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
-printf " CMS Version %s" "$JM_CV"
+printf " CMS Version %s" "$WP_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
