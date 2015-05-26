@@ -118,7 +118,7 @@ CMS_DB=0
 CMS_DBU=0
 
 # Sets latest WordPress version
-WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed 's/.tar.gz//')"
+WP_CV="$(echo "$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed 's/.tar.gz//')")"
 
 # Sets latest Joomla version
 JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -A 8 "/joomla/joomla-cms/releases/latest" | grep target | sed -e 's/>/ /g' -e 's/</ /g' | awk '{print $3}')"
