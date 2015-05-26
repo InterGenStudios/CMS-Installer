@@ -1310,7 +1310,7 @@ INSTALL_DB
     fi
 MODX_ADMIN="$DB_PREFIX"-admin
 MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-sed -i -e "s/modx_modx/$DB_NAME/" -e "s/db_username/$DBU_NAME/" -e "s/db_password/$DBU_PASS/" -e "s/username/$MODX_ADMIN/" -e "s/password/$MODX_PASS/" -e "s/email@address.com/admin@$TARGET/" -e "s|/www/modx/core/|$TARGET_PATHcore/|" -e "s|/www/modx/manager/|$TARGET_PATHmanager/|" -e "s|>/modx/manager/<|>/manager/<|" -e "s|/www/modx/connectors/|$TARGET_PATHconnectors/|" -e "s|>/modx/connectors/<|>/connectors/<|" -e "s|>/www/modx/<|>$TARGET_PATH<|" -e "s|>/modx/<|>/<|" "$TARGET_PATH"setup/config.xml
+sed -i -e "s/modx_modx/$DB_NAME/" -e "s/db_username/$DBU_NAME/" -e "s/db_password/$DBU_PASS/" -e "s/username/$MODX_ADMIN/" -e "s|cmspassword>password</cmspassword|cmspassword>$MODX_PASS</cmspassword|" -e "s/email@address.com/admin@$TARGET/" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$TARGET_PATHcore/</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$TARGET_PATHmanager/</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$TARGET_PATHconnectors/</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_path>/modx/</context_web_path>|<context_web_path>/</context_web_path>|" "$TARGET_PATH"setup/config.xml
 clear
 HEADER
 GREEN
