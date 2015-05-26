@@ -1312,7 +1312,7 @@ INSTALL_DB
         done
     fi
 MODX_ADMIN="$DB_PREFIX"-admin
-MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+MODX_PASS=Pa$$WorD1#!
 MODX_CORE="$TARGET_PATH"core/
 MODX_MANAGER="$TARGET_PATH"manager/
 MODX_CONNECTORS="$TARGET_PATH"connectors/
