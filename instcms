@@ -1328,8 +1328,7 @@ echo
 cd $TARGET_PATH
 cd setup
 php index.php --installmode=new
-sleep 2
-/usr/local/cpanel/scripts/restartsrv_httpd
+cd $TARGET_PATH
 ## BEGIN pastefile template for database information presentation to customer
 cat > mxdbinfo <<EndOfModXRevolutionFile
 =========================================================
