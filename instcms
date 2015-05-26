@@ -1326,7 +1326,7 @@ sleep 1
 echo "(this may take a minute...or two..)"
 echo
 cd $TARGET_PATHsetup
-php ./index.php --installmode=new &&
+./index.php --installmode=new &&
 /usr/local/cpanel/scripts/restartsrv_httpd
 ## BEGIN pastefile template for database information presentation to customer
 cat > mxdbinfo <<EndOfModXRevolutionFile
