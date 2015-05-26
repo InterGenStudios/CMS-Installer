@@ -841,6 +841,7 @@ HEADER
 GREEN
 stty -ctlecho
 printf "WordPress Version %s" "$WP_CV"
+stty -ctlecho
 printf " has been installed for"
 WHITE
 echo " $TARGET"
