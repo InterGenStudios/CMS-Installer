@@ -1311,8 +1311,8 @@ INSTALL_DB
         # End fixperms style corrections- making sure all files are owned properly, with correct permissions
         done
     fi
-MODX_ADMIN="$DB_PREFIX"-admin
-MODX_PASS=Pa$$WorD1#!
+MODX_ADMIN=admin
+MODX_PASS=PaSsWorD1#!
 MODX_CORE="$TARGET_PATH"core/
 MODX_MANAGER="$TARGET_PATH"manager/
 MODX_CONNECTORS="$TARGET_PATH"connectors/
