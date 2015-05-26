@@ -839,10 +839,11 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
 clear
 HEADER
 GREEN
-echo -n "WordPress $WP_CV has been installed for"
+printf "The %s" "$CMS"
+printf " CMS Version %s" "$JM_CV"
+printf " has been installed for"
 WHITE
-echo
-echo "$TARGET"
+echo " $TARGET"
 echo
 WHITE
 # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
