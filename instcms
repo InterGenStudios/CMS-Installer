@@ -1120,18 +1120,11 @@ OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | aw
 MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
 CLINES=5
 CLEARLINE
-echo "                                          "
-echo "                                          "
-echo "                                          "
-echo "                                          "
-echo "                                          "
-CLINES=5
-CLEARLINE
-echo "-w: install WordPress - Current Version $WP_CV"
-echo "-j: install Joomla - Current Version $JM_CV"
-echo "-d: install Drupal - Current Version $DR_CV"
-echo "-o: install ocPortal - Current Version $OC_CV"
-echo "-m: install ModXRevo - Current Version $MX_CV"
+echo "-w: installs WordPress   Current Version $WP_CV"
+echo "-j: installs Joomla      Current Version $JM_CV"
+echo "-d: installs Drupal      Current Version $DR_CV"
+echo "-o: installs ocPortal    Current Version $OC_CV"
+echo "-m: installs ModXRevo    Current Version $MX_CV"
 printf "\n\n"
 exit 0
 }
