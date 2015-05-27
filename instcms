@@ -48,13 +48,11 @@
 # DBU_PASS - Holds database user password, used in INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
 # DIR - Used in checking for pre-existing data in target docroot, used in CHECK_EXISTING_DATA ()
 # DOMAIN_CHOICE - Holds selection of target domain, used in LIST_ACCTS ()
-# DR_CV - Holds current Drupal release #, used in initial variable declarations, HELPTEXT (), INSTALL_DR (), CMS_SELECT_2 (), CMS_SELECT ()
 # EXISTS - Holds name of identified pre-existing CMS installation, used in BACKUP_OPTION (), EXISTING_INSTALL_WARN (), CHECK_EXISTING_INSTALL ()
 # expire - Holds paste URL life-span in minutes, used in INSTALL_JM (), INSTALL_DR ()
 # FILE - Empty variable used in existing data check, used in CHECK_EXISTING_DATA ()
 # FIRST_CHOICE - Holds intial selection of flow control, used in FIRST_FUNCTION ()
 # HTACCESS_WARN - Holds flag for an identified htaccess file in maindomain during subdomain installation, used in SUBDOMAIN_HT_CHECK (), HT_CHECK_WARN ()
-# JM_CV - Holds current Joomla release #, used in initial variable declarations, HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
 # name - Holds name of paste URL creator, used in INSTALL_JM (), INSTALL_DR ()
 # NC - Holds regex variable for integers, used in initial variable declarations, LIST_ACCTS ()
 # OPTION1 - Holds installation confirmation choice, used in CONFIRM_INSTALL ()
@@ -66,9 +64,11 @@
 # TARGET_PATH - Holds target web docroot, used in
 # TARGET_TYPE - 
 # vers - Holds CMS-Installer version number, used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
-# WP_CV - Holds current WordPress release #, used in initial variable declarations, HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
-# OC_CV - Holds current ocPortal release #, used in initial variable declarations, HELPTEXT (), INSTALL_OC (), CMS_SELECT_2 (), CMS_SELECT ()
-# MX_CV - Holds current ModXRevolution release #, used in initial variable declarations, HELPTEXT (), INSTALL_MX (), CMS_SELECT_2 (), CMS_SELECT ()
+# WP_CV - Holds current WordPress release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
+# JM_CV - Holds current Joomla release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
+# DR_CV - Holds current Drupal release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_DR (), CMS_SELECT_2 (), CMS_SELECT ()
+# OC_CV - Holds current ocPortal release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_OC (), CMS_SELECT_2 (), CMS_SELECT ()
+# MX_CV - Holds current ModXRevolution release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_MX (), CMS_SELECT_2 (), CMS_SELECT ()
 
 #------------------------------#
 # END - VARIABLE DOCUMENTATION #
