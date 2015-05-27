@@ -119,6 +119,22 @@ CMS_DB=0
 # Flag for purge functions
 CMS_DBU=0
 
+# CMS-Installer version
+vers=2.3
+
+#-------------------------------------#
+# END - INITIAL VARIABLE DECLARATIONS #
+#-------------------------------------#
+
+#--------------------------#
+# BEGIN - SCRIPT FUNCTIONS #
+#--------------------------#
+
+GET_CMS_VERS () {
+clear
+HEADER
+GREEN
+echo "Getting latest CMS versions..."
 # Sets latest WordPress version
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 
@@ -133,17 +149,7 @@ OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | aw
 
 # Sets latest ModXRevolution version
 MX_CV="$(curl -s http://modx.com/download/ | grep -i revolution | grep -m 1 '\-pl' | sed 's/-/ /' | awk '{print $3}')"
-
-# CMS-Installer version
-vers=2.3
-
-#-------------------------------------#
-# END - INITIAL VARIABLE DECLARATIONS #
-#-------------------------------------#
-
-#--------------------------#
-# BEGIN - SCRIPT FUNCTIONS #
-#--------------------------#
+}
 
 # Ran if CTRL+C is sent
 trap bashtrap INT
@@ -256,6 +262,7 @@ printf "\n\n"
 
 # Shows available usage options
 HELPTEXT () {
+GET_CMS_VERS
 clear
 HEADER
 GREEN
@@ -371,6 +378,9 @@ else
             TARGET_CHECK
         else
             # Send them to target verification if CMS has already been selected
+            if [ -z "$WP_CV" ]; then
+                GET_CMS_VERS
+            fi
             TARGET_CHECK
         fi
     fi
@@ -1428,6 +1438,7 @@ fi
 
 # Second CMS selection function for flows outside of basic FIRST_FUNCTION routines
 CMS_SELECT_2 () {
+GET_CMS_VERS
 clear
 HEADER
 GREEN
@@ -1464,6 +1475,7 @@ read CMS_CHOICE
 
 # First CMS selection function used with basic flow controls and FIRST_FUNCTION routines
 CMS_SELECT () {
+GET_CMS_VERS
 clear
 HEADER
 GREEN
@@ -1646,6 +1658,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         else
             CMS=MODXREVO
         fi
+        GET_CMS_VERS
         CHECK_RPASS
         RPASS_VALIDATE
         # Create Installer Log directory
@@ -1692,6 +1705,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     else
         CMS=MODXREVO
     fi
+    GET_CMS_VERS
     RPASS_VALIDATE
     # Create Installer Log directory
     mkdir -p /root/support/scripts/CMS-Installer_logs/
