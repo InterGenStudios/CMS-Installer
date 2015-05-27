@@ -1120,6 +1120,13 @@ OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | aw
 MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
 CLINES=5
 CLEARLINE
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+CLINES=5
+CLEARLINE
 echo "-w: install WordPress Version $WP_CV"
 echo "-j: install Joomla Version $JM_CV"
 echo "-d: install Drupal Version $DR_CV"
