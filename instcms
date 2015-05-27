@@ -651,20 +651,20 @@ if echo "$OPTION1" | grep -iq "^y" ;then
             fi
         fi
     fi
-    else
-        # Quick out if they see an incorrect choice listed
-        printf "\n\n"
-        clear
-        HEADER
-        RED
-        echo "Installation aborted..."
-        echo
-        WHITE
-        echo "Exiting now..."
-        sleep 1
-        clear
-        exit 1
-    fi
+else
+    # Quick out if they see an incorrect choice listed
+    printf "\n\n"
+    clear
+    HEADER
+    RED
+    echo "Installation aborted..."
+    echo
+    WHITE
+    echo "Exiting now..."
+    sleep 1
+    clear
+    exit 1
+fi
 }
 
 # Get server's root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
