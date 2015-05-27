@@ -174,7 +174,7 @@ bashtrap () {
     echo "Installation traces removed, exiting..."
     echo
     SEPARATOR
-    sleep 1
+    sleep 3
     clear
     exit 0
 }
