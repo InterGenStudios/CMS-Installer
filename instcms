@@ -271,11 +271,10 @@ echo
 echo "Installs choice CMS in target domain/subdomain docroot"
 echo
 echo "USAGE: "
+echo
 WHITE
 echo "instcms {[options],[domain_name],[cms]} / [cms] [domain_name] / [cms] [domain_name] [rootpass]"
 GREEN
-echo
-echo "-------"
 echo
 echo "Options:"
 echo
@@ -311,12 +310,12 @@ else
 fi
 echo
 BLUE
-echo " InterGenStudios"
+echo " An InterGenStudios project."
 WHITE
 echo
-echo " Internet: https://intergenstudios.com"
+echo " Web: http://cms-installer.ml"
 echo
-echo " Email: <info@intergenstudios.com>"
+echo " Email: <info@cms-installer.ml>"
 echo
 echo " Github: https://github.com/InterGenOS/CMS-Installer"
 echo
