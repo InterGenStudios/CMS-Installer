@@ -74,9 +74,11 @@
 # END - VARIABLE DOCUMENTATION #
 #------------------------------#
 
-#-----------------------------------------#
-# BEGIN - MAKE SURE WE'RE RUNNING AS ROOT #
-#-----------------------------------------#
+#############################################
+##-----------------------------------------##
+## BEGIN - MAKE SURE WE'RE RUNNING AS ROOT ##
+##-----------------------------------------##
+#############################################
 
 if [ "$(id -u)" != "0" ]; then
     tput bold
@@ -93,13 +95,17 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-#---------------------------------------#
-# END - MAKE SURE WE'RE RUNNING AS ROOT #
-#---------------------------------------#
+###########################################
+##---------------------------------------##
+## END - MAKE SURE WE'RE RUNNING AS ROOT ##
+##---------------------------------------##
+###########################################
 
-#---------------------------------------#
-# BEGIN - INITIAL VARIABLE DECLARATIONS #
-#---------------------------------------#
+###########################################
+##---------------------------------------##
+## BEGIN - INITIAL VARIABLE DECLARATIONS ##
+##---------------------------------------##
+###########################################
 
 # Regex check for numbers as choices
 NC='^[0-9]+$'
@@ -122,17 +128,21 @@ CMS_DBU=0
 # CMS-Installer version
 vers=2.3
 
-#-------------------------------------#
-# END - INITIAL VARIABLE DECLARATIONS #
-#-------------------------------------#
+#########################################
+##-------------------------------------##
+## END - INITIAL VARIABLE DECLARATIONS ##
+##-------------------------------------##
+#########################################
 
-#--------------------------#
-# BEGIN - SCRIPT FUNCTIONS #
-#--------------------------#
+##############################
+##--------------------------##
+## BEGIN - SCRIPT FUNCTIONS ##
+##--------------------------##
+##############################
 
-#-----------------------------------------#
-# BEGIN - SCRIPT DISPLAY LAYOUT FUNCTIONS #
-#-----------------------------------------#
+#----------------------------------#
+# BEGIN - DISPLAY LAYOUT FUNCTIONS #
+#----------------------------------#
 
 # Colors trailing text Red
 RED () {
@@ -185,13 +195,13 @@ WHITE
 printf "\n\n"
 }
 
-#---------------------------------------#
-# END - SCRIPT DISPLAY LAYOUT FUNCTIONS #
-#---------------------------------------#
+#--------------------------------#
+# END - DISPLAY LAYOUT FUNCTIONS #
+#--------------------------------#
 
-#------------------------------------------------------#
-# BEGIN - SCRIPT CMS & DATABASE INSTALLATION FUNCTIONS #
-#------------------------------------------------------#
+#-----------------------------------------------#
+# BEGIN - CMS & DATABASE INSTALLATION FUNCTIONS #
+#-----------------------------------------------#
 
 # Uses DLev's API call engineering to properly create MySQL database and user that cPanel can 'see'
 INSTALL_DB () {
@@ -794,13 +804,13 @@ rm -rf mxdbinfo tempaste
 exit 0
 }
 
-#----------------------------------------------------#
-# END - SCRIPT CMS & DATABASE INSTALLATION FUNCTIONS #
-#----------------------------------------------------#
+#---------------------------------------------#
+# END - CMS & DATABASE INSTALLATION FUNCTIONS #
+#---------------------------------------------#
 
-#---------------------------------#
-# BEGIN - SCRIPT BACKUP FUNCTIONS #
-#---------------------------------#
+#--------------------------#
+# BEGIN - BACKUP FUNCTIONS #
+#--------------------------#
 
 # DLev said I had to make this, so here it is- backup support.
 BACKUP_OPTION () {
@@ -966,13 +976,13 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
 fi
 }
 
-#-------------------------------#
-# END - SCRIPT BACKUP FUNCTIONS #
-#-------------------------------#
+#------------------------#
+# END - BACKUP FUNCTIONS #
+#------------------------#
 
-#-------------------------------#
-# BEGIN - SCRIPT TRAP FUNCTIONS #
-#-------------------------------#
+#------------------------#
+# BEGIN - TRAP FUNCTIONS #
+#------------------------#
 
 # Ran if CTRL+C is sent
 trap bashtrap INT
@@ -1032,13 +1042,13 @@ if [ "$(echo "$CMS_DBU")" = "1" ]; then
 fi
 }
 
-#-----------------------------#
-# END - SCRIPT TRAP FUNCTIONS #
-#-----------------------------#
+#----------------------#
+# END - TRAP FUNCTIONS #
+#----------------------#
 
-#-------------------------------#
-# BEGIN - SCRIPT INFO FUNCTIONS #
-#-------------------------------#
+#------------------------#
+# BEGIN - INFO FUNCTIONS #
+#------------------------#
 
 GET_CMS_VERS () {
 clear
@@ -1126,13 +1136,13 @@ echo
 exit 0
 }
 
-#-----------------------------#
-# END - SCRIPT INFO FUNCTIONS #
-#-----------------------------#
+#----------------------#
+# END - INFO FUNCTIONS #
+#----------------------#
 
-#----------------------------------------------------------#
-# BEGIN - SCRIPT FLOW CONTROL, CHECKS, & WARNING FUNCTIONS #
-#----------------------------------------------------------#
+#---------------------------------------------------#
+# BEGIN - FLOW CONTROL, CHECKS, & WARNING FUNCTIONS #
+#---------------------------------------------------#
 
 # Creates numbered list of domains for installation target options
 LIST_ACCTS () {
@@ -1628,17 +1638,21 @@ else
 fi
 }
 
-#--------------------------------------------------------#
-# END - SCRIPT FLOW CONTROL, CHECKS, & WARNING FUNCTIONS #
-#--------------------------------------------------------#
+#-------------------------------------------------#
+# END - FLOW CONTROL, CHECKS, & WARNING FUNCTIONS #
+#-------------------------------------------------#
 
-#------------------------#
-# END - SCRIPT FUNCTIONS #
-#------------------------#
+############################
+##------------------------##
+## END - SCRIPT FUNCTIONS ##
+##------------------------##
+############################
 
-#---------------------#
-# BEGIN - CORE SCRIPT #
-#---------------------#
+#########################
+##---------------------##
+## BEGIN - CORE SCRIPT ##
+##---------------------##
+#########################
 
 # If no arguments are given, and only 'instcms' was used at initial script call
 if [ -z "$1" ]; then
@@ -1766,16 +1780,17 @@ else
     FIRST_FUNCTION
 fi 
 
-#-------------------#
-# END - CORE SCRIPT #
-#-------------------#
+#######################
+##-------------------##
+## END - CORE SCRIPT ##
+##-------------------##
+#######################
 
 #-----------------------------------------------#
 # BEGIN - POST SCRIPT NOTES & POSSIBLY USEFULLS #
 #-----------------------------------------------#
 
 #unset CMS_TARGET TARGET API_PASS CMS 1 2 3 FIRST_CHOICE CMS_CHOICE WP_CV JM_CV DR_CV TARGET_TYPE name expire TARGET_ACCT SUBDOMAIN CMS_FILES TARGET_PATH DBU_NAME DB_NAME DBU_PASS HTACCESS_WARN API_USER SERVER CMS_DB DB_PREFIX RETRY OPTION1 EXISTS BACKUP DIR FILE DOMAIN_CHOICE NC vers CMS_DBU
-#exit 0
 #
 # For use in Create Account feature:
 # curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/createacct?api.version=1&username="$NEW_USERNAME"&domain="$NEW_DOMAIN_NAME"&password="$NEW_PASSWORD"&ip="$DEDICATED_IP"&contactemail="$USER_EMAIL"&dkim="$USE_DKIM"&spf="$USE_SPF"
