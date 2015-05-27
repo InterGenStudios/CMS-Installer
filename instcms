@@ -1108,11 +1108,11 @@ GREEN
 echo "CMS:"
 echo
 WHITE
-echo "-w: install WordPress (Getting version..)"
-echo "-j: install Joomla    (Getting version..)"
-echo "-d: install Drupal    (Getting version..)"
-echo "-o: install ocPortal  (Getting version..)"
-echo "-m: install ModXRevo  (Getting version..)"
+echo "-w: (Getting version information...)"
+echo "-j: (Getting version information...)"
+echo "-d: (Getting version information...)"
+echo "-o: (Getting version information...)"
+echo "-m: (Getting version information...)"
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
@@ -1120,11 +1120,11 @@ OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | aw
 MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
 CLINES=5
 CLEARLINE
-echo "-w: installs WordPress   Current Version $WP_CV"
-echo "-j: installs Joomla      Current Version $JM_CV"
-echo "-d: installs Drupal      Current Version $DR_CV"
-echo "-o: installs ocPortal    Current Version $OC_CV"
-echo "-m: installs ModXRevo    Current Version $MX_CV"
+echo "-w: installs WordPress  --  Version $WP_CV"
+echo "-j: installs Joomla  -----  Version $JM_CV"
+echo "-d: installs Drupal  -----  Version $DR_CV"
+echo "-o: installs ocPortal  ---  Version $OC_CV"
+echo "-m: installs ModXRevo  ---  Version $MX_CV"
 printf "\n\n"
 exit 0
 }
