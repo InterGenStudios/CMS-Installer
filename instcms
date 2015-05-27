@@ -195,6 +195,17 @@ WHITE
 printf "\n\n"
 }
 
+# Clears $ amount of lines when called
+CLEARLINE () {
+# To use, set CLINES=<$#> before function if you need to clear more than 1 line
+if [ -z "$CLINES" ]; then
+    tput cuu 1 && tput el
+else
+    tput cuu "$CLINES" && tput el
+    unset CLINES
+fi
+}
+
 #--------------------------------#
 # END - DISPLAY LAYOUT FUNCTIONS #
 #--------------------------------#
