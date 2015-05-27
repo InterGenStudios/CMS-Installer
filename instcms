@@ -23,7 +23,7 @@
 # To Do List: #
 #-------------#
 # 1) Start cPanel plugin gui development
-#  )
+# 2) Identify and integrate additional CMSs
 #  )
 
 #--------------------------------#
@@ -335,8 +335,8 @@ echo
 # Giving them a quick out
 echo -n "Select Domain for CMS Installation [q for quit]? "
 read DOMAIN_CHOICE
-# Need to review how to set both upper and lower case as a single check- the following two Q checks are probably redundant
-if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ]; then
+# Can probably be shortened further
+if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ] || [ "$(echo "$DOMAIN_CHOICE")" = "q" ]; then
     printf "\n\n"
     RED
     echo "Quiting..."
@@ -346,41 +346,30 @@ if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ]; then
     clear
     exit 0
 else
-    if [ "$(echo "$DOMAIN_CHOICE")" = "q" ]; then
-        printf "\n\n"
+    # Loop the script if an invalid choice is given
+    if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+        echo
         RED
-        echo "Quiting..."
-        rm -rf domainlist domainchoices
-        WHITE
+        echo "\"$DOMAIN_CHOICE\" is not a valid selection."
+        echo
+        echo "Restarting..."
         sleep 1
-        clear
-        exit 0
+        LIST_ACCTS
     else
-        # Loop the script if an invalid choice is given
-        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
-            echo
-            RED
-            echo "\"$DOMAIN_CHOICE\" is not a valid selection."
-            echo
-            echo "Restarting..."
-            sleep 1
-            LIST_ACCTS
+        # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
+        TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+        rm -rf domainlist domainchoices
+        # Validates given root password prior to doing anything
+        CHECK_RPASS
+        RPASS_VALIDATE
+        if [ -z "$CMS_TARGET" ]; then 
+	        CMS_SELECT_2
+	        CONVERT_CMS_TARGET
+            # Send flow to CMS selection if none has been chosen yet
+            TARGET_CHECK
         else
-            # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
-            TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
-            rm -rf domainlist domainchoices
-            # Validates given root password prior to doing anything
-            CHECK_RPASS
-            RPASS_VALIDATE
-            if [ -z "$CMS_TARGET" ]; then 
-	            CMS_SELECT_2
-	            CONVERT_CMS_TARGET
-                # Send flow to CMS selection if none has been chosen yet
-                TARGET_CHECK
-            else
-                # Send them to target verification if CMS has already been selected
-                TARGET_CHECK
-            fi
+            # Send them to target verification if CMS has already been selected
+            TARGET_CHECK
         fi
     fi
 fi
@@ -491,7 +480,7 @@ echo
 BACKUP_OPTION
 }
 
-# Same routine as the installation check and backup, but for data other than wordpress/joomla/drupal installations. Need to have it generically look for database info and grab it if it's there
+# Same routine as the installation check and backup, but for data other than CMS installations. Need to have it generically look for database info and grab it if it's there
 CHECK_EXISTING_DATA () {
 FILE=""
 DIR="$TARGET_PATH"
@@ -567,7 +556,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
 fi
 }
 
-# IDs any wordpress/joomla/drupal installations that are already present in target docroot
+# IDs any CMS installations that are already present in target docroot
 CHECK_EXISTING_INSTALL () {
 if [ -f "$TARGET_PATH"wp-config.php ]; then
     EXISTS=WORDPRESS
@@ -730,7 +719,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
 rm -rf rpasscheck
 }
 
-# If you're here, something really bad has happened
+# If you're here, something really really really bad has happened
 INSTALL_DB_ERROR () {
 clear
 HEADER
@@ -756,6 +745,7 @@ WHITE
 exit 1
 }
 
+# Uses DLev's API call engineering to properly create MySQL database and user that cPanel can 'see'
 INSTALL_DB () {
 clear
 HEADER
@@ -856,6 +846,10 @@ if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
     WHITE
 fi
 }
+
+#------------------------------#
+# BEGIN - SCRIPT CMS FUNCTIONS #
+#------------------------------#
 
 # Installs the WordPress CMS, and provides URL for customer to finalize the installation
 INSTALL_WP () {
@@ -1316,6 +1310,7 @@ MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 MODX_CORE="$TARGET_PATH"core/
 MODX_MANAGER="$TARGET_PATH"manager/
 MODX_CONNECTORS="$TARGET_PATH"connectors/
+# Yes, this is ONE sed command
 sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e "s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e "s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e "s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e "s|email@address.com|admin@$TARGET|" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$MODX_CORE</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$MODX_MANAGER</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$MODX_CONNECTORS</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_url>/modx/</context_web_url>|<context_web_url>/</context_web_url>|" "$TARGET_PATH"setup/config.xml
 clear
 HEADER
@@ -1392,6 +1387,10 @@ printf "\n\n\n"
 rm -rf mxdbinfo tempaste
 exit 0
 }
+
+#----------------------------#
+# END - SCRIPT CMS FUNCTIONS #
+#----------------------------#
 
 TARGET_CHECK () {
 # Flow control check for a main domain installation
@@ -1715,9 +1714,9 @@ fi
 # END - CORE SCRIPT #
 #-------------------#
 
-#---------------------------#
-# BEGIN - POST SCRIPT NOTES #
-#---------------------------#
+#-----------------------------------------------#
+# BEGIN - POST SCRIPT NOTES & POSSIBLY USEFULLS #
+#-----------------------------------------------#
 
 #unset CMS_TARGET TARGET API_PASS CMS 1 2 3 FIRST_CHOICE CMS_CHOICE WP_CV JM_CV DR_CV TARGET_TYPE name expire TARGET_ACCT SUBDOMAIN CMS_FILES TARGET_PATH DBU_NAME DB_NAME DBU_PASS HTACCESS_WARN API_USER SERVER CMS_DB DB_PREFIX RETRY OPTION1 EXISTS BACKUP DIR FILE DOMAIN_CHOICE NC vers CMS_DBU
 #exit 0
@@ -1725,6 +1724,6 @@ fi
 # For use in Create Account feature:
 # curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/createacct?api.version=1&username="$NEW_USERNAME"&domain="$NEW_DOMAIN_NAME"&password="$NEW_PASSWORD"&ip="$DEDICATED_IP"&contactemail="$USER_EMAIL"&dkim="$USE_DKIM"&spf="$USE_SPF"
 
-#-------------------------#
-# END - POST SCRIPT NOTES #
-#-------------------------#
+#---------------------------------------------#
+# END - POST SCRIPT NOTES & POSSIBLY USEFULLS #
+#---------------------------------------------#
