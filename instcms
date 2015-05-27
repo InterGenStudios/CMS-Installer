@@ -1,7 +1,7 @@
 #!/bin/bash
 #--------------------------------------------------------
 # CMS-Installer:   Installs choice CMS on a cPanel server
-# CMS-Installer Version:   2.1
+# CMS-Installer Version:   2.3
 # URL: http://cms-installer.ml
 # Github: https://github.com/InterGenOS/CMS-Installer
 # ---------------------------------------------------
@@ -30,43 +30,45 @@
 # BEGIN - VARIABLE DOCUMENTATION #
 #--------------------------------#
 
-# 1 - Initially used to hold arguments for flow control, then during checks throughout
-# 2 - Initially used to hold arguments for flow control, then during checks throughout
-# 3 - Initially used to hold arguments for flow control, then during checks throughout
+# 1 - Initially used to hold arguments for flow control in core script, then during checks throughout
+# 2 - Initially used to hold arguments for flow control in core script, then during checks throughout
+# 3 - Initially used to hold arguments for flow control in core script, then during checks throughout
 # API_PASS - Holds root password - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 # API_USER - Placeholder for 'root' (may be redundant) - used in RPASS_VALIDATE (), PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
-# BACKUP - Holds choice y/n in BACKUP_OPTION ()
+# BACKUP - Holds choice for using backup option, used in BACKUP_OPTION ()
 # CMS - Holds full name of target CMS - used in CONFIRM_INSTALL (), CONVERT_CMS_TARGET (), FIRST_FUNCTION ()
 # CMS_CHOICE - Holds number ID of target CMS choice for installation - used in CMS_SELECT_2 (), CMS_SELECT ()
 # CMS_DB - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 # CMS_DBU - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), INSTALL_DB ()
 # CMS_FILES - Flag set during database installation, to trigger purge routines if needed - used in initial variable declarations, PURGE_INSTALL_FILES (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-# CMS_TARGET - Holds target CMS argument/choice flag, Used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in initial script
+# CMS_TARGET - Holds target CMS argument/choice flag, used in LIST_ACCTS (), CONFIRM_INSTALL (), CMS_SELECT_2 (), CMS_SELECT (), CONVERT_CMS_TARGET (), FIRST_FUNCTION (), and in core script
 # DB_NAME - Holds name of database created with API calls, Used in PURGE_DATABASE (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-# DB_PREFIX - Sets account name as prefix for database{user}, Used in INSTALL_DB ()
-# DBU_NAME - Holds database username, Used in PURGE_DATABASE_USER (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-# DBU_PASS - Holds database user password, Used in INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
-# DIR - Used in checking for pre-existing data in target docroot, Used in CHECK_EXISTING_DATA ()
-# DOMAIN_CHOICE - Holds selection of target domain, Used in LIST_ACCTS ()
-# DR_CV - Holds current Drupal release #, Used in initial variable declarations, HELPTEXT (), INSTALL_DR (), CMS_SELECT_2 (), CMS_SELECT ()
-# EXISTS - Holds name of identified pre-existing CMS installation, Used in BACKUP_OPTION (), EXISTING_INSTALL_WARN (), CHECK_EXISTING_INSTALL ()
-# expire - Holds paste URL life-span in minutes, Used in INSTALL_JM (), INSTALL_DR ()
-# FILE - Empty variable used in existing data check, Used in CHECK_EXISTING_DATA ()
-# FIRST_CHOICE - Holds intial selection of flow control, Used in FIRST_FUNCTION ()
-# HTACCESS_WARN - Holds flag for an identified htaccess file in maindomain during subdomain installation, Used in SUBDOMAIN_HT_CHECK (), HT_CHECK_WARN ()
-# JM_CV - Holds current Joomla release #, Used in initial variable declarations, HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
-# name - Holds name of paste URL creator, Used in INSTALL_JM (), INSTALL_DR ()
-# NC - Holds regex variable for integers, Used in initial variable declarations, LIST_ACCTS ()
-# OPTION1 - 
-# RETRY
-# SERVER - Holds server IP -
-# SUBDOMAIN
-# TARGET - Holds name of target Domain/Subdomain -
-# TARGET_ACCT - Holds target cPanel account name - 
-# TARGET_PATH - Holds target web docroot -
-# TARGET_TYPE
-# vers - Holds CMS-Installer version number, Used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
-# WP_CV - Holds current WordPress release #, Used in initial variable declarations, HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
+# DB_PREFIX - Sets account name as prefix for database{user}, used in INSTALL_DB ()
+# DBU_NAME - Holds database username, used in PURGE_DATABASE_USER (), INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# DBU_PASS - Holds database user password, used in INSTALL_DB (), INSTALL_WP (), INSTALL_JM (), INSTALL_DR ()
+# DIR - Used in checking for pre-existing data in target docroot, used in CHECK_EXISTING_DATA ()
+# DOMAIN_CHOICE - Holds selection of target domain, used in LIST_ACCTS ()
+# DR_CV - Holds current Drupal release #, used in initial variable declarations, HELPTEXT (), INSTALL_DR (), CMS_SELECT_2 (), CMS_SELECT ()
+# EXISTS - Holds name of identified pre-existing CMS installation, used in BACKUP_OPTION (), EXISTING_INSTALL_WARN (), CHECK_EXISTING_INSTALL ()
+# expire - Holds paste URL life-span in minutes, used in INSTALL_JM (), INSTALL_DR ()
+# FILE - Empty variable used in existing data check, used in CHECK_EXISTING_DATA ()
+# FIRST_CHOICE - Holds intial selection of flow control, used in FIRST_FUNCTION ()
+# HTACCESS_WARN - Holds flag for an identified htaccess file in maindomain during subdomain installation, used in SUBDOMAIN_HT_CHECK (), HT_CHECK_WARN ()
+# JM_CV - Holds current Joomla release #, used in initial variable declarations, HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
+# name - Holds name of paste URL creator, used in INSTALL_JM (), INSTALL_DR ()
+# NC - Holds regex variable for integers, used in initial variable declarations, LIST_ACCTS ()
+# OPTION1 - Holds installation confirmation choice, used in CONFIRM_INSTALL ()
+# RETRY - Holds re-enter root pass choice , used in RPASS_VALIDATE ()
+# SERVER - Holds server IP, used in initial variable declarations, PURGE_DATABASE (), PURGE_DATABASE_USER (), RPASS_VALIDATE (), INSTALL_DB ()
+# SUBDOMAIN - Target docroot path-type identifier, used in SUBDOMAIN_HT_CHECK (), INSTALL_{WP,JM,DR,OC,MX} (), TARGET_CHECK ()
+# TARGET - Holds name of target Domain/Subdomain, used in
+# TARGET_ACCT - Holds target cPanel account name, used in
+# TARGET_PATH - Holds target web docroot, used in
+# TARGET_TYPE - 
+# vers - Holds CMS-Installer version number, used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
+# WP_CV - Holds current WordPress release #, used in initial variable declarations, HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
+# OC_CV - Holds current ocPortal release #, used in initial variable declarations, HELPTEXT (), INSTALL_OC (), CMS_SELECT_2 (), CMS_SELECT ()
+# MX_CV - Holds current ModXRevolution release #, used in initial variable declarations, HELPTEXT (), INSTALL_MX (), CMS_SELECT_2 (), CMS_SELECT ()
 
 #------------------------------#
 # END - VARIABLE DOCUMENTATION #
@@ -133,7 +135,7 @@ OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | aw
 MX_CV="$(curl -s http://modx.com/download/ | grep -i revolution | grep -m 1 '\-pl' | sed 's/-/ /' | awk '{print $3}')"
 
 # CMS-Installer version
-vers=2.1
+vers=2.3
 
 #-------------------------------------#
 # END - INITIAL VARIABLE DECLARATIONS #
