@@ -1585,6 +1585,7 @@ if [ "$(echo "$FIRST_CHOICE")" = "get list" ]; then
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
+    GET_CMS_VERS
     CHECK_RPASS
     RPASS_VALIDATE
     # Creates installation log with timestamp
