@@ -139,7 +139,7 @@ echo "Getting latest CMS versions..."
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 
 # Sets latest Joomla version
-JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -A 8 "/joomla/joomla-cms/releases/latest" | grep target | sed -e 's/>/ /g' -e 's/</ /g' | awk '{print $3}')"
+JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
 
 # Sets latest Drupal version
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
@@ -148,7 +148,7 @@ DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/dru
 OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
 
 # Sets latest ModXRevolution version
-MX_CV="$(curl -s http://modx.com/download/ | grep -i revolution | grep -m 1 '\-pl' | sed 's/-/ /' | awk '{print $3}')"
+MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
 }
 
 # Ran if CTRL+C is sent
