@@ -1108,7 +1108,6 @@ GREEN
 echo "CMS:"
 echo
 WHITE
-while [ -z "$WP_CV
 echo " -w: (Getting version information...)"
 echo " -j: (Getting version information...)"
 echo " -d: (Getting version information...)"
