@@ -1,15 +1,15 @@
 #**CMS-Installer**
 ---
 
-### Command line CMS installer for cPanel/CentOS 6+ servers
+### Command line CMS installer for CentOS 6+ servers running WHM/cPanel
 ---
 
 ```
 
 - To do list:
   1) Start cPanel Plugin GUI Development
-  
+  2) Identify and integrate additional CMSs
+  3) Everything else  
 ```
 
-This installation script is designed for use on CentOS 6+ SERVERS/VPSs running
-the cPanel/WHM control panel. A valid root password is required for use.
+Server root pass is required for use
