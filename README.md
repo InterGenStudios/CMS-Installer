@@ -1,3 +1,5 @@
+![alt text](https://intergenstudios.com/Downloads/InterGenStudios.png "InterGenStudios")
+
 #**CMS-Installer**
 ---
 
