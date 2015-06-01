@@ -1094,7 +1094,7 @@ echo
 echo "USAGE: "
 echo
 WHITE
-echo " instcms {[options],[domain_name],[cms]} / [cms] [domain_name] / [cms] [domain_name] [rootpass]"
+echo " instcms {[options],[domain_name],[cms]} / [cms] [domain_name] [rootpass] / [cms] [domain_name]"
 GREEN
 echo
 echo "Options:"
