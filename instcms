@@ -2158,7 +2158,8 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
         sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"    fi
+        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
 elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     # Per Options layout in HELPTEXT, if 3 arguments are passed $1 is the cms target
