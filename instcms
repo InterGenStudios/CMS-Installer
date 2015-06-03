@@ -2140,7 +2140,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
-        if [ $CMS_TARGET" = "-w" ]; then
+        if [ "$CMS_TARGET" = "-w" ]; then
             CMS=WORDPRESS
         elif [ "$CMS_TARGET" = "-j" ]; then
             CMS=JOOMLA
