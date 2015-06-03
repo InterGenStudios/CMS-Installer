@@ -2051,7 +2051,7 @@ read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
 if [ "$FIRST_CHOICE" = "get list" ]; then
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee cmslog
+    LIST_ACCTS 2>&1 | tee cmslog
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
