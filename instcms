@@ -1176,7 +1176,7 @@ echo " Web: http://cms-installer.ml"
 echo
 echo " Email: <info@cms-installer.ml>"
 echo
-echo " Github: https://github.com/InterGenOS/CMS-Installer"
+echo " Github: https://github.com/InterGenStudios/CMS-Installer"
 echo
 echo " Version: $vers"
 SEPARATOR
