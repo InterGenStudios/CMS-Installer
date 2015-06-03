@@ -1566,13 +1566,15 @@ if [ "$DOMAIN_CHOICE" = "Q" ] || [ "$DOMAIN_CHOICE" = "q" ]; then
 else
     # Loop the script if an invalid choice is given
     if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+        clear
+        HEADER
         echo
         RED
         echo "\"$DOMAIN_CHOICE\" is not a valid selection."
         echo
         GREEN
         echo "Would you like to choose again, or create a new account?"
-        echo
+        printf "\n\n\n"
         printf "1) "
         WHITE
         echo "Choose again"
