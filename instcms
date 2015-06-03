@@ -877,26 +877,18 @@ if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
     if [ "$EXISTS" = "WORDPRESS" ]; then
         # Grabs the wordpress database for the backup
         mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+    elif [ "$EXISTS" = "DRUPAL" ]; then
+        # Grabs the drupal database for the backup
+        mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+    elif [ "$EXISTS" = "JOOMLA" ]; then
+        # Grabs the joomla database for the backup
+        mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+    elif [ "$EXISTS" = "OCPORTAL" ]; then
+        # Grabs the ocportal database for the backup
+        mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     else
-        if [ "$EXISTS" = "DRUPAL" ]; then
-            # Grabs the drupal database for the backup
-            mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-        else
-            if [ "$EXISTS" = "JOOMLA" ]; then
-                # Grabs the joomla database for the backup
-                mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-            else
-                if [ "$EXISTS" = "OCPORTAL" ]; then
-                    # Grabs the ocportal database for the backup
-                    mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-                else
-                    if [ "$EXISTS" = "MXREVO" ]; then
-                        # Grabs the mxrevolution database for the backup
-                        mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-                    fi
-                fi
-            fi
-        fi
+        # Grabs the mxrevolution database for the backup
+        mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     fi
     tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
     # Put the backup away for safe-keeping
@@ -1647,33 +1639,25 @@ CHECK_EXISTING_INSTALL () {
 if [ -f "$TARGET_PATH"wp-config.php ]; then
     EXISTS=WORDPRESS
     EXISTING_INSTALL_WARN
+elif [ -f "$TARGET_PATH"configuration.php ]; then
+    EXISTS=JOOMLA
+    EXISTING_INSTALL_WARN
+elif [ -f "$TARGET_PATH"sites/default/settings.php ]; then
+    EXISTS=DRUPAL
+    EXISTING_INSTALL_WARN
+elif [ -f "$TARGET_PATH"fixperms.sh ]; then
+    EXISTS=OCPORTAL
+    EXISTING_INSTALL_WARN
+elif [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
+    EXISTS=MODXREVO
+    EXISTING_INSTALL_WARN
 else
-    if [ -f "$TARGET_PATH"configuration.php ]; then
-        EXISTS=JOOMLA
-        EXISTING_INSTALL_WARN
-    else
-        if [ -f "$TARGET_PATH"sites/default/settings.php ]; then
-            EXISTS=DRUPAL
-            EXISTING_INSTALL_WARN
-        else
-            if [ -f "$TARGET_PATH"fixperms.sh ]; then
-                EXISTS=OCPORTAL
-                EXISTING_INSTALL_WARN
-            else
-                if [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
-                    EXISTS=MODXREVO
-                    EXISTING_INSTALL_WARN
-                else
-                    clear
-                    HEADER
-                    GREEN
-                    echo "Target path confirmed for installation."
-                    sleep 1
-                    WHITE
-                fi
-            fi
-        fi
-    fi
+    clear
+    HEADER
+    GREEN
+    echo "Target path confirmed for installation."
+    sleep 1
+    WHITE
 fi
 }
 
@@ -1709,31 +1693,19 @@ else
     printf " subdomain, is that correct "
 fi
 WHITE
-echo -n "[y/n]? "
-old_stty_cfg=$(stty -g)
-stty raw -echo
-OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
-stty "$old_stty_cfg"
-if echo "$OPTION1" | grep -iq "^y" ;then
-    printf "\n\n"
+echo -n "[Y/n]? "
+read OPTION1
+if [ -z "$OPTION1" ] || [ "$OPTION1" = "Y" ] || [ "$OPTION1" = "y" ] || [ "$OPTION1" = "YES" ] || [ "$OPTION1" = "Yes" ] || [ "$OPTION1" = "yes" ]; then
     if [ "$CMS_TARGET" = "-w" ]; then
         INSTALL_WP
+    elif [ "$CMS_TARGET" = "-j" ]; then
+        INSTALL_JM
+    elif [ "$CMS_TARGET" = "-d" ]; then
+        INSTALL_DR
+    elif [ "$CMS_TARGET" = "-o" ]; then
+        INSTALL_OC
     else
-        if [ "$CMS_TARGET" = "-j" ]; then
-            INSTALL_JM
-        else
-            if [ "$CMS_TARGET" = "-d" ]; then
-                INSTALL_DR
-            else
-                if [ "$CMS_TARGET" = "-o" ]; then
-                    INSTALL_OC
-                else
-                    if [ "$CMS_TARGET" = "-m" ]; then
-                        INSTALL_MX
-                    fi
-                fi
-            fi
-        fi
+        INSTALL_MX
     fi
 else
     # Quick out if they see an incorrect choice listed
@@ -1747,6 +1719,7 @@ else
     echo "Exiting now..."
     sleep 1
     clear
+    printf "\n\n\n"
     SET_CMSLOG_1
 fi
 }
@@ -1779,15 +1752,17 @@ curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?ap
         read -p "Would you like to enter it again [y/n]? " RETRY
             case ${RETRY:0:1} in
                 y|Y )
-                    echo
+                    printf "\n\n"
                     echo "Restarting..."
+                    printf "\n\n"
                     sleep 2
                     CHECK_RPASS;;
                 * )
-                    tput bold
-                    tput setaf 1
+                    RED
+                    printf "\n\n"
                     echo "Exiting..."
                     WHITE
+                    printf "\n\n"
                     sleep 1
                     clear
                     SET_CMSLOG_1;;
@@ -1991,22 +1966,14 @@ read CMS_CHOICE
 CONVERT_CMS_TARGET () {
 if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
+elif [ "$CMS_TARGET" = "-j" ]; then
+    CMS=JOOMLA
+elif [ "$CMS_TARGET" = "-d" ]; then
+    CMS=DRUPAL
+elif [ "$CMS_TARGET" = "-o" ]; then
+    CMS=OCPORTAL
 else
-    if [ "$CMS_TARGET" = "-j" ]; then
-        CMS=JOOMLA
-    else
-        if [ "$CMS_TARGET" = "-d" ]; then
-            CMS=DRUPAL
-        else
-            if [ "$CMS_TARGET" = "-o" ]; then
-                CMS=OCPORTAL
-            else
-                if [ "$CMS_TARGET" = "-m" ]; then
-                    CMS=MODXREVO
-                fi
-            fi
-        fi
-    fi
+    CMS=MODXREVO    
 fi
 }
 
@@ -2019,22 +1986,14 @@ GREEN
 # Associates CMS target flag with the actual CMS name
 if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
+elif [ "$CMS_TARGET" = "-j" ]; then
+    CMS=JOOMLA
+elif [ "$CMS_TARGET" = "-d" ]; then
+    CMS=DRUPAL
+elif [ "$CMS_TARGET" = "-o" ]; then
+    CMS=OCPORTAL
 else
-    if [ "$CMS_TARGET" = "-j" ]; then
-        CMS=JOOMLA
-    else
-        if [ "$CMS_TARGET" = "-d" ]; then
-            CMS=DRUPAL
-        else
-            if [ "$CMS_TARGET" = "-o" ]; then
-                CMS=OCPORTAL
-            else
-                if [ "$CMS_TARGET" = "-m" ]; then
-                    CMS=MODXREVO
-                fi
-            fi
-        fi
-    fi
+    CMS=MODXREVO
 fi
 printf "Enter domain for %s" "$CMS"
 printf " installation or "
