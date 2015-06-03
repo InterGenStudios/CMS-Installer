@@ -114,9 +114,6 @@ NC='^[0-9]+$'
 # Set server IP for script
 SERVER="$(/sbin/ifconfig | grep -A 1 0: | tail -1 | awk '{print $2}' | sed 's/addr://')"
 
-# Set user as root for {script,API Calls} - probably redundant I suppose
-API_USER=root
-
 # Flag for purge functions
 CMS_FILES=0
 
@@ -241,11 +238,11 @@ fi
 DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
 WHITE
 # API call to create the database, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" > dbvalidation && CMS_DB=1
+curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" > dbvalidation && CMS_DB=1
 # API call to create the database user and password, command to dump output into a file for error checking, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbuvalidation && CMS_DBU=1
+curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbuvalidation && CMS_DBU=1
 # API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
-curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
+curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
     # Check for errors in database creation
     if [ -n "$(grep "error" dbvalidation)" ]; then
         RED
@@ -831,14 +828,14 @@ SET_CMSLOG
 
 # Puts cms log into place with timestamp
 SET_CMSLOG () {
-sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' cmslog
-mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
+mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
 exit 0
 }
 
 SET_CMSLOG_1 () {
-sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' cmslog
-mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
+mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
 exit 1
 }
 
@@ -860,7 +857,7 @@ echo
 WHITE
 echo -n "and run the installer again [y/N]? " 
 read BACKUP
-if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then 
+if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then 
     clear
     HEADER
     GREEN
@@ -869,23 +866,23 @@ if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
     mkdir -p /root/support/scripts/CMS-Installer_backups
     WHITE
     echo "(this may take a moment)"
-    if [ "$(echo "$EXISTS")" = "WORDPRESS" ]; then
+    if [ "$EXISTS" = "WORDPRESS" ]; then
         # Grabs the wordpress database for the backup
         mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     else
-        if [ "$(echo "$EXISTS")" = "DRUPAL" ]; then
+        if [ "$EXISTS" = "DRUPAL" ]; then
             # Grabs the drupal database for the backup
             mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
         else
-            if [ "$(echo "$EXISTS")" = "JOOMLA" ]; then
+            if [ "$EXISTS" = "JOOMLA" ]; then
                 # Grabs the joomla database for the backup
                 mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
             else
-                if [ "$(echo "$EXISTS")" = "OCPORTAL" ]; then
+                if [ "$EXISTS" = "OCPORTAL" ]; then
                     # Grabs the ocportal database for the backup
                     mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
                 else
-                    if [ "$(echo "$EXISTS")" = "MXREVO" ]; then
+                    if [ "$EXISTS" = "MXREVO" ]; then
                         # Grabs the mxrevolution database for the backup
                         mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
                     fi
@@ -963,7 +960,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
     WHITE
     echo -n "and run the installer again [y/N]? " 
     read BACKUP
-    if [ "$(echo "$BACKUP")" = "y" ] || [ "$(echo "$BACKUP")" = "Y" ]; then
+    if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
         clear
         HEADER
         GREEN
@@ -1502,7 +1499,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         rm -rf create_acct_template
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee >> cmslog
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
     else
         clear
         HEADER
@@ -1557,7 +1554,7 @@ echo
 echo -n "Select Domain for CMS Installation [q for quit]? "
 read DOMAIN_CHOICE
 # Can probably be shortened further
-if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ] || [ "$(echo "$DOMAIN_CHOICE")" = "q" ]; then
+if [ "$DOMAIN_CHOICE" = "Q" ] || [ "$DOMAIN_CHOICE" = "q" ]; then
     printf "\n\n"
     RED
     echo "Quiting..."
@@ -1711,19 +1708,19 @@ OPTION1=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
 stty "$old_stty_cfg"
 if echo "$OPTION1" | grep -iq "^y" ;then
     printf "\n\n"
-    if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+    if [ "$CMS_TARGET" = "-w" ]; then
         INSTALL_WP
     else
-        if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+        if [ "$CMS_TARGET" = "-j" ]; then
             INSTALL_JM
         else
-            if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+            if [ "$CMS_TARGET" = "-d" ]; then
                 INSTALL_DR
             else
-                if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+                if [ "$CMS_TARGET" = "-o" ]; then
                     INSTALL_OC
                 else
-                    if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                    if [ "$CMS_TARGET" = "-m" ]; then
                         INSTALL_MX
                     fi
                 fi
@@ -1762,7 +1759,7 @@ clear
 # Validate root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 RPASS_VALIDATE () {
 # Using an API call to make sure root password is correct
-curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
+curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
     if [ ! -z "$(grep "error" rpasscheck)" ]; then
         clear
         HEADER
@@ -1829,7 +1826,7 @@ SET_CMSLOG_1
 
 # Checks for rewrite rules in htaccess files of main domain if installing into subdomain, and sets flag if any are found
 SUBDOMAIN_HT_CHECK () {
-if [ "$(echo "$TARGET_TYPE")" = "SUBDOMAIN" ]; then
+if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
     if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
         if [ -n "$(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess)" ]; then
             HTACCESS_WARN=YES
@@ -1842,7 +1839,7 @@ fi
 
 # Notifies user of any htaccess file rewrite rules in main domain if installing into subdomain
 HT_CHECK_WARN () {
-if [ "$(echo "$HTACCESS_WARN")" = "YES" ]; then
+if [ "$HTACCESS_WARN" = "YES" ]; then
     RED
     echo "----------------------------------------------------------------"
     YELLOW
@@ -1984,19 +1981,19 @@ read CMS_CHOICE
 
 # Associates CMS target flag with the actual CMS name
 CONVERT_CMS_TARGET () {
-if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
 else
-    if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+    if [ "$CMS_TARGET" = "-j" ]; then
         CMS=JOOMLA
     else
-        if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+        if [ "$CMS_TARGET" = "-d" ]; then
             CMS=DRUPAL
         else
-            if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+            if [ "$CMS_TARGET" = "-o" ]; then
                 CMS=OCPORTAL
             else
-                if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                if [ "$CMS_TARGET" = "-m" ]; then
                     CMS=MODXREVO
                 fi
             fi
@@ -2012,19 +2009,19 @@ HEADER
 mkdir -p /root/support/scripts/CMS-Installer_logs/
 GREEN
 # Associates CMS target flag with the actual CMS name
-if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+if [ "$CMS_TARGET" = "-w" ]; then
     CMS=WORDPRESS
 else
-    if [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+    if [ "$CMS_TARGET" = "-j" ]; then
         CMS=JOOMLA
     else
-        if [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+        if [ "$CMS_TARGET" = "-d" ]; then
             CMS=DRUPAL
         else
-            if [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+            if [ "$CMS_TARGET" = "-o" ]; then
                 CMS=OCPORTAL
             else
-                if [ "$(echo "$CMS_TARGET")" = "-m" ]; then
+                if [ "$CMS_TARGET" = "-m" ]; then
                     CMS=MODXREVO
                 fi
             fi
@@ -2043,7 +2040,7 @@ read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
 if [ "$FIRST_CHOICE" = "get list" ]; then
     # Creates installation log with timestamp
-    LIST_ACCTS 2>&1 | tee >> cmslog
+    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
@@ -2051,7 +2048,7 @@ else
     CHECK_RPASS
     RPASS_VALIDATE
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee >> cmslog
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
 fi
 }
 
@@ -2077,20 +2074,20 @@ if [ -z "$1" ]; then
 # Flow control for only 1 argument passed during initial script call
 elif [ -n "$1" ] && [ -z "$2" ]; then
     # Flow control for '-c' as the only argument passed during initial script call
-    if [ "$(echo "$1")" = "-c" ]; then
+    if [ "$1" = "-c" ]; then
         TARGET_NOT_FOUND=0
         CREATE_ACCT
     # Flow control for '-h' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-h" ]; then
+    elif [ "$1" = "-h" ]; then
         HELPTEXT
     # Flow control for '-l' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-l" ]; then
+    elif [ "$1" = "-l" ]; then
         LIST_ACCTS
     # Flow control for '-v' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-v" ]; then
+    elif [ "$1" = "-v" ]; then
         VERSION
     # Flow control for either '-j', '-w', or '-d' as the only argument passed during initial script call
-    elif [ "$(echo "$1")" = "-w" ] || [ "$(echo "$1")" = "-j" ] || [ "$(echo "$1")" = "-d" ] || [ "$(echo "$1")" = "-o" ] || [ "$(echo "$1")" = "-m" ]; then
+    elif [ "$1" = "-w" ] || [ "$1" = "-j" ] || [ "$1" = "-d" ] || [ "$1" = "-o" ] || [ "$1" = "-m" ]; then
         CMS_TARGET="$1"
         FIRST_FUNCTION
     # Flow control for target {sub}domain as the only argument passed during initial script call
@@ -2103,7 +2100,7 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee >> cmslog
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
     else
         RED
         echo
@@ -2122,13 +2119,13 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
     if [ "$(grep "$2" /usr/local/apache/conf/httpd.conf | head -1 | awk '{print $2}')" = "$2"  ]; then
         # If second argument passed matches a domain in httpd conf, set it as $2
         TARGET="$2"
-        if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+        if [ "$CMS_TARGET" = "-w" ]; then
             CMS=WORDPRESS
-        elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+        elif [ "$CMS_TARGET" = "-j" ]; then
             CMS=JOOMLA
-        elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+        elif [ "$CMS_TARGET" = "-d" ]; then
             CMS=DRUPAL
-        elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+        elif [ "$CMS_TARGET" = "-o" ]; then
             CMS=OCPORTAL
         else
             CMS=MODXREVO
@@ -2139,17 +2136,17 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee >> cmslog
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
-        if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+        if [ $CMS_TARGET" = "-w" ]; then
             CMS=WORDPRESS
-        elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+        elif [ "$CMS_TARGET" = "-j" ]; then
             CMS=JOOMLA
-        elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+        elif [ "$CMS_TARGET" = "-d" ]; then
             CMS=DRUPAL
-        elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+        elif [ "$CMS_TARGET" = "-o" ]; then
             CMS=OCPORTAL
         else
             CMS=MODXREVO
@@ -2159,7 +2156,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee >> cmslog
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
     fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
 elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
@@ -2169,13 +2166,13 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     TARGET="$2"
     # Per Options layout in HELPTEXT, if 3 arguments are passed $3 is the root password of the server
     API_PASS="$3"
-    if [ "$(echo "$CMS_TARGET")" = "-w" ]; then
+    if [ "$CMS_TARGET" = "-w" ]; then
         CMS=WORDPRESS
-    elif [ "$(echo "$CMS_TARGET")" = "-j" ]; then
+    elif [ "$CMS_TARGET" = "-j" ]; then
         CMS=JOOMLA
-    elif [ "$(echo "$CMS_TARGET")" = "-d" ]; then
+    elif [ "$CMS_TARGET" = "-d" ]; then
         CMS=DRUPAL
-    elif [ "$(echo "$CMS_TARGET")" = "-o" ]; then
+    elif [ "$CMS_TARGET" = "-o" ]; then
         CMS=OCPORTAL
     else
         CMS=MODXREVO
@@ -2185,7 +2182,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     # Create Installer Log directory
     mkdir -p /root/support/scripts/CMS-Installer_logs/
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee >> cmslog
+    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
 else
     # Flow control for too many options entered
     printf "\n\n"
