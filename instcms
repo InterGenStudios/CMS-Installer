@@ -1582,6 +1582,8 @@ else
         printf "2) "
         WHITE
         echo "Create a new account"
+        printf "\n\n\n"
+        echo -n "[enter selection]: "
         read L_A_CHOICES
         case $L_A_CHOICES in
             1) LIST_ACCTS;;
