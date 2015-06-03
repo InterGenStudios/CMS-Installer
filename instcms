@@ -921,6 +921,7 @@ else
     echo "Exiting..."
     sleep 1
     clear
+    printf "\n\n\n"
     # Backup or get out
     WHITE
     SET_CMSLOG_1
@@ -997,6 +998,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         echo "Exiting..."
         sleep 1
         clear
+        printf "\n\n\n"
         WHITE
         SET_CMSLOG_1
     fi
@@ -1036,6 +1038,7 @@ bashtrap () {
     SEPARATOR
     sleep 3
     clear
+    printf "\n\n\n"
     SET_CMSLOG
 }
 
@@ -1562,6 +1565,7 @@ if [ "$DOMAIN_CHOICE" = "Q" ] || [ "$DOMAIN_CHOICE" = "q" ]; then
     WHITE
     sleep 1
     clear
+    printf "\n\n\n"
     SET_CMSLOG
 else
     # Loop the script if an invalid choice is given
@@ -1594,9 +1598,8 @@ else
                echo "Invalid Selection."
                echo
                WHITE
-               echo "Exiting now..."
-               printf "\n\n\n\n"
-               SET_CMSLOG_1;;
+               echo "Resetting account list..."
+               LIST_ACCTS;;
         esac
     else
         # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
@@ -1737,7 +1740,6 @@ printf "Please enter your server's root password"
 WHITE
 echo -n ":"
 read API_PASS
-printf "\n\n\n"
 clear
 }
 
@@ -1766,9 +1768,9 @@ curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?ap
                     printf "\n\n"
                     echo "Exiting..."
                     WHITE
-                    printf "\n\n"
                     sleep 1
                     clear
+                    printf "\n\n\n"
                     SET_CMSLOG_1;;
             esac
     else
@@ -1806,7 +1808,7 @@ echo
 echo "Exiting..."
 rm -rf ./*validation
 sleep 2
-printf "\n\n"
+printf "\n\n\n"
 WHITE
 SET_CMSLOG_1
 }
@@ -1937,7 +1939,6 @@ echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
     case "$CMS_CHOICE" in
-
         1) CMS_TARGET="-w"
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
@@ -1962,7 +1963,6 @@ read CMS_CHOICE
            WHITE
            clear
            CMS_SELECT;;
-
     esac
 }
 
