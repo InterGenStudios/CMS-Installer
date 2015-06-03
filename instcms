@@ -831,23 +831,15 @@ SET_CMSLOG
 
 # Puts cms log into place with timestamp
 SET_CMSLOG () {
-if [ -f cmslog ]; then
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-    exit 0
-else
-    exit 0
-fi
+sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' cmslog
+mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+exit 0
 }
 
 SET_CMSLOG_1 () {
-if [ -f cmslog ]; then
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-    exit 1
-else
-    exit 1
-fi
+sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' cmslog
+mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+exit 1
 }
 
 # DLev said I had to make this, so here it is- backup support.
@@ -1510,7 +1502,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         rm -rf create_acct_template
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee cmslog
+        TARGET_CHECK 2>&1 | tee >> cmslog
     else
         clear
         HEADER
@@ -2051,7 +2043,7 @@ read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
 if [ "$FIRST_CHOICE" = "get list" ]; then
     # Creates installation log with timestamp
-    LIST_ACCTS 2>&1 | tee cmslog
+    LIST_ACCTS 2>&1 | tee >> cmslog
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
@@ -2059,7 +2051,7 @@ else
     CHECK_RPASS
     RPASS_VALIDATE
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee cmslog
+    TARGET_CHECK 2>&1 | tee >> cmslog
 fi
 }
 
@@ -2111,7 +2103,7 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee cmslog
+        TARGET_CHECK 2>&1 | tee >> cmslog
     else
         RED
         echo
@@ -2147,7 +2139,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee cmslog
+        TARGET_CHECK 2>&1 | tee >> cmslog
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
@@ -2167,7 +2159,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         # Create Installer Log directory
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee cmslog
+        TARGET_CHECK 2>&1 | tee >> cmslog
     fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
 elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
@@ -2193,7 +2185,7 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     # Create Installer Log directory
     mkdir -p /root/support/scripts/CMS-Installer_logs/
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee cmslog
+    TARGET_CHECK 2>&1 | tee >> cmslog
 else
     # Flow control for too many options entered
     printf "\n\n"
@@ -2208,7 +2200,6 @@ else
     CMS_SELECT
     FIRST_FUNCTION
 fi 
-SET_CMSLOG
 
 #######################
 ##-------------------##
