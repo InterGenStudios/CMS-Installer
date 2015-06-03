@@ -23,4 +23,4 @@ wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/inst
 chmod +x instcms
 echo alias instcms=\'/bin/bash /root/support/instcms\' >> ~/.bashrc
 source ~/.bashrc
-instcms -h
+/bin/bash /root/support/instcms -h
