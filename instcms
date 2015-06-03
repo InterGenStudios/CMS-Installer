@@ -344,7 +344,7 @@ WHITE
 printf "http://%s" "$TARGET"
 printf "\n\n\n"
 rm -rf wordpress/ latest.tar.gz
-exit 0
+SET_CMSLOG
 }
 
 # Installs the Joomla CMS, and provides both domain URL and database info URL for customer to finalize the installation
@@ -472,7 +472,7 @@ printf "http://%s" "$TARGET"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf jdbinfo tempaste
-exit 0
+SET_CMSLOG
 }
 
 # Installs the Drupal CMS, and provides both domain URL and database info URL for customer to finalize the installation
@@ -577,7 +577,7 @@ printf "http://%s" "$TARGET"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
-exit 0
+SET_CMSLOG
 }
 
 # Installs the ocPortal CMS, and provides both domain URL and database info URL for customer to finalize the installation
@@ -698,7 +698,7 @@ printf "/install.php"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf ocdbinfo tempaste
-exit 0
+SET_CMSLOG
 }
 
 # Installs the ModXRevolution CMS, and provides both Admin Login Info URL and Admin Login URL for customer
@@ -818,16 +818,37 @@ printf "/manager"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf mxdbinfo tempaste
-exit 0
+SET_CMSLOG
 }
 
 #---------------------------------------------#
 # END - CMS & DATABASE INSTALLATION FUNCTIONS #
 #---------------------------------------------#
 
-#--------------------------#
-# BEGIN - BACKUP FUNCTIONS #
-#--------------------------#
+#------------------------------------#
+# BEGIN - LOGGING & BACKUP FUNCTIONS #
+#------------------------------------#
+
+# Puts cms log into place with timestamp
+SET_CMSLOG () {
+if [ -f cmslog ]; then
+    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
+    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    exit 0
+else
+    exit 0
+fi
+}
+
+SET_CMSLOG_1 () {
+if [ -f cmslog ]; then
+    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
+    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    exit 1
+else
+    exit 1
+fi
+}
 
 # DLev said I had to make this, so here it is- backup support.
 BACKUP_OPTION () {
@@ -913,8 +934,8 @@ else
     clear
     # Backup or get out
     WHITE
-    exit 1
-    fi
+    SET_CMSLOG_1
+fi
 }
 
 # Same routine as the installation check and backup, but for data other than CMS installations. Need to have it generically look for database info and grab it if it's there
@@ -988,14 +1009,14 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         sleep 1
         clear
         WHITE
-        exit 1
+        SET_CMSLOG_1
     fi
 fi
 }
 
-#------------------------#
-# END - BACKUP FUNCTIONS #
-#------------------------#
+#----------------------------------#
+# END - LOGGING & BACKUP FUNCTIONS #
+#----------------------------------#
 
 #------------------------#
 # BEGIN - TRAP FUNCTIONS #
@@ -1026,7 +1047,7 @@ bashtrap () {
     SEPARATOR
     sleep 3
     clear
-    exit 0
+    SET_CMSLOG
 }
 
 # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
@@ -1466,7 +1487,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
             printf "\n\n\n\n"
             mv account_creation_results_"$NEW_USER_NAME" /root/support/scripts/CMS-Installer_logs/
             rm -rf create_acct_template
-            exit 1
+            SET_CMSLOG_1
         else
             clear
             HEADER
@@ -1490,8 +1511,6 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         rm -rf create_acct_template
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
     else
         clear
         HEADER
@@ -1515,7 +1534,7 @@ else
     rm -rf create_acct_template
     printf "\n\n\n"
     sleep 3
-    exit 1
+    SET_CMSLOG_1
 fi
 }
 
@@ -1554,7 +1573,7 @@ if [ "$(echo "$DOMAIN_CHOICE")" = "Q" ] || [ "$(echo "$DOMAIN_CHOICE")" = "q" ];
     WHITE
     sleep 1
     clear
-    exit 0
+    SET_CMSLOG
 else
     # Loop the script if an invalid choice is given
     if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
@@ -1584,7 +1603,7 @@ else
                WHITE
                echo "Exiting now..."
                printf "\n\n\n\n"
-               exit 1;;
+               SET_CMSLOG_1;;
         esac
     else
         # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
@@ -1731,7 +1750,7 @@ else
     echo "Exiting now..."
     sleep 1
     clear
-    exit 1
+    SET_CMSLOG_1
 fi
 }
 
@@ -1774,7 +1793,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
                     WHITE
                     sleep 1
                     clear
-                    exit 1;;
+                    SET_CMSLOG_1;;
             esac
     else
         clear
@@ -1813,7 +1832,7 @@ rm -rf ./*validation
 sleep 2
 printf "\n\n"
 WHITE
-exit 1
+SET_CMSLOG_1
 }
 
 # Checks for rewrite rules in htaccess files of main domain if installing into subdomain, and sets flag if any are found
@@ -2033,8 +2052,6 @@ read FIRST_CHOICE
 if [ "$(echo "$FIRST_CHOICE")" = "get list" ]; then
     # Creates installation log with timestamp
     TARGET_CHECK 2>&1 | tee cmslog
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")" 
 else
     # Allows target domain to be manually entered
     TARGET=$FIRST_CHOICE
@@ -2043,8 +2060,6 @@ else
     RPASS_VALIDATE
     # Creates installation log with timestamp
     TARGET_CHECK 2>&1 | tee cmslog
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
 fi
 }
 
@@ -2097,8 +2112,6 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
     else
         RED
         echo
@@ -2135,8 +2148,6 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"    
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
@@ -2157,8 +2168,6 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         mkdir -p /root/support/scripts/CMS-Installer_logs/
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
     fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
 elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
@@ -2185,8 +2194,6 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     mkdir -p /root/support/scripts/CMS-Installer_logs/
     # Creates installation log with timestamp
     TARGET_CHECK 2>&1 | tee cmslog
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-    mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
 else
     # Flow control for too many options entered
     printf "\n\n"
@@ -2201,6 +2208,7 @@ else
     CMS_SELECT
     FIRST_FUNCTION
 fi 
+SET_CMSLOG
 
 #######################
 ##-------------------##
