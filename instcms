@@ -1,7 +1,7 @@
 #!/bin/bash
 # -------------------------------------------------------
 # CMS-Installer: Installs choice CMS on a cPanel server
-# CMS-Installer Version: 2.3
+# CMS-Installer Version: 2.4
 # URL: http://cms-installer.ml
 # Github: https://github.com/InterGenStudios/CMS-Installer
 # ---------------------------------------------------
@@ -30,6 +30,7 @@
 # BEGIN - VARIABLE DOCUMENTATION #
 #--------------------------------#
 
+# NEW VARIABLE CHANGES AS OF VERSION 2.4 - NEEDS TO BE UPDATED FOR VERSION 2.4+ (6-3-15)
 # 1 - Initially used to hold arguments for flow control in core script, then during checks throughout
 # 2 - Initially used to hold arguments for flow control in core script, then during checks throughout
 # 3 - Initially used to hold arguments for flow control in core script, then during checks throughout
@@ -126,7 +127,13 @@ CMS_DB=0
 CMS_DBU=0
 
 # CMS-Installer version
-vers=2.3
+vers=2.4
+
+# Initial root password validation flag
+RPASS_VALIDATED=0
+
+# Initial cms version flag
+CMS_VERS_FLAG=0
 
 #########################################
 ##-------------------------------------##
@@ -222,7 +229,6 @@ GREEN
 echo Creating CMS Database and DatabaseUser via WHM API...
 echo
 sleep 2
-
 DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
 DB_NAME="$DB_PREFIX"_cmsi"$(date +%s | sha256sum | base64 | head -c 3)" &&
 if [ "$(echo "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")")" = "$DB_NAME" ]; then
@@ -738,7 +744,17 @@ MODX_CORE="$TARGET_PATH"core/
 MODX_MANAGER="$TARGET_PATH"manager/
 MODX_CONNECTORS="$TARGET_PATH"connectors/
 # Yes, this is ONE sed command
-sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e "s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e "s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e "s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e "s|email@address.com|admin@$TARGET|" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$MODX_CORE</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$MODX_MANAGER</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$MODX_CONNECTORS</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_url>/modx/</context_web_url>|<context_web_url>/</context_web_url>|" "$TARGET_PATH"setup/config.xml
+sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e 
+"s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e 
+"s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e 
+"s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e 
+"s|email@address.com|admin@$TARGET|" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$MODX_CORE</core_path>|" -e 
+"s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$MODX_MANAGER</context_mgr_path>|" -e 
+"s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e 
+"s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$MODX_CONNECTORS</context_connectors_path>|" -e 
+"s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e 
+"s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e 
+"s|<context_web_url>/modx/</context_web_url>|<context_web_url>/</context_web_url>|" "$TARGET_PATH"setup/config.xml
 clear
 HEADER
 GREEN
@@ -1062,24 +1078,30 @@ fi
 #------------------------#
 
 GET_CMS_VERS () {
-clear
-HEADER
-GREEN
-echo "Getting latest CMS versions..."
-# Sets latest WordPress version
-WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
+if [ "$CMS_VERS_FLAG" = "0" ]; then
+    clear
+    HEADER
+    GREEN
+    echo "Getting latest CMS versions..."
+    # Sets latest WordPress version
+    WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 
-# Sets latest Joomla version
-JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
+    # Sets latest Joomla version
+    JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
 
-# Sets latest Drupal version
-DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
+    # Sets latest Drupal version
+    DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 
-# Sets latest ocPortal version
-OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+    # Sets latest ocPortal version
+    OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
 
-# Sets latest ModXRevolution version
-MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+    # Sets latest ModXRevolution version
+    MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+    CMS_VERS_FLAG=1
+else
+    clear
+    HEADER
+fi
 }
 
 # Shows available usage options
@@ -1100,6 +1122,7 @@ echo
 echo "Options:"
 echo
 WHITE
+echo " -c: create a new account for installation"
 echo " -h: print this screen and exit"
 echo " -l: list accounts available for installation"
 echo " -v: show the current installer version and exit"
@@ -1162,6 +1185,332 @@ exit 0
 # END - INFO FUNCTIONS #
 #----------------------#
 
+#-----------------------------------#
+# BEGIN - ACCOUNT CREATION FUNCTION #
+#-----------------------------------#
+
+CREATE_ACCT () {
+cat > create_acct_template <<EndOfCreateAcctTemplateFile
+Domain Name:   NewDomainName
+User Name:     NewUserName
+User Password: NewPassword
+Dedicated IP:  Y/N
+User Email:    UserEmail
+Use DKIM:      Y/N
+Use SPF:       Y/N
+EndOfCreateAcctTemplateFile
+clear
+HEADER
+ACCT_NOT_FOUND () {
+YELLOW
+printf "It doesn't look like the domain "
+GREEN
+printf "%s" "$TARGET"
+YELLOW
+printf " has a cPanel account on this server."
+printf "\n\n"
+GREEN
+printf "Would you like to create an account for it now"
+WHITE
+printf " (Y/n)"
+GREEN
+echo -n "? "
+WHITE
+read C_A_CHOICE
+}
+NEW_TARGET () {
+GREEN
+echo "'Create New Account' option selected."
+echo
+C_A_CHOICE=Y
+WHITE
+}
+if [ "$TARGET_NOT_FOUND" = "1" ]; then
+    ACCT_NOT_FOUND
+else
+    NEW_TARGET
+fi
+if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; then
+    printf "\n\n"
+    GREEN
+    echo -n "Please enter the new cPanel account username: "
+    WHITE
+    read NEW_USER_NAME
+    if [ "$NEW_USER_NAME" = "$(echo $(grep $NEW_USER_NAME /etc/trueuserdomains | awk '{print $2}'))" ]; then
+        clear
+        HEADER
+        YELLOW
+        printf "The cPanel account username "
+        RED
+        printf "%s" "$NEW_USER_NAME"
+        YELLOW
+        printf " already exists on this server."
+        printf "\n\n"
+        GREEN
+        echo "You'll need to choose another username for the account."
+        echo
+        WHITE
+        echo "Restarting Account Creation..."
+        sleep 3
+        CREATE_ACCT
+    else
+        sed -i "s|NewUserName|$NEW_USER_NAME|" create_acct_template
+        clear
+        HEADER
+        GREEN
+        printf "Please enter the new cPanel account username:         "
+        WHITE
+        echo "$NEW_USER_NAME"
+        echo
+        GREEN
+        echo -n "Please enter the account's Domain Name: "
+        WHITE
+        read NEW_DOMAIN_NAME
+        if [ "$NEW_DOMAIN_NAME" = "$(grep $NEW_DOMAIN_NAME /usr/local/apache/conf/httpd.conf | grep -m 1 "ServerName $NEW_DOMAIN_NAME" | awk '{print $2}')" ]; then
+            clear
+            HEADER
+            YELLOW
+            printf "The domain "
+            RED
+            printf "%s" "$NEW_DOMAIN_NAME"
+            YELLOW
+            printf " already exists on this server."
+            printf "\n\n"
+            GREEN
+            echo "You'll need to choose another domain for the account."
+            echo
+            WHITE
+            echo "Restarting Account Creation..."
+            sleep 3
+            CREATE_ACCT
+        else
+            sed -i "s|NewDomainName|$NEW_DOMAIN_NAME|" create_acct_template
+            clear
+            HEADER
+            GREEN
+            printf "Please enter the new cPanel account username:         "
+            WHITE
+            echo "$NEW_USER_NAME"
+            echo
+            GREEN
+            printf "Please enter the account's Domain Name:               "
+            WHITE
+            echo "$NEW_DOMAIN_NAME"
+            echo
+        fi
+    fi
+    GREEN
+    echo -n "Please enter the account's Password: "
+    WHITE
+    read NEW_PASSWORD
+    sed -i "s|NewPassword|$NEW_PASSWORD|" create_acct_template
+    clear
+    HEADER
+    GREEN
+    printf "Please enter the new cPanel account username:          "
+    WHITE
+    echo "$NEW_USER_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Domain Name:                "
+    WHITE
+    echo "$NEW_DOMAIN_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Password:                   "
+    WHITE
+    echo "$NEW_PASSWORD"
+    echo
+    GREEN 
+    echo -n "Please enter the contact Email Account: "
+    WHITE
+    read USEREMAIL
+    USER_EMAIL="$USEREMAIL"
+    sed -i "s|User Email:    UserEmail|User Email:    $USEREMAIL|" create_acct_template
+    clear
+    HEADER
+    GREEN
+    printf "Please enter the new cPanel account username:          "
+    WHITE
+    echo "$NEW_USER_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Domain Name:                "
+    WHITE
+    echo "$NEW_DOMAIN_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Password:                   "
+    WHITE
+    echo "$NEW_PASSWORD"
+    echo
+    GREEN
+    printf "Please enter the contact Email Account:                "
+    WHITE
+    echo "$USER_EMAIL"
+    echo
+    GREEN
+    printf "Will the account use "
+    WHITE
+    printf "DKIM"
+    GREEN
+    echo -n "? "
+    WHITE
+    read use_dkim
+    if [ "$use_dkim" = "Y" ] || [ "$use_dkim" = "y" ] || [ "$use_dkim" = "Yes" ] || [ "$use_dkim" = "yes" ]; then
+        USE_DKIM=1
+        dkim=Yes
+    else
+        USE_DKIM=0
+        dkim=No
+    fi
+    sed -i "s|Use DKIM:      Y/N|Use DKIM:      $dkim|" create_acct_template
+    clear
+    HEADER
+    GREEN
+    printf "Please enter the new cPanel account username:          "
+    WHITE
+    echo "$NEW_USER_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Domain Name:                "
+    WHITE
+    echo "$NEW_DOMAIN_NAME"
+    echo
+    GREEN
+    printf "Please enter the account's Password:                   "
+    WHITE
+    echo "$NEW_PASSWORD"
+    echo
+    GREEN
+    printf "Please enter the contact Email Account:                "
+    WHITE
+    echo "$USER_EMAIL"
+    echo
+    GREEN
+    printf "Use DKIM:                                              "
+    WHITE
+    echo "$dkim"
+    echo
+    GREEN
+    printf "Will the account use "
+    WHITE
+    printf "SPF"
+    GREEN
+    echo -n "? "
+    WHITE
+    read use_spf
+    if [ "$use_spf" = "Y" ] || [ "$use_spf" = "y" ] || [ "$use_spf" = "Yes" ] || [ "$use_spf" = "yes" ]; then
+        USE_SPF=1
+        spf=Yes
+    else
+        USE_SPF=0
+        spf=No
+    fi
+    sed -i "s|Use SPF:       Y/N|Use SPF:       $spf|" create_acct_template
+    clear
+    HEADER
+    GREEN
+    echo "Please check the Account Creation details below for errors:"
+    WHITE
+    echo 
+    cat create_acct_template
+    echo
+    GREEN
+    printf "Are the details correct "
+    WHITE
+    printf "(Y/n)"
+    GREEN
+    echo -n "? "
+    WHITE
+    read DETAILS
+    if [ -z "$DETAILS" ] || [ "$DETAILS" = "Y" ] || [ "$DETAILS" = "y" ]; then
+        if [ "$RPASS_VALIDATED" = "0" ]; then
+            CHECK_RPASS
+            RPASS_VALIDATE
+        else
+            clear
+            HEADER
+        fi
+        GREEN
+        echo "Account Creation using WHM API in process..."
+        curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/createacct?api.version=1&username=$NEW_USER_NAME&domain=$NEW_DOMAIN_NAME&password=$NEW_PASSWORD&contactemail=$USER_EMAIL&dkim=$USE_DKIM&spf=$USE_SPF" >> account_creation_results_"$NEW_USER_NAME"
+        if [ -z "$(grep success account_creation_results_$NEW_USER_NAME)" ]; then
+            clear
+            HEADER
+            RED
+            echo "--------"
+            echo "WARNING!"
+            echo "--------"
+            echo
+            echo "WHM API Account Creation failed."
+            echo
+            WHITE
+            echo "Review the 'account_creation_results_$NEW_USER_NAME' log in /root/support/scripts/CMS-Installer_logs"
+            echo "for more details."
+            echo
+            echo "Manual account creation is required."
+            RED
+            echo
+            echo "Exiting..."
+            printf "\n\n\n\n"
+            mv account_creation_results_"$NEW_USER_NAME" /root/support/scripts/CMS-Installer_logs/
+            rm -rf create_acct_template
+            exit 1
+        else
+            clear
+            HEADER
+            GREEN
+            echo "WHM API Account Creation Completed."
+            rm -rf account_creation_results
+            sleep 2
+        fi
+        TARGET="$NEW_DOMAIN_NAME"
+        if [ -z "$CMS_TARGET" ]; then
+            CMS_SELECT_2
+            clear
+            HEADER
+        else
+            clear
+            HEADER
+        fi
+        CONVERT_CMS_TARGET
+        # Create Installer Log directory
+        mkdir -p /root/support/scripts/CMS-Installer_logs/
+        rm -rf create_acct_template
+        # Creates installation log with timestamp
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/instcms_log-"$(date +"%m-%d-%Y_%T")"
+    else
+        clear
+        HEADER
+        YELLOW
+        echo "Account Creation details invalidated by user"
+        echo
+        GREEN
+        echo "Restarting Account Creation..."
+        sleep 2
+        rm -rf create_acct_template
+        TARGET_NOT_FOUND=0
+        CREATE_ACCT
+    fi
+else
+    clear
+    HEADER
+    RED
+    echo "'Create New Account' option cancelled."
+    echo
+    echo "Exiting now..."
+    rm -rf create_acct_template
+    printf "\n\n\n"
+    sleep 3
+    exit 1
+fi
+}
+
+#---------------------------------#
+# END - ACCOUNT CREATION FUNCTION #
+#---------------------------------#
+
 #---------------------------------------------------#
 # BEGIN - FLOW CONTROL, CHECKS, & WARNING FUNCTIONS #
 #---------------------------------------------------#
@@ -1201,9 +1550,30 @@ else
         RED
         echo "\"$DOMAIN_CHOICE\" is not a valid selection."
         echo
-        echo "Restarting..."
-        sleep 1
-        LIST_ACCTS
+        GREEN
+        echo "Would you like to choose again, or create a new account?"
+        echo
+        printf "1) "
+        WHITE
+        echo "Choose again"
+        GREEN
+        printf "2) "
+        WHITE
+        echo "Create a new account"
+        read L_A_CHOICES
+        case $L_A_CHOICES in
+            1) LIST_ACCTS;;
+            2) CREATE_ACCT;;
+            *) clear
+               HEADER
+               RED
+               echo "Invalid Selection."
+               echo
+               WHITE
+               echo "Exiting now..."
+               printf "\n\n\n\n"
+               exit 1;;
+        esac
     else
         # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
         TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
@@ -1399,6 +1769,7 @@ curl -sk -X GET -u "$API_USER":"$API_PASS" https://"$SERVER":2087/json-api/lista
         HEADER
         GREEN
         echo "Root password accepted."
+        RPASS_VALIDATED=1
         WHITE
         echo
         sleep 2
@@ -1482,9 +1853,10 @@ if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' 
         echo "That isn't a valid domain/subdomain on this server."
         echo
         WHITE
-        echo "Exiting to HelpText..."
+        echo "Please wait..."
         sleep 2
-        HELPTEXT
+        TARGET_NOT_FOUND=1
+        CREATE_ACCT
     else
         # Set flow control for subdomain
         TARGET_TYPE=SUBDOMAIN
@@ -1681,8 +2053,12 @@ if [ -z "$1" ]; then
     CMS_SELECT
 # Flow control for only 1 argument passed during initial script call
 elif [ -n "$1" ] && [ -z "$2" ]; then
+    # Flow control for '-c' as the only argument passed during initial script call
+    if [ "$(echo "$1")" = "-c" ]; then
+        TARGET_NOT_FOUND=0
+        CREATE_ACCT
     # Flow control for '-h' as the only argument passed during initial script call
-    if [ "$(echo "$1")" = "-h" ]; then
+    elif [ "$(echo "$1")" = "-h" ]; then
         HELPTEXT
     # Flow control for '-l' as the only argument passed during initial script call
     elif [ "$(echo "$1")" = "-l" ]; then
