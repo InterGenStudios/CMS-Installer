@@ -1229,9 +1229,9 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
     GREEN
     printf "Please enter the new "
     WHITE
-    printf "cPanel Account"
+    printf "cPanel Account Username"
     GREEN
-    echo -n " username: "
+    echo -n ": "
     WHITE
     read NEW_USER_NAME
     if [ "$NEW_USER_NAME" = "$(echo $(grep $NEW_USER_NAME /etc/trueuserdomains | awk '{print $2}'))" ]; then
