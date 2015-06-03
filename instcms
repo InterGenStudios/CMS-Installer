@@ -1491,7 +1491,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         # Creates installation log with timestamp
         TARGET_CHECK 2>&1 | tee cmslog
         sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' cmslog
-        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET-"$(date +"%m-%d-%Y_%T")"
+        mv cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
     else
         clear
         HEADER
