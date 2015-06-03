@@ -1,0 +1,26 @@
+#!/bin/bash
+# -------------------------------------------------------
+# CMS-Installer: Installs choice CMS on a cPanel server
+# URL: http://cms-installer.ml
+# Github: https://github.com/InterGenStudios/CMS-Installer
+# ---------------------------------------------------
+# InterGenStudios: 5-16-15 
+# Copyright (c) 2015: Christopher 'InterGen' Cork  InterGenStudios
+# URL: https://intergenstudios.com
+# --------------------------------
+# License: GPL-2.0+
+# URL: http://opensource.org/licenses/gpl-license.php
+# ---------------------------------------------------
+# CMS-Installer is free software:
+# You may redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software
+# Foundation, either version 2 of the License, or (at your discretion)
+# any later version.
+# ------------------
+
+mkdir -p /root/support && cd /root/support
+wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms
+chmod +x instcms
+echo alias instcms=\'/bin/bash /root/support/instcms\' >> ~/.bashrc
+source ~/.bashrc
+instcms -h
