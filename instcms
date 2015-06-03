@@ -1875,9 +1875,9 @@ fi
 
 TARGET_CHECK () {
 # Flow control check for a main domain installation
-if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
     # Flow control check for a subdomain installation
-    if [ "$(echo "$TARGET")" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
         clear
         HEADER
         RED
@@ -2049,7 +2049,7 @@ WHITE
 echo -n ": "
 read FIRST_CHOICE
 # 2nd route to -l option, allowing domain target to be picked from numbered list
-if [ "$(echo "$FIRST_CHOICE")" = "get list" ]; then
+if [ "$FIRST_CHOICE" = "get list" ]; then
     # Creates installation log with timestamp
     TARGET_CHECK 2>&1 | tee cmslog
 else
