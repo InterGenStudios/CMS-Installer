@@ -1194,11 +1194,11 @@ HEADER
 ACCT_NOT_FOUND () {
 YELLOW
 printf "It doesn't look like the domain "
-GREEN
+WHITE
 printf "%s" "$TARGET"
 YELLOW
 printf " has a cPanel account on this server."
-printf "\n\n"
+printf "\n\n\n"
 GREEN
 printf "Would you like to create an account for it now"
 WHITE
@@ -1210,7 +1210,11 @@ read C_A_CHOICE
 }
 NEW_TARGET () {
 GREEN
-echo "'Create New Account' option selected."
+printf "'"
+WHITE
+printf "Create New Account"
+GREEN
+printf "' option selected."
 echo
 C_A_CHOICE=Y
 WHITE
@@ -1223,7 +1227,11 @@ fi
 if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; then
     printf "\n\n"
     GREEN
-    echo -n "Please enter the new cPanel account username: "
+    printf "Please enter the new "
+    WHITE
+    printf "cPanel Account"
+    GREEN
+    echo -n " username: "
     WHITE
     read NEW_USER_NAME
     if [ "$NEW_USER_NAME" = "$(echo $(grep $NEW_USER_NAME /etc/trueuserdomains | awk '{print $2}'))" ]; then
@@ -1253,7 +1261,11 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         echo "$NEW_USER_NAME"
         echo
         GREEN
-        echo -n "Please enter the account's Domain Name: "
+        printf "Please enter the account's "
+        WHITE
+        printf "Domain Name"
+        GREEN
+        echo -n ": "
         WHITE
         read NEW_DOMAIN_NAME
         if [ "$NEW_DOMAIN_NAME" = "$(grep $NEW_DOMAIN_NAME /usr/local/apache/conf/httpd.conf | grep -m 1 "ServerName $NEW_DOMAIN_NAME" | awk '{print $2}')" ]; then
@@ -1290,7 +1302,11 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
         fi
     fi
     GREEN
-    echo -n "Please enter the account's Password: "
+    printf "Please enter the account's "
+    WHITE
+    printf "Password"
+    GREEN
+    echo -n ": "
     WHITE
     read NEW_PASSWORD
     sed -i "s|NewPassword|$NEW_PASSWORD|" create_acct_template
@@ -1312,7 +1328,11 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
     echo "$NEW_PASSWORD"
     echo
     GREEN 
-    echo -n "Please enter the contact Email Account: "
+    printf "Please enter the "
+    WHITE
+    printf "Contact Email Account"
+    GREEN
+    echo -n ": "
     WHITE
     read USEREMAIL
     USER_EMAIL="$USEREMAIL"
