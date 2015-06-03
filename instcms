@@ -828,15 +828,23 @@ SET_CMSLOG
 
 # Puts cms log into place with timestamp
 SET_CMSLOG () {
-sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
-mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-exit 0
+if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
+    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /root/support/scripts/CMS-Installer_logs/cmslog
+    mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    exit 0
+else
+    exit 0
+fi
 }
 
 SET_CMSLOG_1 () {
-sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
-mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-exit 1
+if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
+    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
+    mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    exit 1
+else
+    exit 1
+fi
 }
 
 # DLev said I had to make this, so here it is- backup support.
