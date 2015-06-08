@@ -10,11 +10,11 @@ Server root pass is required for use
 #### To use:
 
 ```
-mkdir -p /root/support && cd /root/support
+mkdir -p /usr/local/src && cd /usr/local/src
 wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms
 chmod +x instcms
-echo alias instcms=\'/bin/bash /root/support/instcms\' >> ~/.bashrc
-/bin/bash /root/support/instcms -h
+echo alias instcms=\'/bin/bash /usr/local/src/instcms\' >> ~/.bashrc
+/bin/bash /usr/local/src/instcms -h
 source ~/.bashrc
 ```
 
