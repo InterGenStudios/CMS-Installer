@@ -726,29 +726,8 @@ cd "$TARGET_PATH"
 cd setup
 php index.php --installmode=new
 cd "$TARGET_PATH"
-## BEGIN pastefile template for database information presentation to customer
-cat > mxdbinfo <<EndOfModXRevolutionFile
-=========================================================
-            ModXRevolution MX_CV Installation
-                Admin Login Information
-
-Domain:                     DOMAIN
-
-Admin URL:                  http://TARGET/manager
-
-Admin username:             ADMIN_NAME
-
-Admin password:             ADMIN_PASS
-
-Admin email given:          admin@TARGET
-(change this on login)
-
-  * Please use or make note of this data immediately! *
-        * This paste will expire in 120 minutes *
-
-=========================================================
-EndOfModXRevolutionFile
-## END pastefile template for database information presentation to customer
+## Fetching pastefile template for database information presentation to customer
+wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/mxdbinfo
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/MX_CV/$MX_CV/" -e "s/TARGET/$TARGET/g" -e "s/ADMIN_NAME/$MODX_ADMIN/" -e "s/ADMIN_PASS/$MODX_PASS/" mxdbinfo
 # Creates paste for database info using 'stikked'
@@ -793,21 +772,21 @@ SET_CMSLOG
 
 # Installs the ownCloud Personal Cloud Storage Management System, and provides both domain URL and database info URL for customer to finalize the installation
 INSTALL_OWN () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching ownCloud files..."
-echo
-wget -q https://download.owncloud.com/download/community/setup-owncloud.php && CMS_FILES=1
-echo "Moving ownCloud files into place..."
-chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"setup-owncloud.php
-INSTALL_DB
-# Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
-chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
+    clear
+    HEADER
+    GREEN
+    echo "Fetching ownCloud files..."
+    echo
+    wget -q https://download.owncloud.com/download/community/setup-owncloud.php && CMS_FILES=1
+    echo "Moving ownCloud files into place..."
+    chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"setup-owncloud.php
+    INSTALL_DB
+    # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
+    chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
@@ -825,86 +804,50 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         # End fixperms style corrections- making sure all files are owned properly, with correct permissions
         done
     fi
-/usr/local/cpanel/scripts/restartsrv_httpd
-## BEGIN pastefile template for database information presentation to customer
-cat > owndbinfo <<EndOfownCloudFile
-==============================================
-         ownCloud OWN_CV Installation
-             'Storage & database'
-            Configuration Details
-
-Domain: DOMAIN
-URL: http://TARGET/owncloud
-
-Username:
-Password:
-
-            Storage & database
-
-                Data folder
-TARGET_PATH/owncloud/data
-
-            Configure the database
-         SQLite | [ MySQL/MariaDB ] <- Select
-                                        this
-                                       option
-
-Database user:       DBU
-
-Database password:   PASS
-
-Database name:       DB
-
-localhost            (leave default)
-
-    **Please use or make note of this data
-    immediately- this paste will expire in
-                120 minutes**
-
-==============================================
-EndOfownCloudFile
-## END pastefile template for database information presentation to customer
-# Adds database info into template
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/OWN_CV/$OWN_CV/" -e "s/TARGET_PATH/$TARGET_PATH/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" owndbinfo
-# Creates paste for database info using 'stikked'
-curl -d name=ownCloudInstaller -d expire=120 -d private=1 --data-urlencode text@owndbinfo -s http://nobits.ml/api/create > tempaste
-# converts 'stikked' paste to raw output URL
-sed -i -e 's/view/view\/raw/' tempaste
-clear
-HEADER
-GREEN
-printf "The %s" "$CMS"
-printf " Personal Cloud Storage Management System\n"
-printf " Version %s" "$OWN_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the Database Info URL to your customer"
-GREEN
-echo "(needed for finalizing installation)"
-echo
-printf "==>  "
-WHITE
-printf "%s" "$(cat tempaste)"
-printf "\n\n"
-printf "Provide the following %s" "$CMS"
-printf " URL to your customer"
-printf "\n"
-echo "and advise them to finalize their installation:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"setup-owncloud.php
-printf "\n\n\n"
-# Remove PASTE URL tempfiles
-owndbinfo tempaste
-SET_CMSLOG
+    /usr/local/cpanel/scripts/restartsrv_httpd
+    ## Fetching pastefile template for database information presentation to customer
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/owndbinfo
+    # Adds database info into template
+    sed -i -e "s/DOMAIN/$TARGET/" -e "s/OWN_CV/$OWN_CV/" -e "s/TARGET_PATH/$TARGET_PATH/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" owndbinfo
+    # Creates paste for database info using 'stikked'
+    curl -d name=ownCloudInstaller -d expire=120 -d private=1 --data-urlencode text@owndbinfo -s http://nobits.ml/api/create > tempaste
+    # converts 'stikked' paste to raw output URL
+    sed -i -e 's/view/view\/raw/' tempaste
+    clear
+    HEADER
+    GREEN
+    printf "The %s" "$CMS"
+    printf " Personal Cloud Storage Management System\n"
+    printf " Version %s" "$OWN_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the Database Info URL to your customer"
+    GREEN
+    echo "(needed for finalizing installation)"
+    echo
+    printf "==>  "
+    WHITE
+    printf "%s" "$(cat tempaste)"
+    printf "\n\n"
+    printf "Provide the following %s" "$CMS"
+    printf " URL to your customer"
+    printf "\n"
+    echo "and advise them to finalize their installation:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"setup-owncloud.php
+    printf "\n\n\n"
+    # Remove PASTE URL tempfiles
+    owndbinfo tempaste
+    SET_CMSLOG
 }
 
 #---------------------------------------------#
