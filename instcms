@@ -371,38 +371,8 @@ INSTALL_DB
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-## BEGIN pastefile template for database information presentation to customer
-cat > jdbinfo <<EndOfJoomlaFile
-==============================================
-          Joomla JM_CV Installation
-              Step (2) Database
-            Configuration Details
-
-Domain: DOMAIN
-URL: http://TARGET
-
-Database Type*: (leave default)
-
-Host Name*:     (leave default)
-
-Username*:       DBU
-
-Password*:       PASS
-
-Database Name*:  DB
-
-Table Prefix*:  (leave default)
-
-Old Database    (leave default)
-    Process*
-
-    **Please use or make note of this data
-    immediately- this paste will expire in
-                120 minutes**
-
-==============================================
-EndOfJoomlaFile
-## END pastefile template for database information presentation to customer
+## Fetching pastefile template for database information presentation to customer
+wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/jdbinfo
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
 # Creates paste for database info using 'stikked'
