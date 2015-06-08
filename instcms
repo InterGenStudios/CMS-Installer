@@ -123,64 +123,64 @@ CMS_VERS_FLAG=0
 
 # Colors trailing text Red
 RED () {
-tput bold
-tput setaf 1
+    tput bold
+    tput setaf 1
 }
 
 # Colors trailing text Green
 GREEN () {
-tput bold
-tput setaf 2
+    tput bold
+    tput setaf 2
 }
 
 # Colors trailing text Yellow
 YELLOW () {
-tput bold
-tput setaf 3
+    tput bold
+    tput setaf 3
 }
 
 # Colors trailing text Blue
 BLUE () {
-tput bold
-tput setaf 4
+    tput bold
+    tput setaf 4
 }
 
 # Clears any preceding text color declarations
 WHITE () {
-tput sgr0
+    tput sgr0
 }
 
 # Simple divider
 SEPARATOR () {
-echo
-BLUE
-echo "============================================================================"
-echo
-WHITE
+    echo
+    BLUE
+    echo "============================================================================"
+    echo
+    WHITE
 }
 
 # Creates uniform look during script execution when called after any clear command
 HEADER () {
-echo
-GREEN
-echo "============================================================================"
-WHITE
-echo "  CMS-INSTALLER v$vers"
-GREEN
-echo "============================================================================"
-WHITE
-printf "\n\n"
+    echo
+    GREEN
+    echo "============================================================================"
+    WHITE
+    echo "  CMS-INSTALLER v$vers"
+    GREEN
+    echo "============================================================================"
+    WHITE
+    printf "\n\n"
 }
 
 # Clears $ amount of lines when called
 CLEARLINE () {
 # To use, set CLINES=<$#> before function if you need to clear more than 1 line
-if [ -z "$CLINES" ]; then
-    tput cuu 1 && tput el
-else
-    tput cuu "$CLINES" && tput el
-    unset CLINES
-fi
+    if [ -z "$CLINES" ]; then
+        tput cuu 1 && tput el
+    else
+        tput cuu "$CLINES" && tput el
+        unset CLINES
+    fi
 }
 
 #--------------------------------#
@@ -193,29 +193,29 @@ fi
 
 # Uses DLev's API call engineering to properly create MySQL database and user that cPanel can 'see'
 INSTALL_DB () {
-clear
-HEADER
-GREEN
-echo Creating CMS Database and DatabaseUser via WHM API...
-echo
-sleep 2
-DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
-DB_NAME="$DB_PREFIX"_cmsi"$(date +%s | sha256sum | base64 | head -c 3)" &&
-if [ "$(echo "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")")" = "$DB_NAME" ]; then
-    DB_NAME="$DB_NAME"1
-fi
-DBU_NAME="$DB_PREFIX"_"$(date +%s | sha256sum | base64 | head -c 5)" &&
-if [ "$(echo "$(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME")")" = "$DBU_NAME" ]; then
-    DBU_NAME="$DBU_NAME"1
-fi
-DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-WHITE
-# API call to create the database, and command to set purge flag
-curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" > dbvalidation && CMS_DB=1
-# API call to create the database user and password, command to dump output into a file for error checking, and command to set purge flag
-curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbuvalidation && CMS_DBU=1
-# API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
-curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
+    clear
+    HEADER
+    GREEN
+    echo Creating CMS Database and DatabaseUser via WHM API...
+    echo
+    sleep 2
+    DB_PREFIX="$(echo "$TARGET_ACCT" | cut -c1-8)"
+    DB_NAME="$DB_PREFIX"_cmsi"$(date +%s | sha256sum | base64 | head -c 3)" &&
+    if [ "$(echo "$(mysql -e "show databases;" | awk '{print $1}' | grep -m 1 "$DB_NAME")")" = "$DB_NAME" ]; then
+        DB_NAME="$DB_NAME"1
+    fi
+    DBU_NAME="$DB_PREFIX"_"$(date +%s | sha256sum | base64 | head -c 5)" &&
+    if [ "$(echo "$(mysql -e "select user from mysql.user;" | awk '{print $1}' | grep -m 1 "$DBU_NAME")")" = "$DBU_NAME" ]; then
+        DBU_NAME="$DBU_NAME"1
+    fi
+    DBU_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+    WHITE
+    # API call to create the database, and command to set purge flag
+    curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdb&db=$DB_NAME" > dbvalidation && CMS_DB=1
+    # API call to create the database user and password, command to dump output into a file for error checking, and command to set purge flag
+    curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=createdbuser&dbuser=$DBU_NAME&password=$DBU_PASS" > dbuvalidation && CMS_DBU=1
+    # API call to associate database user to database in cPanel database cache and map, command to dump output to a file for error checking, and command to set purge flag
+    curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=setdbuserprivileges&db=$DB_NAME&dbuser=$DBU_NAME&privileges=ALL%20PRIVILEGES" > dbivalidation
     # Check for errors in database creation
     if [ -n "$(grep "error" dbvalidation)" ]; then
         RED
@@ -250,29 +250,29 @@ curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel
         echo "ALL WHM API calls completed successfully."
         sleep 1
     fi
-# Remove database/user creation error-checking logs
-rm -rf ./*validation
+    # Remove database/user creation error-checking logs
+    rm -rf ./*validation
 }
 
 # Installs the WordPress CMS, and provides URL for customer to finalize the installation
 INSTALL_WP () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching WordPress files..."
-echo
-wget -q https://wordpress.org/latest.tar.gz && CMS_FILES=1
-echo "Moving WordPress files into place..."
-sleep 2
-tar xf latest.tar.gz &&
-mv "$TARGET_PATH"wordpress/* "$TARGET_PATH"
-INSTALL_DB
-cp wp-config-sample.php wp-config.php
-sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
+    clear
+    HEADER
+    GREEN
+    echo "Fetching WordPress files..."
+    echo
+    wget -q https://wordpress.org/latest.tar.gz && CMS_FILES=1
+    echo "Moving WordPress files into place..."
+    sleep 2
+    tar xf latest.tar.gz &&
+    mv "$TARGET_PATH"wordpress/* "$TARGET_PATH"
+    INSTALL_DB
+    cp wp-config-sample.php wp-config.php
+    sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
@@ -282,76 +282,76 @@ sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
-/usr/local/cpanel/scripts/restartsrv_httpd
-clear
-HEADER
-GREEN
-printf "WordPress Version %s" "$WP_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the following URL to your customer"
-echo
-echo "so they can finalize their installation:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"
-printf "\n\n\n"
-rm -rf wordpress/ latest.tar.gz
-SET_CMSLOG
+    /usr/local/cpanel/scripts/restartsrv_httpd
+    clear
+    HEADER
+    GREEN
+    printf "WordPress Version %s" "$WP_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the following URL to your customer"
+    echo
+    echo "so they can finalize their installation:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"
+    printf "\n\n\n"
+    rm -rf wordpress/ latest.tar.gz
+    SET_CMSLOG
 }
 
 # Installs the Joomla CMS, and provides both domain URL and database info URL for customer to finalize the installation
 INSTALL_JM () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    if [[ "$(php -v | awk '{print $2}' | grep 5)" < "5.3.1" ]]; then
+        clear
+        HEADER
+        RED
+        echo
+        echo "WARNING!"
+        echo
+        WHITE
+        echo "Joomla requires PHP Version 5.3.1 or higher."
+        echo
+        echo "Please check the additional requirements here"
+        echo "prior to running the installer again: https://docs.joomla.org/J3.x:Installing_Joomla"
+        echo
+        echo "Installation cannot continue."
+        echo
+        echo "Exiting..."
+        sleep 3
+        exit 1
+    fi
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
     clear
     HEADER
-    RED
+    GREEN
+    echo "Fetching Joomla files..."
     echo
-    echo "WARNING!"
-    echo
-    WHITE
-    echo "Joomla requires PHP Version 5.3.1 or higher."
-    echo
-    echo "Please check the additional requirements here"
-    echo "prior to running the installer again: https://docs.joomla.org/J3.x:Installing_Joomla"
-    echo
-    echo "Installation cannot continue."
-    echo
-    echo "Exiting..."
-    sleep 3
-    exit 1
-fi
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching Joomla files..."
-echo
-wget -q https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
-echo "Moving Joomla files into place..."
-unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
-rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
-INSTALL_DB
+    wget -q https://github.com/joomla/joomla-cms/releases/download/"$JM_CV"/Joomla_"$JM_CV"-Stable-Full_Package.zip && CMS_FILES=1
+    echo "Moving Joomla files into place..."
+    unzip -q Joomla_"$JM_CV"-Stable-Full_Package.zip &&
+    rm -rf Joomla_"$JM_CV"-Stable-Full_Package.zip
+    INSTALL_DB
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
@@ -361,80 +361,80 @@ INSTALL_DB
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
-/usr/local/cpanel/scripts/restartsrv_httpd
-## Fetching pastefile template for database information presentation to customer
-wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/jdbinfo
-# Adds database info into template
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
-# Creates paste for database info using 'stikked'
-curl -d name=JoomlaInstaller -d expire=120 -d private=1 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
-# converts 'stikked' paste to raw output URL
-sed -i -e 's/view/view\/raw/' tempaste
-clear
-HEADER
-GREEN
-printf "The %s" "$CMS"
-printf " CMS Version %s" "$JM_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the Database Info URL to your customer"
-GREEN
-echo "(needed for finalizing installation)"
-echo
-printf "==>  "
-WHITE
-printf "%s" "$(cat tempaste)"
-printf "\n\n"
-printf "Provide the following %s" "$CMS"
-printf " URL to your customer"
-printf "\n"
-echo "and advise them to finalize their installation:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"
-printf "\n\n\n"
-# Remove PASTE URL tempfiles
-rm -rf jdbinfo tempaste
-SET_CMSLOG
+    /usr/local/cpanel/scripts/restartsrv_httpd
+    ## Fetching pastefile template for database information presentation to customer
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/jdbinfo
+    # Adds database info into template
+    sed -i -e "s/DOMAIN/$TARGET/" -e "s/JM_CV/$JM_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" jdbinfo
+    # Creates paste for database info using 'stikked'
+    curl -d name=JoomlaInstaller -d expire=120 -d private=1 --data-urlencode text@jdbinfo -s http://nobits.ml/api/create > tempaste
+    # converts 'stikked' paste to raw output URL
+    sed -i -e 's/view/view\/raw/' tempaste
+    clear
+    HEADER
+    GREEN
+    printf "The %s" "$CMS"
+    printf " CMS Version %s" "$JM_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the Database Info URL to your customer"
+    GREEN
+    echo "(needed for finalizing installation)"
+    echo
+    printf "==>  "
+    WHITE
+    printf "%s" "$(cat tempaste)"
+    printf "\n\n"
+    printf "Provide the following %s" "$CMS"
+    printf " URL to your customer"
+    printf "\n"
+    echo "and advise them to finalize their installation:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"
+    printf "\n\n\n"
+    # Remove PASTE URL tempfiles
+    rm -rf jdbinfo tempaste
+    SET_CMSLOG
 }
 
 # Installs the Drupal CMS, and provides both domain URL and database info URL for customer to finalize the installation
 INSTALL_DR () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching Drupal files..."
-echo
-wget -q http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
-echo "Moving Drupal files into place..."
-tar xf drupal-"$DR_CV".tar.gz &&
-mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
-INSTALL_DB
-cp sites/default/default.settings.php sites/default/settings.php
-mkdir -p sites/default/files && chmod 755 sites/default/files
-# Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
-chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
+    clear
+    HEADER
+    GREEN
+    echo "Fetching Drupal files..."
+    echo
+    wget -q http://ftp.drupal.org/files/projects/drupal-"$DR_CV".tar.gz && CMS_FILES=1
+    echo "Moving Drupal files into place..."
+    tar xf drupal-"$DR_CV".tar.gz &&
+    mv drupal-"$DR_CV"/* . && mv drupal-"$DR_CV"/.h* . && mv drupal-"$DR_CV"/.g* .
+    INSTALL_DB
+    cp sites/default/default.settings.php sites/default/settings.php
+    mkdir -p sites/default/files && chmod 755 sites/default/files
+    # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
+    chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
         find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
@@ -443,77 +443,77 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
-/usr/local/cpanel/scripts/restartsrv_httpd
-## Fetching pastefile template for database information presentation to customer
-wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/ddbinfo
-# Adds database info into template
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
-# Creates paste for database info using 'stikked'
-curl -d name=DrupalInstaller -d expire=120 -d private=1 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
-# converts 'stikked' paste to raw output URL
-sed -i -e 's/view/view\/raw/' tempaste
-clear
-HEADER
-GREEN
-printf "The %s" "$CMS"
-printf " CMS Version %s" "$DR_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the Database Info URL to your customer"
-GREEN
-echo "(needed for finalizing installation)"
-echo
-printf "==>  "
-WHITE
-printf "%s" "$(cat tempaste)"
-printf "\n\n"
-printf "Provide the following %s" "$CMS"
-printf " URL to your customer"
-printf "\n"
-echo "and advise them to finalize their installation:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"
-printf "\n\n\n"
-# Remove PASTE URL tempfiles
-rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
-SET_CMSLOG
+    /usr/local/cpanel/scripts/restartsrv_httpd
+    ## Fetching pastefile template for database information presentation to customer
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/ddbinfo
+    # Adds database info into template
+    sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
+    # Creates paste for database info using 'stikked'
+    curl -d name=DrupalInstaller -d expire=120 -d private=1 --data-urlencode text@ddbinfo -s http://nobits.ml/api/create > tempaste
+    # converts 'stikked' paste to raw output URL
+    sed -i -e 's/view/view\/raw/' tempaste
+    clear
+    HEADER
+    GREEN
+    printf "The %s" "$CMS"
+    printf " CMS Version %s" "$DR_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the Database Info URL to your customer"
+    GREEN
+    echo "(needed for finalizing installation)"
+    echo
+    printf "==>  "
+    WHITE
+    printf "%s" "$(cat tempaste)"
+    printf "\n\n"
+    printf "Provide the following %s" "$CMS"
+    printf " URL to your customer"
+    printf "\n"
+    echo "and advise them to finalize their installation:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"
+    printf "\n\n\n"
+    # Remove PASTE URL tempfiles
+    rm -rf drupal-"$DR_CV"/ drupal-"$DR_CV".tar.gz ddbinfo tempaste
+    SET_CMSLOG
 }
 
 # Installs the ocPortal CMS, and provides both domain URL and database info URL for customer to finalize the installation
 INSTALL_OC () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching ocPortal files..."
-echo
-wget -q http://ocportal.com/site/dload.php?id=1037 && CMS_FILES=1
-echo "Moving ocPortal files into place..."
-mv dload.php\?id\=1037 ocportal.zip
-unzip -q ocportal.zip &&
-rm -rf ocportal.zip
-INSTALL_DB
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
+    clear
+    HEADER
+    GREEN
+    echo "Fetching ocPortal files..."
+    echo
+    wget -q http://ocportal.com/site/dload.php?id=1037 && CMS_FILES=1
+    echo "Moving ocPortal files into place..."
+    mv dload.php\?id\=1037 ocportal.zip
+    unzip -q ocportal.zip &&
+    rm -rf ocportal.zip
+    INSTALL_DB
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
@@ -523,80 +523,80 @@ INSTALL_DB
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
-/usr/local/cpanel/scripts/restartsrv_httpd
-## Fetching pastefile template for database information presentation to customer
-wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/ocdbinfo
-# Adds database info into template
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/OC_CV/$OC_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ocdbinfo
-# Creates paste for database info using 'stikked'
-curl -d name=ocPortalInstaller -d expire=120 -d private=1 --data-urlencode text@ocdbinfo -s http://nobits.ml/api/create > tempaste
-# converts 'stikked' paste to raw output URL
-sed -i -e 's/view/view\/raw/' tempaste
-clear
-HEADER
-GREEN
-printf "The %s" "$CMS"
-printf " CMS Version %s" "$OC_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the Database Info URL to your customer"
-GREEN
-echo "(needed for finalizing installation)"
-echo
-printf "==>  "
-WHITE
-printf "%s" "$(cat tempaste)"
-printf "\n\n"
-printf "Provide the following %s" "$CMS"
-printf " URL to your customer"
-printf "\n"
-echo "and advise them to finalize their installation:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"
-printf "/install.php"
-printf "\n\n\n"
-# Remove PASTE URL tempfiles
-rm -rf ocdbinfo tempaste
-SET_CMSLOG
+    /usr/local/cpanel/scripts/restartsrv_httpd
+    ## Fetching pastefile template for database information presentation to customer
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/ocdbinfo
+    # Adds database info into template
+    sed -i -e "s/DOMAIN/$TARGET/" -e "s/OC_CV/$OC_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ocdbinfo
+    # Creates paste for database info using 'stikked'
+    curl -d name=ocPortalInstaller -d expire=120 -d private=1 --data-urlencode text@ocdbinfo -s http://nobits.ml/api/create > tempaste
+    # converts 'stikked' paste to raw output URL
+    sed -i -e 's/view/view\/raw/' tempaste
+    clear
+    HEADER
+    GREEN
+    printf "The %s" "$CMS"
+    printf " CMS Version %s" "$OC_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the Database Info URL to your customer"
+    GREEN
+    echo "(needed for finalizing installation)"
+    echo
+    printf "==>  "
+    WHITE
+    printf "%s" "$(cat tempaste)"
+    printf "\n\n"
+    printf "Provide the following %s" "$CMS"
+    printf " URL to your customer"
+    printf "\n"
+    echo "and advise them to finalize their installation:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"
+    printf "/install.php"
+    printf "\n\n\n"
+    # Remove PASTE URL tempfiles
+    rm -rf ocdbinfo tempaste
+    SET_CMSLOG
 }
 
 # Installs the ModXRevolution CMS, and provides both Admin Login Info URL and Admin Login URL for customer
 INSTALL_MX () {
-CHECK_EXISTING_INSTALL
-CHECK_EXISTING_DATA
-SUBDOMAIN_HT_CHECK
-cd "$TARGET_PATH"
-clear
-HEADER
-GREEN
-echo "Fetching ModXRevolution files..."
-echo
-wget -q http://modx.com/download/direct/modx-"$MX_CV"-pl.zip && CMS_FILES=1
-echo "Moving ModXRevolution files into place..."
-unzip -q modx-"$MX_CV"-pl.zip
-mv mv modx-"$MX_CV"-pl/* . &&
-rm -rf modx-"$MX_CV"-pl.zip
-cp setup/config.dist.new.xml setup/config.xml
-chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"*
-INSTALL_DB
+    CHECK_EXISTING_INSTALL
+    CHECK_EXISTING_DATA
+    SUBDOMAIN_HT_CHECK
+    cd "$TARGET_PATH"
+    clear
+    HEADER
+    GREEN
+    echo "Fetching ModXRevolution files..."
+    echo
+    wget -q http://modx.com/download/direct/modx-"$MX_CV"-pl.zip && CMS_FILES=1
+    echo "Moving ModXRevolution files into place..."
+    unzip -q modx-"$MX_CV"-pl.zip
+    mv mv modx-"$MX_CV"-pl/* . &&
+    rm -rf modx-"$MX_CV"-pl.zip
+    cp setup/config.dist.new.xml setup/config.xml
+    chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"*
+    INSTALL_DB
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
@@ -606,75 +606,75 @@ INSTALL_DB
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
-MODX_ADMIN="$DB_PREFIX"-admin
-MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
-MODX_CORE="$TARGET_PATH"core/
-MODX_MANAGER="$TARGET_PATH"manager/
-MODX_CONNECTORS="$TARGET_PATH"connectors/
-# Yes, this is ONE sed command
-sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e "s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e "s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e "s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e "s|email@address.com|admin@$TARGET|" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$MODX_CORE</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$MODX_MANAGER</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$MODX_CONNECTORS</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_url>/modx/</context_web_url>|<context_web_url>/</context_web_url>|" "$TARGET_PATH"setup/config.xml
-clear
-HEADER
-GREEN
-echo "Running ModXRevolution Installer..."
-sleep 1
-echo "(this may take a minute...or two..)"
-echo
-cd "$TARGET_PATH"
-cd setup
-php index.php --installmode=new
-cd "$TARGET_PATH"
-## Fetching pastefile template for database information presentation to customer
-wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/mxdbinfo
-# Adds database info into template
-sed -i -e "s/DOMAIN/$TARGET/" -e "s/MX_CV/$MX_CV/" -e "s/TARGET/$TARGET/g" -e "s/ADMIN_NAME/$MODX_ADMIN/" -e "s/ADMIN_PASS/$MODX_PASS/" mxdbinfo
-# Creates paste for database info using 'stikked'
-curl -d name=ModXRevoInstaller -d expire=120 -d private=1 --data-urlencode text@mxdbinfo -s http://nobits.ml/api/create > tempaste
-# converts 'stikked' paste to raw output URL
-sed -i -e 's/view/view\/raw/' tempaste
-clear
-HEADER
-GREEN
-printf "The %s" "$CMS"
-printf " CMS Version %s" "$MX_CV"
-printf " has been installed for"
-WHITE
-echo " $TARGET"
-echo
-WHITE
-# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
-HT_CHECK_WARN
-echo
-echo "Provide the Admin Login URL to your customer"
-GREEN
-echo
-printf "==>  "
-WHITE
-printf "%s" "$(cat tempaste)"
-printf "\n\n"
-printf "Provide the following %s" "$CMS"
-printf " URL to your customer"
-printf "\n"
-echo "and advise them to change the admin email on login:"
-echo
-GREEN
-printf "==>  "
-WHITE
-printf "http://%s" "$TARGET"
-printf "/manager"
-printf "\n\n\n"
-# Remove PASTE URL tempfiles
-rm -rf mxdbinfo tempaste
-SET_CMSLOG
+    MODX_ADMIN="$DB_PREFIX"-admin
+    MODX_PASS="$(date +%s | sha256sum | base64 | head -c 10)"
+    MODX_CORE="$TARGET_PATH"core/
+    MODX_MANAGER="$TARGET_PATH"manager/
+    MODX_CONNECTORS="$TARGET_PATH"connectors/
+    # Yes, this is ONE sed command
+    sed -i -e "s|<database>modx_modx</database>|<database>$DB_NAME</database>|" -e "s|<database_user>db_username</database_user>|<database_user>$DBU_NAME</database_user>|" -e "s|<database_password>db_password</database_password>|<database_password>$DBU_PASS</database_password>|" -e "s|<cmsadmin>username</cmsadmin>|<cmsadmin>$MODX_ADMIN</cmsadmin>|" -e "s|<cmspassword>password</cmspassword>|<cmspassword>$MODX_PASS</cmspassword>|" -e "s|email@address.com|admin@$TARGET|" -e "s|<core_path>/www/modx/core/</core_path>|<core_path>$MODX_CORE</core_path>|" -e "s|<context_mgr_path>/www/modx/manager/</context_mgr_path>|<context_mgr_path>$MODX_MANAGER</context_mgr_path>|" -e "s|<context_mgr_url>/modx/manager/</context_mgr_url>|<context_mgr_url>/manager/</context_mgr_url>|" -e "s|<context_connectors_path>/www/modx/connectors/</context_connectors_path>|<context_connectors_path>$MODX_CONNECTORS</context_connectors_path>|" -e "s|<context_connectors_url>/modx/connectors/</context_connectors_url>|<context_connectors_url>/connectors/</context_connectors_url>|" -e "s|<context_web_path>/www/modx/</context_web_path>|<context_web_path>$TARGET_PATH</context_web_path>|" -e "s|<context_web_url>/modx/</context_web_url>|<context_web_url>/</context_web_url>|" "$TARGET_PATH"setup/config.xml
+    clear
+    HEADER
+    GREEN
+    echo "Running ModXRevolution Installer..."
+    sleep 1
+    echo "(this may take a minute...or two..)"
+    echo
+    cd "$TARGET_PATH"
+    cd setup
+    php index.php --installmode=new
+    cd "$TARGET_PATH"
+    ## Fetching pastefile template for database information presentation to customer
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/mxdbinfo
+    # Adds database info into template
+    sed -i -e "s/DOMAIN/$TARGET/" -e "s/MX_CV/$MX_CV/" -e "s/TARGET/$TARGET/g" -e "s/ADMIN_NAME/$MODX_ADMIN/" -e "s/ADMIN_PASS/$MODX_PASS/" mxdbinfo
+    # Creates paste for database info using 'stikked'
+    curl -d name=ModXRevoInstaller -d expire=120 -d private=1 --data-urlencode text@mxdbinfo -s http://nobits.ml/api/create > tempaste
+    # converts 'stikked' paste to raw output URL
+    sed -i -e 's/view/view\/raw/' tempaste
+    clear
+    HEADER
+    GREEN
+    printf "The %s" "$CMS"
+    printf " CMS Version %s" "$MX_CV"
+    printf " has been installed for"
+    WHITE
+    echo " $TARGET"
+    echo
+    WHITE
+    # Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+    HT_CHECK_WARN
+    echo
+    echo "Provide the Admin Login URL to your customer"
+    GREEN
+    echo
+    printf "==>  "
+    WHITE
+    printf "%s" "$(cat tempaste)"
+    printf "\n\n"
+    printf "Provide the following %s" "$CMS"
+    printf " URL to your customer"
+    printf "\n"
+    echo "and advise them to change the admin email on login:"
+    echo
+    GREEN
+    printf "==>  "
+    WHITE
+    printf "http://%s" "$TARGET"
+    printf "/manager"
+    printf "\n\n\n"
+    # Remove PASTE URL tempfiles
+    rm -rf mxdbinfo tempaste
+    SET_CMSLOG
 }
 
 # Installs the ownCloud Personal Cloud Storage Management System, and provides both domain URL and database info URL for customer to finalize the installation
@@ -702,14 +702,14 @@ INSTALL_OWN () {
         find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
     else
         for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
-        do
-        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
-        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
-        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
-        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
-        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
-        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
-        done
+            do
+            find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+            find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+            find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+            chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+            find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+            # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+            done
     fi
     /usr/local/cpanel/scripts/restartsrv_httpd
     ## Fetching pastefile template for database information presentation to customer
@@ -767,126 +767,27 @@ INSTALL_OWN () {
 
 # Puts cms log into place with timestamp
 SET_CMSLOG () {
-if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /root/support/scripts/CMS-Installer_logs/cmslog
-    mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-    exit 0
-else
-    exit 0
-fi
+    if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
+        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /root/support/scripts/CMS-Installer_logs/cmslog
+        mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+        exit 0
+    else
+        exit 0
+    fi
 }
 
 SET_CMSLOG_1 () {
-if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
-    sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
-    mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
-    exit 1
-else
-    exit 1
-fi
+    if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
+        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
+        mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+        exit 1
+    else
+        exit 1
+    fi
 }
 
 # DLev said I had to make this, so here it is- backup support.
 BACKUP_OPTION () {
-echo
-WHITE
-echo "Would you like to make a backup of"
-echo
-GREEN
-echo "$TARGET_PATH"
-echo
-WHITE
-echo "move it to "
-echo
-BLUE
-echo "/root/support/scripts/CMS-Installer_backups/"
-echo
-WHITE
-echo -n "and run the installer again [y/N]? "
-read BACKUP
-if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
-    clear
-    HEADER
-    GREEN
-    echo "Backing up $TARGET_PATH..."
-    # Set up the backup directory
-    mkdir -p /root/support/scripts/CMS-Installer_backups
-    WHITE
-    echo "(this may take a moment)"
-    if [ "$EXISTS" = "WORDPRESS" ]; then
-        # Grabs the wordpress database for the backup
-        mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    elif [ "$EXISTS" = "DRUPAL" ]; then
-        # Grabs the drupal database for the backup
-        mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    elif [ "$EXISTS" = "JOOMLA" ]; then
-        # Grabs the joomla database for the backup
-        mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    elif [ "$EXISTS" = "OCPORTAL" ]; then
-        # Grabs the ocportal database for the backup
-        mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    elif [ "$EXISTS" = "MODXREVO" ]; then
-        # Grabs the mxrevolution database for the backup
-        mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    else
-        # Grabs the owncloud database for the backup
-        mysqldump "$(grep dbname "$TARGET_PATH"owncloud/config/config.php | sed -e "s/'/ /g" | awk '{print $3}')" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    fi
-    tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
-    # Put the backup away for safe-keeping
-    mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
-    echo
-    clear
-    HEADER
-    GREEN
-    echo "Backup of the $EXISTS installation in $TARGET_PATH complete."
-    echo
-    echo "Clearing $TARGET_PATH for new installation..."
-    rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
-    mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
-    echo
-    echo "$TARGET_PATH cleared."
-    echo
-    echo "Restarting installer..."
-    sleep 2
-    unset EXISTS
-    # Loop once the backup is completed
-    CONFIRM_INSTALL
-else
-    clear
-    HEADER
-    WHITE
-    echo "Without backing up and moving the current data in"
-    echo "$TARGET_PATH the installer cannot continue."
-    echo
-    RED
-    echo "Exiting..."
-    sleep 1
-    clear
-    printf "\n\n\n"
-    # Backup or get out
-    WHITE
-    SET_CMSLOG_1
-fi
-}
-
-# Same routine as the installation check and backup, but for data other than CMS installations. Need to have it generically look for database info and grab it if it's there
-CHECK_EXISTING_DATA () {
-FILE=""
-DIR="$TARGET_PATH"
-
-if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
-    clear
-    HEADER
-    YELLOW
-    echo "--------"
-    RED
-    echo "WARNING!"
-    YELLOW
-    echo "--------"
-    RED
-    echo
-    echo "Data exists in $TARGET_PATH."
     echo
     WHITE
     echo "Would you like to make a backup of"
@@ -908,17 +809,37 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         HEADER
         GREEN
         echo "Backing up $TARGET_PATH..."
+        # Set up the backup directory
+        mkdir -p /root/support/scripts/CMS-Installer_backups
         WHITE
         echo "(this may take a moment)"
-        sleep 1
-        mkdir -p /root/support/scripts/CMS-Installer_backups
-        tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+        if [ "$EXISTS" = "WORDPRESS" ]; then
+            # Grabs the wordpress database for the backup
+            mysqldump "$(grep DB "$TARGET_PATH"wp-config.php | cut -d "'" -f 4 | head -1)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        elif [ "$EXISTS" = "DRUPAL" ]; then
+            # Grabs the drupal database for the backup
+            mysqldump "$(grep -A 5 '$databases = array (' "$TARGET_PATH"sites/default/settings.php | grep "'database'" | awk '{print $3}' | sed -e "s/'//g" -e "s/,//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        elif [ "$EXISTS" = "JOOMLA" ]; then
+            # Grabs the joomla database for the backup
+            mysqldump "$(grep "public \$db =" "$TARGET_PATH"configuration.php | awk '{print $4}' | sed -e "s/'//g" -e "s/;//")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        elif [ "$EXISTS" = "OCPORTAL" ]; then
+            # Grabs the ocportal database for the backup
+            mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        elif [ "$EXISTS" = "MODXREVO" ]; then
+            # Grabs the mxrevolution database for the backup
+            mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        else
+            # Grabs the owncloud database for the backup
+            mysqldump "$(grep dbname "$TARGET_PATH"owncloud/config/config.php | sed -e "s/'/ /g" | awk '{print $3}')" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+        fi
+        tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
+        # Put the backup away for safe-keeping
+        mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
         GREEN
-        echo "Backup of the data in $TARGET_PATH complete."
+        echo "Backup of the $EXISTS installation in $TARGET_PATH complete."
         echo
         echo "Clearing $TARGET_PATH for new installation..."
         rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
@@ -928,6 +849,8 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         echo
         echo "Restarting installer..."
         sleep 2
+        unset EXISTS
+        # Loop once the backup is completed
         CONFIRM_INSTALL
     else
         clear
@@ -941,10 +864,87 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         sleep 1
         clear
         printf "\n\n\n"
+        # Backup or get out
         WHITE
         SET_CMSLOG_1
     fi
-fi
+}
+
+# Same routine as the installation check and backup, but for data other than CMS installations. Need to have it generically look for database info and grab it if it's there
+CHECK_EXISTING_DATA () {
+    FILE=""
+    DIR="$TARGET_PATH"
+
+    if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
+        clear
+        HEADER
+        YELLOW
+        echo "--------"
+        RED
+        echo "WARNING!"
+        YELLOW
+        echo "--------"
+        RED
+        echo
+        echo "Data exists in $TARGET_PATH."
+        echo
+        WHITE
+        echo "Would you like to make a backup of"
+        echo
+        GREEN
+        echo "$TARGET_PATH"
+        echo
+        WHITE
+        echo "move it to "
+        echo
+        BLUE
+        echo "/root/support/scripts/CMS-Installer_backups/"
+        echo
+        WHITE
+        echo -n "and run the installer again [y/N]? "
+        read BACKUP
+        if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
+            clear
+            HEADER
+            GREEN
+            echo "Backing up $TARGET_PATH..."
+            WHITE
+            echo "(this may take a moment)"
+            sleep 1
+            mkdir -p /root/support/scripts/CMS-Installer_backups
+            tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
+            mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+            echo
+            clear
+            HEADER
+            GREEN
+            echo "Backup of the data in $TARGET_PATH complete."
+            echo
+            echo "Clearing $TARGET_PATH for new installation..."
+            rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
+            mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
+            echo
+            echo "$TARGET_PATH cleared."
+            echo
+            echo "Restarting installer..."
+            sleep 2
+            CONFIRM_INSTALL
+        else
+            clear
+            HEADER
+            WHITE
+            echo "Without backing up and moving the current data in"
+            echo "$TARGET_PATH the installer cannot continue."
+            echo
+            RED
+            echo "Exiting..."
+            sleep 1
+            clear
+            printf "\n\n\n"
+            WHITE
+            SET_CMSLOG_1
+        fi
+    fi
 }
 
 #----------------------------------#
@@ -986,8 +986,8 @@ bashtrap () {
 
 # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
 PURGE_INSTALL_FILES () {
-WHITE
-if [ "$(echo "$CMS_FILES")" = "1" ]; then
+    WHITE
+    if [ "$(echo "$CMS_FILES")" = "1" ]; then
         if [ -d "$TARGET_PATH"cgi-bin ]; then
             mv "$TARGET_PATH"cgi-bin ../
             rm -rf ./* && rm -rf ./.??*
@@ -995,23 +995,23 @@ if [ "$(echo "$CMS_FILES")" = "1" ]; then
         else
             rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??*
         fi
-fi
+    fi
 }
 
 # Purges any database created during installation if bashtrap is triggered, provided the 'CMS_DB' flag has been set
 PURGE_DATABASE () {
-WHITE
-if [ "$(echo "$CMS_DB")" = "1" ]; then
-    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/jsonapi/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
-fi
+    WHITE
+    if [ "$(echo "$CMS_DB")" = "1" ]; then
+        curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/jsonapi/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedb&db=$DB_NAME"
+    fi
 }
 
 # Purges any database user created during installation if bashtrap is triggered, provided the 'CMS_DBU' flag has been set
 PURGE_DATABASE_USER () {
-WHITE
-if [ "$(echo "$CMS_DBU")" = "1" ]; then
-    curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
-fi
+    WHITE
+    if [ "$(echo "$CMS_DBU")" = "1" ]; then
+        curl -sk -X GET -u "$API_USER":"$API_PASS" "https://$SERVER:2087/json-api/cpanel?cpanel_jsonapi_apiversion=2&cpanel_jsonapi_user=$TARGET_ACCT&cpanel_jsonapi_module=MysqlFE&cpanel_jsonapi_func=deletedbuser&dbuser=$DBU_NAME"
+    fi
 }
 
 #----------------------#
@@ -1023,114 +1023,114 @@ fi
 #------------------------#
 
 GET_CMS_VERS () {
-if [ "$CMS_VERS_FLAG" = "0" ]; then
-    clear
-    HEADER
-    GREEN
-    echo "Getting latest CMS versions..."
-    # Sets latest WordPress version
-    WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
+    if [ "$CMS_VERS_FLAG" = "0" ]; then
+        clear
+        HEADER
+        GREEN
+        echo "Getting latest CMS versions..."
+        # Sets latest WordPress version
+        WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 
-    # Sets latest Joomla version
-    JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
+        # Sets latest Joomla version
+        JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
 
-    # Sets latest Drupal version
-    DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
+        # Sets latest Drupal version
+        DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 
-    # Sets latest ocPortal version
-    OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+        # Sets latest ocPortal version
+        OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
 
-    # Sets latest ModXRevolution version
-    MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+        # Sets latest ModXRevolution version
+        MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
 
-    # Sets latest ownCloud Version
-    OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
+        # Sets latest ownCloud Version
+        OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
 
-    CMS_VERS_FLAG=1
-else
-    clear
-    HEADER
-fi
+        CMS_VERS_FLAG=1
+    else
+        clear
+        HEADER
+    fi
 }
 
 # Shows available usage options
 HELPTEXT () {
-clear
-HEADER
-GREEN
-echo "CMS-Installer help:"
-echo
-echo "Installs choice CMS in target domain/subdomain docroot"
-echo
-echo "USAGE: "
-echo
-WHITE
-echo " instcms {[options],[cms],[domain_name]} / [cms] [domain_name] [rootpass] / [cms] [domain_name]"
-GREEN
-echo
-echo "Options:"
-echo
-WHITE
-echo " -c: create a new account for installation"
-echo " -h: print this screen and exit"
-echo " -l: list accounts available for installation"
-echo " -v: show the current installer version and exit"
-echo
-GREEN
-echo "CMS:"
-echo
-WHITE
-echo "  -w: (Getting version information...)"
-echo "  -j: (Getting version information...)"
-echo "  -d: (Getting version information...)"
-echo "  -o: (Getting version information...)"
-echo "  -m: (Getting version information...)"
-echo "-own: (Getting version information...)"
-WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
-JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
-DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
-OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
-MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
-OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
-CLINES=5
-CLEARLINE
-echo "   -w: installs WordPress  --  Version $WP_CV"
-echo "   -j: installs Joomla  -----  Version $JM_CV"
-echo "   -d: installs Drupal  -----  Version $DR_CV"
-echo "   -o: installs ocPortal  ---  Version $OC_CV"
-echo "   -m: installs ModXRevo  ---  Version $MX_CV"
-echo " -own: installs ownCloud  ---  Version $OWN_CV"
-printf "\n\n"
-exit 0
+    clear
+    HEADER
+    GREEN
+    echo "CMS-Installer help:"
+    echo
+    echo "Installs choice CMS in target domain/subdomain docroot"
+    echo
+    echo "USAGE: "
+    echo
+    WHITE
+    echo " instcms {[options],[cms],[domain_name]} / [cms] [domain_name] [rootpass] / [cms] [domain_name]"
+    GREEN
+    echo
+    echo "Options:"
+    echo
+    WHITE
+    echo " -c: create a new account for installation"
+    echo " -h: print this screen and exit"
+    echo " -l: list accounts available for installation"
+    echo " -v: show the current installer version and exit"
+    echo
+    GREEN
+    echo "CMS:"
+    echo
+    WHITE
+    echo "  -w: (Getting version information...)"
+    echo "  -j: (Getting version information...)"
+    echo "  -d: (Getting version information...)"
+    echo "  -o: (Getting version information...)"
+    echo "  -m: (Getting version information...)"
+    echo "-own: (Getting version information...)"
+    WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
+    JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
+    DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
+    OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+    MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+    OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
+    CLINES=5
+    CLEARLINE
+    echo "   -w: installs WordPress  --  Version $WP_CV"
+    echo "   -j: installs Joomla  -----  Version $JM_CV"
+    echo "   -d: installs Drupal  -----  Version $DR_CV"
+    echo "   -o: installs ocPortal  ---  Version $OC_CV"
+    echo "   -m: installs ModXRevo  ---  Version $MX_CV"
+    echo " -own: installs ownCloud  ---  Version $OWN_CV"
+    printf "\n\n"
+    exit 0
 }
 
 # Propaganda splash screen - with flair if the server has figlet installed
 VERSION () {
-clear
-SEPARATOR
-if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
+    clear
+    SEPARATOR
+    if [ "$(figlet -v | head -1 | awk '{print $2}')" = "Copyright" ]; then
+        BLUE
+        figlet CMS-Installer
+        WHITE
+    else
+        GREEN
+        echo " CMS-Installer"
+    fi
+    echo
     BLUE
-    figlet CMS-Installer
+    echo " An InterGenStudios project."
     WHITE
-else
-    GREEN
-    echo " CMS-Installer"
-fi
-echo
-BLUE
-echo " An InterGenStudios project."
-WHITE
-echo
-echo " Web: http://cms-installer.ml"
-echo
-echo " Email: <info@cms-installer.ml>"
-echo
-echo " Github: https://github.com/InterGenStudios/CMS-Installer"
-echo
-echo " Version: $vers"
-SEPARATOR
-echo
-exit 0
+    echo
+    echo " Web: http://cms-installer.ml"
+    echo
+    echo " Email: <info@cms-installer.ml>"
+    echo
+    echo " Github: https://github.com/InterGenStudios/CMS-Installer"
+    echo
+    echo " Version: $vers"
+    SEPARATOR
+    echo
+    exit 0
 }
 
 #----------------------#
@@ -1142,113 +1142,72 @@ exit 0
 #-----------------------------------#
 
 CREATE_ACCT () {
-cat > create_acct_template <<EndOfCreateAcctTemplateFile
-Domain Name:   NewDomainName
-User Name:     NewUserName
-User Password: NewPassword
-Dedicated IP:  Y/N
-User Email:    UserEmail
-Use DKIM:      Y/N
-Use SPF:       Y/N
-EndOfCreateAcctTemplateFile
-clear
-HEADER
-ACCT_NOT_FOUND () {
-YELLOW
-printf "It doesn't look like the domain "
-WHITE
-printf "%s" "$TARGET"
-YELLOW
-printf " has a cPanel account on this server."
-printf "\n\n\n"
-GREEN
-printf "Would you like to create an account for it now"
-WHITE
-printf " (Y/n)"
-GREEN
-echo -n "? "
-WHITE
-read C_A_CHOICE
-}
-NEW_TARGET () {
-GREEN
-printf "'"
-WHITE
-printf "Create New Account"
-GREEN
-printf "' option selected."
-echo
-C_A_CHOICE=Y
-WHITE
-}
-if [ "$TARGET_NOT_FOUND" = "1" ]; then
-    ACCT_NOT_FOUND
-else
-    NEW_TARGET
-fi
-if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; then
-    printf "\n\n"
-    GREEN
-    printf "Please enter the new "
-    WHITE
-    printf "cPanel Account Username"
-    GREEN
-    echo -n ": "
-    WHITE
-    read NEW_USER_NAME
-    if [ "$NEW_USER_NAME" = "$(echo $(grep $NEW_USER_NAME /etc/trueuserdomains | awk '{print $2}'))" ]; then
-        clear
-        HEADER
+    ## Fetching account creation template
+    wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/create_acct_template
+    clear
+    HEADER
+    ACCT_NOT_FOUND () {
         YELLOW
-        printf "The cPanel account username "
-        RED
-        printf "%s" "$NEW_USER_NAME"
+        printf "It doesn't look like the domain "
+        WHITE
+        printf "%s" "$TARGET"
         YELLOW
-        printf " already exists on this server."
+        printf " has a cPanel account on this server."
+        printf "\n\n\n"
+        GREEN
+        printf "Would you like to create an account for it now"
+        WHITE
+        printf " (Y/n)"
+        GREEN
+        echo -n "? "
+        WHITE
+        read C_A_CHOICE
+    }
+    NEW_TARGET () {
+        GREEN
+        printf "'"
+        WHITE
+        printf "Create New Account"
+        GREEN
+        printf "' option selected."
+        echo
+        C_A_CHOICE=Y
+        WHITE
+    }
+    if [ "$TARGET_NOT_FOUND" = "1" ]; then
+        ACCT_NOT_FOUND
+    else
+        NEW_TARGET
+    fi
+    if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; then
         printf "\n\n"
         GREEN
-        echo "You'll need to choose another username for the account."
-        echo
+        printf "Please enter the new "
         WHITE
-        echo "Restarting Account Creation..."
-        sleep 3
-        CREATE_ACCT
-    else
-        sed -i "s|NewUserName|$NEW_USER_NAME|" create_acct_template
-        clear
-        HEADER
-        GREEN
-        printf "Please enter the new cPanel account username:         "
-        WHITE
-        echo "$NEW_USER_NAME"
-        echo
-        GREEN
-        printf "Please enter the account's "
-        WHITE
-        printf "Domain Name"
+        printf "cPanel Account Username"
         GREEN
         echo -n ": "
         WHITE
-        read NEW_DOMAIN_NAME
-        if [ "$NEW_DOMAIN_NAME" = "$(grep $NEW_DOMAIN_NAME /usr/local/apache/conf/httpd.conf | grep -m 1 "ServerName $NEW_DOMAIN_NAME" | awk '{print $2}')" ]; then
+        read NEW_USER_NAME
+        if [ "$NEW_USER_NAME" = "$(echo $(grep $NEW_USER_NAME /etc/trueuserdomains | awk '{print $2}'))" ]; then
             clear
             HEADER
             YELLOW
-            printf "The domain "
+            printf "The cPanel account username "
             RED
-            printf "%s" "$NEW_DOMAIN_NAME"
+            printf "%s" "$NEW_USER_NAME"
             YELLOW
             printf " already exists on this server."
             printf "\n\n"
             GREEN
-            echo "You'll need to choose another domain for the account."
+            echo "You'll need to choose another username for the account."
             echo
             WHITE
             echo "Restarting Account Creation..."
             sleep 3
             CREATE_ACCT
         else
-            sed -i "s|NewDomainName|$NEW_DOMAIN_NAME|" create_acct_template
+            sed -i "s|NewUserName|$NEW_USER_NAME|" create_acct_template
             clear
             HEADER
             GREEN
@@ -1257,226 +1216,260 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
             echo "$NEW_USER_NAME"
             echo
             GREEN
-            printf "Please enter the account's Domain Name:               "
+            printf "Please enter the account's "
             WHITE
-            echo "$NEW_DOMAIN_NAME"
-            echo
-        fi
-    fi
-    GREEN
-    printf "Please enter the account's "
-    WHITE
-    printf "Password"
-    GREEN
-    echo -n ": "
-    WHITE
-    read NEW_PASSWORD
-    sed -i "s|NewPassword|$NEW_PASSWORD|" create_acct_template
-    clear
-    HEADER
-    GREEN
-    printf "Please enter the new cPanel account username:          "
-    WHITE
-    echo "$NEW_USER_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Domain Name:                "
-    WHITE
-    echo "$NEW_DOMAIN_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Password:                   "
-    WHITE
-    echo "$NEW_PASSWORD"
-    echo
-    GREEN
-    printf "Please enter the "
-    WHITE
-    printf "Contact Email Account"
-    GREEN
-    echo -n ": "
-    WHITE
-    read USEREMAIL
-    USER_EMAIL="$USEREMAIL"
-    sed -i "s|User Email:    UserEmail|User Email:    $USEREMAIL|" create_acct_template
-    clear
-    HEADER
-    GREEN
-    printf "Please enter the new cPanel account username:          "
-    WHITE
-    echo "$NEW_USER_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Domain Name:                "
-    WHITE
-    echo "$NEW_DOMAIN_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Password:                   "
-    WHITE
-    echo "$NEW_PASSWORD"
-    echo
-    GREEN
-    printf "Please enter the contact Email Account:                "
-    WHITE
-    echo "$USER_EMAIL"
-    echo
-    GREEN
-    printf "Will the account use "
-    WHITE
-    printf "DKIM"
-    GREEN
-    echo -n "? "
-    WHITE
-    read use_dkim
-    if [ "$use_dkim" = "Y" ] || [ "$use_dkim" = "y" ] || [ "$use_dkim" = "Yes" ] || [ "$use_dkim" = "yes" ]; then
-        USE_DKIM=1
-        dkim=Yes
-    else
-        USE_DKIM=0
-        dkim=No
-    fi
-    sed -i "s|Use DKIM:      Y/N|Use DKIM:      $dkim|" create_acct_template
-    clear
-    HEADER
-    GREEN
-    printf "Please enter the new cPanel account username:          "
-    WHITE
-    echo "$NEW_USER_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Domain Name:                "
-    WHITE
-    echo "$NEW_DOMAIN_NAME"
-    echo
-    GREEN
-    printf "Please enter the account's Password:                   "
-    WHITE
-    echo "$NEW_PASSWORD"
-    echo
-    GREEN
-    printf "Please enter the contact Email Account:                "
-    WHITE
-    echo "$USER_EMAIL"
-    echo
-    GREEN
-    printf "Use DKIM:                                              "
-    WHITE
-    echo "$dkim"
-    echo
-    GREEN
-    printf "Will the account use "
-    WHITE
-    printf "SPF"
-    GREEN
-    echo -n "? "
-    WHITE
-    read use_spf
-    if [ "$use_spf" = "Y" ] || [ "$use_spf" = "y" ] || [ "$use_spf" = "Yes" ] || [ "$use_spf" = "yes" ]; then
-        USE_SPF=1
-        spf=Yes
-    else
-        USE_SPF=0
-        spf=No
-    fi
-    sed -i "s|Use SPF:       Y/N|Use SPF:       $spf|" create_acct_template
-    clear
-    HEADER
-    GREEN
-    echo "Please check the Account Creation details below for errors:"
-    WHITE
-    echo
-    cat create_acct_template
-    echo
-    GREEN
-    printf "Are the details correct "
-    WHITE
-    printf "(Y/n)"
-    GREEN
-    echo -n "? "
-    WHITE
-    read DETAILS
-    if [ -z "$DETAILS" ] || [ "$DETAILS" = "Y" ] || [ "$DETAILS" = "y" ]; then
-        if [ "$RPASS_VALIDATED" = "0" ]; then
-            CHECK_RPASS
-            RPASS_VALIDATE
-        else
-            clear
-            HEADER
+            printf "Domain Name"
+            GREEN
+            echo -n ": "
+            WHITE
+            read NEW_DOMAIN_NAME
+            if [ "$NEW_DOMAIN_NAME" = "$(grep $NEW_DOMAIN_NAME /usr/local/apache/conf/httpd.conf | grep -m 1 "ServerName $NEW_DOMAIN_NAME" | awk '{print $2}')" ]; then
+                clear
+                HEADER
+                YELLOW
+                printf "The domain "
+                RED
+                printf "%s" "$NEW_DOMAIN_NAME"
+                YELLOW
+                printf " already exists on this server."
+                printf "\n\n"
+                GREEN
+                echo "You'll need to choose another domain for the account."
+                echo
+                WHITE
+                echo "Restarting Account Creation..."
+                sleep 3
+                CREATE_ACCT
+            else
+                sed -i "s|NewDomainName|$NEW_DOMAIN_NAME|" create_acct_template
+                clear
+                HEADER
+                GREEN
+                printf "Please enter the new cPanel account username:         "
+                WHITE
+                echo "$NEW_USER_NAME"
+                echo
+                GREEN
+                printf "Please enter the account's Domain Name:               "
+                WHITE
+                echo "$NEW_DOMAIN_NAME"
+                echo
+            fi
         fi
         GREEN
-        echo "Account Creation using WHM API in process..."
-        curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/createacct?api.version=1&username=$NEW_USER_NAME&domain=$NEW_DOMAIN_NAME&password=$NEW_PASSWORD&contactemail=$USER_EMAIL&dkim=$USE_DKIM&spf=$USE_SPF" >> account_creation_results_"$NEW_USER_NAME"
-        if [ -z "$(grep success account_creation_results_$NEW_USER_NAME)" ]; then
-            clear
-            HEADER
-            RED
-            echo "--------"
-            echo "WARNING!"
-            echo "--------"
-            echo
-            echo "WHM API Account Creation failed."
-            echo
-            WHITE
-            echo "Review the 'account_creation_results_$NEW_USER_NAME' log in /root/support/scripts/CMS-Installer_logs"
-            echo "for more details."
-            echo
-            echo "Manual account creation is required."
-            RED
-            echo
-            echo "Exiting..."
-            printf "\n\n\n\n"
-            mv account_creation_results_"$NEW_USER_NAME" /root/support/scripts/CMS-Installer_logs/
-            rm -rf create_acct_template
-            SET_CMSLOG_1
+        printf "Please enter the account's "
+        WHITE
+        printf "Password"
+        GREEN
+        echo -n ": "
+        WHITE
+        read NEW_PASSWORD
+        sed -i "s|NewPassword|$NEW_PASSWORD|" create_acct_template
+        clear
+        HEADER
+        GREEN
+        printf "Please enter the new cPanel account username:          "
+        WHITE
+        echo "$NEW_USER_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Domain Name:                "
+        WHITE
+        echo "$NEW_DOMAIN_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Password:                   "
+        WHITE
+        echo "$NEW_PASSWORD"
+        echo
+        GREEN
+        printf "Please enter the "
+        WHITE
+        printf "Contact Email Account"
+        GREEN
+        echo -n ": "
+        WHITE
+        read USEREMAIL
+        USER_EMAIL="$USEREMAIL"
+        sed -i "s|User Email:    UserEmail|User Email:    $USEREMAIL|" create_acct_template
+        clear
+        HEADER
+        GREEN
+        printf "Please enter the new cPanel account username:          "
+        WHITE
+        echo "$NEW_USER_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Domain Name:                "
+        WHITE
+        echo "$NEW_DOMAIN_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Password:                   "
+        WHITE
+        echo "$NEW_PASSWORD"
+        echo
+        GREEN
+        printf "Please enter the contact Email Account:                "
+        WHITE
+        echo "$USER_EMAIL"
+        echo
+        GREEN
+        printf "Will the account use "
+        WHITE
+        printf "DKIM"
+        GREEN
+        echo -n "? "
+        WHITE
+        read use_dkim
+        if [ "$use_dkim" = "Y" ] || [ "$use_dkim" = "y" ] || [ "$use_dkim" = "Yes" ] || [ "$use_dkim" = "yes" ]; then
+            USE_DKIM=1
+            dkim=Yes
         else
-            clear
-            HEADER
+            USE_DKIM=0
+            dkim=No
+        fi
+        sed -i "s|Use DKIM:      Y/N|Use DKIM:      $dkim|" create_acct_template
+        clear
+        HEADER
+        GREEN
+        printf "Please enter the new cPanel account username:          "
+        WHITE
+        echo "$NEW_USER_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Domain Name:                "
+        WHITE
+        echo "$NEW_DOMAIN_NAME"
+        echo
+        GREEN
+        printf "Please enter the account's Password:                   "
+        WHITE
+        echo "$NEW_PASSWORD"
+        echo
+        GREEN
+        printf "Please enter the contact Email Account:                "
+        WHITE
+        echo "$USER_EMAIL"
+        echo
+        GREEN
+        printf "Use DKIM:                                              "
+        WHITE
+        echo "$dkim"
+        echo
+        GREEN
+        printf "Will the account use "
+        WHITE
+        printf "SPF"
+        GREEN
+        echo -n "? "
+        WHITE
+        read use_spf
+        if [ "$use_spf" = "Y" ] || [ "$use_spf" = "y" ] || [ "$use_spf" = "Yes" ] || [ "$use_spf" = "yes" ]; then
+            USE_SPF=1
+            spf=Yes
+        else
+            USE_SPF=0
+            spf=No
+        fi
+        sed -i "s|Use SPF:       Y/N|Use SPF:       $spf|" create_acct_template
+        clear
+        HEADER
+        GREEN
+        echo "Please check the Account Creation details below for errors:"
+        WHITE
+        echo
+        cat create_acct_template
+        echo
+        GREEN
+        printf "Are the details correct "
+        WHITE
+        printf "(Y/n)"
+        GREEN
+        echo -n "? "
+        WHITE
+        read DETAILS
+        if [ -z "$DETAILS" ] || [ "$DETAILS" = "Y" ] || [ "$DETAILS" = "y" ]; then
+            if [ "$RPASS_VALIDATED" = "0" ]; then
+                CHECK_RPASS
+                RPASS_VALIDATE
+            else
+                clear
+                HEADER
+            fi
             GREEN
-            echo "WHM API Account Creation Completed."
-            rm -rf account_creation_results
-            sleep 2
-        fi
-        TARGET="$NEW_DOMAIN_NAME"
-        if [ -z "$CMS_TARGET" ]; then
-            CMS_SELECT_2
-            clear
-            HEADER
+            echo "Account Creation using WHM API in process..."
+            curl -sk -X GET -u root:"$API_PASS" "https://$SERVER:2087/json-api/createacct?api.version=1&username=$NEW_USER_NAME&domain=$NEW_DOMAIN_NAME&password=$NEW_PASSWORD&contactemail=$USER_EMAIL&dkim=$USE_DKIM&spf=$USE_SPF" >> account_creation_results_"$NEW_USER_NAME"
+            if [ -z "$(grep success account_creation_results_$NEW_USER_NAME)" ]; then
+                clear
+                HEADER
+                RED
+                echo "--------"
+                echo "WARNING!"
+                echo "--------"
+                echo
+                echo "WHM API Account Creation failed."
+                echo
+                WHITE
+                echo "Review the 'account_creation_results_$NEW_USER_NAME' log in /root/support/scripts/CMS-Installer_logs"
+                echo "for more details."
+                echo
+                echo "Manual account creation is required."
+                RED
+                echo
+                echo "Exiting..."
+                printf "\n\n\n\n"
+                mv account_creation_results_"$NEW_USER_NAME" /root/support/scripts/CMS-Installer_logs/
+                rm -rf create_acct_template
+                SET_CMSLOG_1
+            else
+                clear
+                HEADER
+                GREEN
+                echo "WHM API Account Creation Completed."
+                rm -rf account_creation_results
+                sleep 2
+            fi
+            TARGET="$NEW_DOMAIN_NAME"
+            if [ -z "$CMS_TARGET" ]; then
+                CMS_SELECT_2
+                clear
+                HEADER
+            else
+                clear
+                HEADER
+            fi
+            CONVERT_CMS_TARGET
+            # Create Installer Log directory
+            mkdir -p /root/support/scripts/CMS-Installer_logs/
+            rm -rf create_acct_template
+            # Creates installation log with timestamp
+            TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
         else
             clear
             HEADER
+            YELLOW
+            echo "Account Creation details invalidated by user"
+            echo
+            GREEN
+            echo "Restarting Account Creation..."
+            sleep 2
+            rm -rf create_acct_template
+            TARGET_NOT_FOUND=0
+            CREATE_ACCT
         fi
-        CONVERT_CMS_TARGET
-        # Create Installer Log directory
-        mkdir -p /root/support/scripts/CMS-Installer_logs/
-        rm -rf create_acct_template
-        # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
     else
         clear
         HEADER
-        YELLOW
-        echo "Account Creation details invalidated by user"
+        RED
+        echo "'Create New Account' option cancelled."
         echo
-        GREEN
-        echo "Restarting Account Creation..."
-        sleep 2
+        echo "Exiting now..."
         rm -rf create_acct_template
-        TARGET_NOT_FOUND=0
-        CREATE_ACCT
+        printf "\n\n\n"
+        sleep 3
+        SET_CMSLOG_1
     fi
-else
-    clear
-    HEADER
-    RED
-    echo "'Create New Account' option cancelled."
-    echo
-    echo "Exiting now..."
-    rm -rf create_acct_template
-    printf "\n\n\n"
-    sleep 3
-    SET_CMSLOG_1
-fi
 }
 
 #---------------------------------#
@@ -1489,218 +1482,225 @@ fi
 
 # Creates numbered list of domains for installation target options
 LIST_ACCTS () {
-clear
-HEADER
-GREEN
-echo "Preparing domain list for CMS Installation..."
-sleep 1
-SEPARATOR
-WHITE
-grep ':' /etc/userdomains | grep -v nobody | awk '{print $1}' | cut -d ':' -f 1 | sort > domainlist
-# Sed command to add line numbers to the list of available domains/subdomains
-sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
-cat domainchoices
-SEPARATOR
-echo
-# Giving them a quick out
-echo -n "Select Domain for CMS Installation [q for quit]? "
-read DOMAIN_CHOICE
-# Can probably be shortened further
-if [ "$DOMAIN_CHOICE" = "Q" ] || [ "$DOMAIN_CHOICE" = "q" ]; then
-    printf "\n\n"
-    RED
-    echo "Quiting..."
-    rm -rf domainlist domainchoices
-    WHITE
-    sleep 1
     clear
-    printf "\n\n\n"
-    SET_CMSLOG
-else
-    # Loop the script if an invalid choice is given
-    if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
-        clear
-        HEADER
-        echo
+    HEADER
+    GREEN
+    echo "Preparing domain list for CMS Installation..."
+    sleep 1
+    SEPARATOR
+    WHITE
+    grep ':' /etc/userdomains | grep -v nobody | awk '{print $1}' | cut -d ':' -f 1 | sort > domainlist
+    # Sed command to add line numbers to the list of available domains/subdomains
+    sed = domainlist | sed 'N;s/\n/\t/' > domainchoices
+    cat domainchoices
+    SEPARATOR
+    echo
+    # Giving them a quick out
+    echo -n "Select Domain for CMS Installation [q for quit]? "
+    read DOMAIN_CHOICE
+    # Can probably be shortened further
+    if [ "$DOMAIN_CHOICE" = "Q" ] || [ "$DOMAIN_CHOICE" = "q" ]; then
+        printf "\n\n"
         RED
-        echo "\"$DOMAIN_CHOICE\" is not a valid selection."
-        echo
-        GREEN
-        echo "Would you like to choose again, or create a new account?"
-        printf "\n\n\n"
-        printf "1) "
-        WHITE
-        echo "Choose again"
-        GREEN
-        printf "2) "
-        WHITE
-        echo "Create a new account"
-        printf "\n\n\n"
-        echo -n "[enter selection]: "
-        read L_A_CHOICES
-        case $L_A_CHOICES in
-            1) LIST_ACCTS;;
-            2) CREATE_ACCT;;
-            *) clear
-               HEADER
-               RED
-               echo "Invalid Selection."
-               echo
-               WHITE
-               echo "Resetting account list..."
-               LIST_ACCTS;;
-        esac
-    else
-        # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
-        TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+        echo "Quiting..."
         rm -rf domainlist domainchoices
-        # Validates given root password prior to doing anything
-        CHECK_RPASS
-        RPASS_VALIDATE
-        if [ -z "$CMS_TARGET" ]; then
-	        CMS_SELECT_2
-	        CONVERT_CMS_TARGET
-            # Send flow to CMS selection if none has been chosen yet
-            TARGET_CHECK
+        WHITE
+        sleep 1
+        clear
+        printf "\n\n\n"
+        SET_CMSLOG
+    else
+        # Loop the script if an invalid choice is given
+        if ! [[ $DOMAIN_CHOICE =~ $NC ]]; then
+            clear
+            HEADER
+            echo
+            RED
+            echo "\"$DOMAIN_CHOICE\" is not a valid selection."
+            echo
+            GREEN
+            echo "Would you like to choose again, or create a new account?"
+            printf "\n\n\n"
+            printf "1) "
+            WHITE
+            echo "Choose again"
+            GREEN
+            printf "2) "
+            WHITE
+            echo "Create a new account"
+            printf "\n\n\n"
+            echo -n "[enter selection]: "
+            read L_A_CHOICES
+            case $L_A_CHOICES in
+                1) LIST_ACCTS;;
+                2) CREATE_ACCT;;
+                *) clear
+                   HEADER
+                   RED
+                   echo "Invalid Selection."
+                   echo
+                   WHITE
+                   echo "Resetting account list..."
+                   LIST_ACCTS;;
+            esac
         else
-            # Send them to target verification if CMS has already been selected
-            if [ -z "$WP_CV" ]; then
-                GET_CMS_VERS
+            # Setting 1st match (-m 1) ensures $ doesn't confuse grep when there's also $$, $$$, $$$$, etc
+            TARGET="$(grep -m 1 "$DOMAIN_CHOICE" domainchoices | awk '{print $2}')"
+            rm -rf domainlist domainchoices
+            # Validates given root password prior to doing anything
+            CHECK_RPASS
+            RPASS_VALIDATE
+            if [ -z "$CMS_TARGET" ]; then
+	            CMS_SELECT_2
+	            CONVERT_CMS_TARGET
+                # Send flow to CMS selection if none has been chosen yet
+                TARGET_CHECK
+            else
+                # Send them to target verification if CMS has already been selected
+                if [ -z "$WP_CV" ]; then
+                    GET_CMS_VERS
+                fi
+                TARGET_CHECK
             fi
-            TARGET_CHECK
         fi
     fi
-fi
 }
 
 # Notifies the user if an installation is detected in target docroot
 EXISTING_INSTALL_WARN () {
-clear
-HEADER
-YELLOW
-echo "--------"
-RED
-echo "WARNING!"
-YELLOW
-echo "--------"
-RED
-echo
-echo "$EXISTS installation exists in $TARGET_PATH."
-echo
-BACKUP_OPTION
+    clear
+    HEADER
+    YELLOW
+    echo "--------"
+    RED
+    echo "WARNING!"
+    YELLOW
+    echo "--------"
+    RED
+    echo
+    echo "$EXISTS installation exists in $TARGET_PATH."
+    echo
+    BACKUP_OPTION
 }
 
 # IDs any CMS installations that are already present in target docroot
 CHECK_EXISTING_INSTALL () {
-if [ -f "$TARGET_PATH"wp-config.php ]; then
-    EXISTS=WORDPRESS
-    EXISTING_INSTALL_WARN
-elif [ -f "$TARGET_PATH"configuration.php ]; then
-    EXISTS=JOOMLA
-    EXISTING_INSTALL_WARN
-elif [ -f "$TARGET_PATH"sites/default/settings.php ]; then
-    EXISTS=DRUPAL
-    EXISTING_INSTALL_WARN
-elif [ -f "$TARGET_PATH"fixperms.sh ]; then
-    EXISTS=OCPORTAL
-    EXISTING_INSTALL_WARN
-elif [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
-    EXISTS=MODXREVO
-    EXISTING_INSTALL_WARN
-elif [ "$(grep -m 1 -r OC_Ver "$TARGET_PATH" | tail -1 | awk '{print $3}' | sed -e "s/'/ /g" | awk '{print $2}')" = "OC_Version" ]; then
-    EXISTS=OWNCLOUD
-    EXISTING_INSTALL_WARN
-else
-    clear
-    HEADER
-    GREEN
-    echo "Target path confirmed for installation."
-    sleep 1
-    WHITE
-fi
+    if [ -f "$TARGET_PATH"wp-config.php ]; then
+        EXISTS=WORDPRESS
+        EXISTING_INSTALL_WARN
+    elif [ -f "$TARGET_PATH"configuration.php ]; then
+        EXISTS=JOOMLA
+        EXISTING_INSTALL_WARN
+    elif [ -f "$TARGET_PATH"sites/default/settings.php ]; then
+        EXISTS=DRUPAL
+        EXISTING_INSTALL_WARN
+    elif [ -f "$TARGET_PATH"fixperms.sh ]; then
+        EXISTS=OCPORTAL
+        EXISTING_INSTALL_WARN
+    elif [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
+        EXISTS=MODXREVO
+        EXISTING_INSTALL_WARN
+    elif [ "$(grep -m 1 -r OC_Ver "$TARGET_PATH" | tail -1 | awk '{print $3}' | sed -e "s/'/ /g" | awk '{print $2}')" = "OC_Version" ]; then
+        EXISTS=OWNCLOUD
+        EXISTING_INSTALL_WARN
+    else
+        clear
+        HEADER
+        GREEN
+        echo "Target path confirmed for installation."
+        sleep 1
+        WHITE
+    fi
 }
 
 # Sets target docroot and cpanel account for a main domain docroot installation
 GET_MAINDOMAIN_PATH () {
-TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
-TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
+    TARGET_ACCT="$(grep "$TARGET" /etc/trueuserdomains | cut -d ' ' -f 2)"
+    TARGET_PATH=/home/"$TARGET_ACCT"/public_html/
 }
 
 # Sets target docroot and cpanel account for a subdomain docroot installation
 GET_SUBDOMAIN_PATH () {
-TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
-TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"/
+    TARGET_ACCT="$(grep "$TARGET" /etc/userdomains | cut -d ' ' -f 2)"
+    TARGET_PATH="$(grep -A 2 "$TARGET" /usr/local/apache/conf/httpd.conf | grep Document | awk '{print $2}')"/
 }
 
 # Affirming choices prior to actually doing anything
 CONFIRM_INSTALL () {
-clear
-HEADER
-GREEN
-printf "Install %s" "$CMS"
-printf " for account "
-WHITE
-printf "%s" "$TARGET_ACCT"
-GREEN
-printf " in the "
-WHITE
-printf "%s" "$TARGET"
-GREEN
-if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
-    printf " domain, is that correct "
-else
-    printf " subdomain, is that correct "
-fi
-WHITE
-echo -n "[Y/n]? "
-read OPTION1
-if [ -z "$OPTION1" ] || [ "$OPTION1" = "Y" ] || [ "$OPTION1" = "y" ] || [ "$OPTION1" = "YES" ] || [ "$OPTION1" = "Yes" ] || [ "$OPTION1" = "yes" ]; then
-    if [ "$CMS_TARGET" = "-w" ]; then
-        INSTALL_WP
-    elif [ "$CMS_TARGET" = "-j" ]; then
-        INSTALL_JM
-    elif [ "$CMS_TARGET" = "-d" ]; then
-        INSTALL_DR
-    elif [ "$CMS_TARGET" = "-o" ]; then
-        INSTALL_OC
-    elif [ "$CMS_TARGET" = "-m" ]; then
-        INSTALL_MX
-    else
-        INSTALL_OWN
-    fi
-else
-    # Quick out if they see an incorrect choice listed
-    printf "\n\n"
     clear
     HEADER
-    RED
-    echo "Installation aborted..."
-    echo
+    GREEN
+    printf "Install %s" "$CMS"
+    printf " for account "
     WHITE
-    echo "Exiting now..."
-    sleep 1
-    clear
-    printf "\n\n\n"
-    SET_CMSLOG_1
-fi
+    printf "%s" "$TARGET_ACCT"
+    GREEN
+    printf " in the "
+    WHITE
+    printf "%s" "$TARGET"
+    GREEN
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
+        printf " domain, is that correct "
+    else
+        printf " subdomain, is that correct "
+    fi
+    WHITE
+    echo -n "[Y/n]? "
+    read OPTION1
+    if [ -z "$OPTION1" ] || [ "$OPTION1" = "Y" ] || [ "$OPTION1" = "y" ] || [ "$OPTION1" = "YES" ] || [ "$OPTION1" = "Yes" ] || [ "$OPTION1" = "yes" ]; then
+        if [ "$CMS_TARGET" = "-w" ]; then
+            INSTALL_WP
+        elif [ "$CMS_TARGET" = "-j" ]; then
+            INSTALL_JM
+        elif [ "$CMS_TARGET" = "-d" ]; then
+            INSTALL_DR
+        elif [ "$CMS_TARGET" = "-o" ]; then
+            INSTALL_OC
+        elif [ "$CMS_TARGET" = "-m" ]; then
+            INSTALL_MX
+        else
+            INSTALL_OWN
+        fi
+    else
+        # Quick out if they see an incorrect choice listed
+        printf "\n\n"
+        clear
+        HEADER
+        RED
+        echo "Installation aborted..."
+        echo
+        WHITE
+        echo "Exiting now..."
+        sleep 1
+        clear
+        printf "\n\n\n"
+        SET_CMSLOG_1
+    fi
 }
 
 # Get server's root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 CHECK_RPASS () {
-clear
-HEADER
-GREEN
-printf "Please enter your server's root password"
-WHITE
-echo -n ":"
-read API_PASS
-clear
+    clear
+    HEADER
+    GREEN
+    printf "Please enter your server's root password"
+    WHITE
+    echo -n ": "
+    stty -echo
+    read API_PASS
+    stty echo
+    echo " "
+    sleep 1
+    clear
+    HEADER
+    GREEN
+    echo "Validating root password..."
 }
 
 # Validate root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 RPASS_VALIDATE () {
-# Using an API call to make sure root password is correct
-curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
+    # Using an API call to make sure root password is correct
+    curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
     if [ ! -z "$(grep "error" rpasscheck)" ]; then
         clear
         HEADER
@@ -1737,254 +1737,252 @@ curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?ap
         echo
         sleep 2
     fi
-# Remove temporary password verification file
-rm -rf rpasscheck
+    # Remove temporary password verification file
+    rm -rf rpasscheck
 }
 
 # If you're here, something really really really bad has happened
 INSTALL_DB_ERROR () {
-clear
-HEADER
-RED
-echo "cPanel API call errors reported."
-echo
-printf "Review the logs at"
-WHITE
-printf " /root/support/scripts/CMS-Installer_logs/"
-RED
-printf " for more information."
-printf "\n\n"
-WHITE
-echo "Purging any database/user installations"
-PURGE_DATABASE
-PURGE_DATABASE_USER
-echo
-echo "Exiting..."
-rm -rf ./*validation
-sleep 2
-printf "\n\n\n"
-WHITE
-SET_CMSLOG_1
+    clear
+    HEADER
+    RED
+    echo "cPanel API call errors reported."
+    echo
+    printf "Review the logs at"
+    WHITE
+    printf " /root/support/scripts/CMS-Installer_logs/"
+    RED
+    printf " for more information."
+    printf "\n\n"
+    WHITE
+    echo "Purging any database/user installations"
+    PURGE_DATABASE
+    PURGE_DATABASE_USER
+    echo
+    echo "Exiting..."
+    rm -rf ./*validation
+    sleep 2
+    printf "\n\n\n"
+    WHITE
+    SET_CMSLOG_1
 }
 
 # Checks for rewrite rules in htaccess files of main domain if installing into subdomain, and sets flag if any are found
 SUBDOMAIN_HT_CHECK () {
-if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
-    if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
-        if [ -n "$(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess)" ]; then
-            HTACCESS_WARN=YES
-        else
-            HTACCESS_WARN=NO
+    if [ "$TARGET_TYPE" = "SUBDOMAIN" ]; then
+        if [ -e /home/"$TARGET_ACCT"/public_html/.htaccess ]; then
+            if [ -n "$(grep -i rewriterule /home/"$TARGET_ACCT"/public_html/.htaccess)" ]; then
+                HTACCESS_WARN=YES
+            else
+                HTACCESS_WARN=NO
+            fi
         fi
     fi
-fi
 }
 
 # Notifies user of any htaccess file rewrite rules in main domain if installing into subdomain
 HT_CHECK_WARN () {
-if [ "$HTACCESS_WARN" = "YES" ]; then
-    RED
-    echo "----------------------------------------------------------------"
-    YELLOW
-    printf "         >>>>>>>>>>>>>>>  "
-    RED
-    printf "WARNING!"
-    YELLOW
-    printf " <<<<<<<<<<<<<<<<<\n"
-    RED
-    echo "----------------------------------------------------------------"
-    YELLOW
-    echo
-    echo ".htaccess file in primary domain docroot contains rewrite rules!"
-    WHITE
-    echo
-    echo "check http://$TARGET prior to presenting it to customer"
-    RED
-    echo "----------------------------------------------------------------"
-    WHITE
-fi
+    if [ "$HTACCESS_WARN" = "YES" ]; then
+        RED
+        echo "----------------------------------------------------------------"
+        YELLOW
+        printf "         >>>>>>>>>>>>>>>  "
+        RED
+        printf "WARNING!"
+        YELLOW
+        printf " <<<<<<<<<<<<<<<<<\n"
+        RED
+        echo "----------------------------------------------------------------"
+        YELLOW
+        echo
+        echo ".htaccess file in primary domain docroot contains rewrite rules!"
+        WHITE
+        echo
+        echo "check http://$TARGET prior to presenting it to customer"
+        RED
+        echo "----------------------------------------------------------------"
+        WHITE
+    fi
 }
 
 TARGET_CHECK () {
 # Flow control check for a main domain installation
-if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
-    # Flow control check for a subdomain installation
-    if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
-        clear
-        HEADER
-        RED
-        echo "That isn't a valid domain/subdomain on this server."
-        echo
-        WHITE
-        echo "Please wait..."
-        sleep 2
-        TARGET_NOT_FOUND=1
-        CREATE_ACCT
+    if [ "$TARGET" != "$(grep "$TARGET" /etc/trueuserdomains | cut -d ':' -f 1)" ]; then
+        # Flow control check for a subdomain installation
+        if [ "$TARGET" != "$(grep "$TARGET" /etc/userdomains | cut -d ':' -f 1)" ]; then
+            clear
+            HEADER
+            RED
+            echo "That isn't a valid domain/subdomain on this server."
+            echo
+            WHITE
+            echo "Please wait..."
+            sleep 2
+            TARGET_NOT_FOUND=1
+            CREATE_ACCT
+        else
+            # Set flow control for subdomain
+            TARGET_TYPE=SUBDOMAIN
+            # Get docroot path
+            GET_SUBDOMAIN_PATH
+            # Send to final confirmation
+            CONFIRM_INSTALL
+        fi
     else
-        # Set flow control for subdomain
-        TARGET_TYPE=SUBDOMAIN
+        # Set flow control for maindomain
+        TARGET_TYPE=MAINDOMAIN
         # Get docroot path
-        GET_SUBDOMAIN_PATH
+        GET_MAINDOMAIN_PATH
         # Send to final confirmation
         CONFIRM_INSTALL
     fi
-else
-    # Set flow control for maindomain
-    TARGET_TYPE=MAINDOMAIN
-    # Get docroot path
-    GET_MAINDOMAIN_PATH
-    # Send to final confirmation
-    CONFIRM_INSTALL
-fi
 }
 
 # Second CMS selection function for flows outside of basic FIRST_FUNCTION routines
 CMS_SELECT_2 () {
-GET_CMS_VERS
-clear
-HEADER
-GREEN
-echo "Which CMS will be installed?"
-echo
-WHITE
-echo "1) WordPress $WP_CV"
-echo "2) Joomla $JM_CV"
-echo "3) Drupal $DR_CV"
-echo "4) ocPortal $OC_CV"
-echo "5) ModXRevo $MX_CV"
-echo "6) ownCloud $OWN_CV"
-echo
-echo -n "[enter selection]: "
-read CMS_CHOICE
-    case "$CMS_CHOICE" in
-
-        1) CMS_TARGET="-w";;
-        2) CMS_TARGET="-j";;
-        3) CMS_TARGET="-d";;
-        4) CMS_TARGET="-o";;
-        5) CMS_TARGET="-m";;
-        6) CMS_TARGET="-own";;
-        *) RED
-           echo
-           echo "Invalid selection."
-           echo
-           echo "Please enter the number of the CMS to install"
-           sleep 2
-           WHITE
-           clear
-           CMS_SELECT_2;;
-
-    esac
+    GET_CMS_VERS
+    clear
+    HEADER
+    GREEN
+    echo "Which CMS will be installed?"
+    echo
+    WHITE
+    echo "1) WordPress $WP_CV"
+    echo "2) Joomla $JM_CV"
+    echo "3) Drupal $DR_CV"
+    echo "4) ocPortal $OC_CV"
+    echo "5) ModXRevo $MX_CV"
+    echo "6) ownCloud $OWN_CV"
+    echo
+    echo -n "[enter selection]: "
+    read CMS_CHOICE
+        case "$CMS_CHOICE" in
+            1) CMS_TARGET="-w";;
+            2) CMS_TARGET="-j";;
+            3) CMS_TARGET="-d";;
+            4) CMS_TARGET="-o";;
+            5) CMS_TARGET="-m";;
+            6) CMS_TARGET="-own";;
+            *) RED
+               echo
+               echo "Invalid selection."
+               echo
+               echo "Please enter the number of the CMS to install"
+               sleep 2
+               WHITE
+               clear
+               CMS_SELECT_2;;
+        esac
 }
 
 # First CMS selection function used with basic flow controls and FIRST_FUNCTION routines
 CMS_SELECT () {
-GET_CMS_VERS
-clear
-HEADER
-GREEN
-echo "Which CMS will be installed?"
-echo
-WHITE
-echo "1) WordPress $WP_CV"
-echo "2) Joomla $JM_CV"
-echo "3) Drupal $DR_CV"
-echo "4) ocPortal $OC_CV"
-echo "5) ModXRevo $MX_CV"
-echo "6) ownCloud $OWN_CV"
-echo
-echo -n "[enter selection]: "
-read CMS_CHOICE
-    case "$CMS_CHOICE" in
-        1) CMS_TARGET="-w"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        2) CMS_TARGET="-j"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        3) CMS_TARGET="-d"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        4) CMS_TARGET="-o"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        5) CMS_TARGET="-m"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        6) CMS_TARGET="-own"
-           CONVERT_CMS_TARGET
-           FIRST_FUNCTION;;
-        *) RED
-           echo
-           echo "Invalid selection."
-           echo
-           echo "Please enter the number of the CMS to install"
-           sleep 2
-           WHITE
-           clear
-           CMS_SELECT;;
-    esac
+    GET_CMS_VERS
+    clear
+    HEADER
+    GREEN
+    echo "Which CMS will be installed?"
+    echo
+    WHITE
+    echo "1) WordPress $WP_CV"
+    echo "2) Joomla $JM_CV"
+    echo "3) Drupal $DR_CV"
+    echo "4) ocPortal $OC_CV"
+    echo "5) ModXRevo $MX_CV"
+    echo "6) ownCloud $OWN_CV"
+    echo
+    echo -n "[enter selection]: "
+    read CMS_CHOICE
+        case "$CMS_CHOICE" in
+            1) CMS_TARGET="-w"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            2) CMS_TARGET="-j"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            3) CMS_TARGET="-d"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            4) CMS_TARGET="-o"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            5) CMS_TARGET="-m"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            6) CMS_TARGET="-own"
+               CONVERT_CMS_TARGET
+               FIRST_FUNCTION;;
+            *) RED
+               echo
+               echo "Invalid selection."
+               echo
+               echo "Please enter the number of the CMS to install"
+               sleep 2
+               WHITE
+               clear
+               CMS_SELECT;;
+        esac
 }
 
 # Associates CMS target flag with the actual CMS name
 CONVERT_CMS_TARGET () {
-if [ "$CMS_TARGET" = "-w" ]; then
-    CMS=WORDPRESS
-elif [ "$CMS_TARGET" = "-j" ]; then
-    CMS=JOOMLA
-elif [ "$CMS_TARGET" = "-d" ]; then
-    CMS=DRUPAL
-elif [ "$CMS_TARGET" = "-o" ]; then
-    CMS=OCPORTAL
-elif [ "$CMS_TARGET" = "-m" ]; then
-    CMS=MODXREVO
-else
-    CMS=OWNCLOUD
-fi
+    if [ "$CMS_TARGET" = "-w" ]; then
+        CMS=WORDPRESS
+    elif [ "$CMS_TARGET" = "-j" ]; then
+        CMS=JOOMLA
+    elif [ "$CMS_TARGET" = "-d" ]; then
+        CMS=DRUPAL
+    elif [ "$CMS_TARGET" = "-o" ]; then
+        CMS=OCPORTAL
+    elif [ "$CMS_TARGET" = "-m" ]; then
+        CMS=MODXREVO
+    else
+        CMS=OWNCLOUD
+    fi
 }
 
 FIRST_FUNCTION () {
-clear
-HEADER
-# Create Installer Log directory
-mkdir -p /root/support/scripts/CMS-Installer_logs/
-GREEN
-# Associates CMS target flag with the actual CMS name
-if [ "$CMS_TARGET" = "-w" ]; then
-    CMS=WORDPRESS
-elif [ "$CMS_TARGET" = "-j" ]; then
-    CMS=JOOMLA
-elif [ "$CMS_TARGET" = "-d" ]; then
-    CMS=DRUPAL
-elif [ "$CMS_TARGET" = "-o" ]; then
-    CMS=OCPORTAL
-elif [ "$CMS_TARGET" = "-m" ]; then
-    CMS=MODXREVO
-else
-    CMS=OWNCLOUD
-fi
-printf "Enter domain for %s" "$CMS"
-printf " installation or "
-WHITE
-printf "'get list'"
-GREEN
-printf " for domain list"
-WHITE
-echo -n ": "
-read FIRST_CHOICE
-# 2nd route to -l option, allowing domain target to be picked from numbered list
-if [ "$FIRST_CHOICE" = "get list" ]; then
-    # Creates installation log with timestamp
-    LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
-else
-    # Allows target domain to be manually entered
-    TARGET=$FIRST_CHOICE
-    GET_CMS_VERS
-    CHECK_RPASS
-    RPASS_VALIDATE
-    # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
-fi
+    clear
+    HEADER
+    # Create Installer Log directory
+    mkdir -p /root/support/scripts/CMS-Installer_logs/
+    GREEN
+    # Associates CMS target flag with the actual CMS name
+    if [ "$CMS_TARGET" = "-w" ]; then
+        CMS=WORDPRESS
+    elif [ "$CMS_TARGET" = "-j" ]; then
+        CMS=JOOMLA
+    elif [ "$CMS_TARGET" = "-d" ]; then
+        CMS=DRUPAL
+    elif [ "$CMS_TARGET" = "-o" ]; then
+        CMS=OCPORTAL
+    elif [ "$CMS_TARGET" = "-m" ]; then
+        CMS=MODXREVO
+    else
+        CMS=OWNCLOUD
+    fi
+    printf "Enter domain for %s" "$CMS"
+    printf " installation or "
+    WHITE
+    printf "'get list'"
+    GREEN
+    printf " for domain list"
+    WHITE
+    echo -n ": "
+    read FIRST_CHOICE
+    # 2nd route to -l option, allowing domain target to be picked from numbered list
+    if [ "$FIRST_CHOICE" = "get list" ]; then
+        # Creates installation log with timestamp
+        LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+    else
+        # Allows target domain to be manually entered
+        TARGET=$FIRST_CHOICE
+        GET_CMS_VERS
+        CHECK_RPASS
+        RPASS_VALIDATE
+        # Creates installation log with timestamp
+        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+    fi
 }
 
 #-------------------------------------------------#
