@@ -5,7 +5,7 @@
 # URL: http://cms-installer.ml
 # Github: https://github.com/InterGenStudios/CMS-Installer
 # ---------------------------------------------------
-# InterGenStudios: 5-16-15 
+# InterGenStudios: 5-16-15
 # Copyright (c) 2015: Christopher 'InterGen' Cork  InterGenStudios
 # URL: https://intergenstudios.com
 # --------------------------------
@@ -63,7 +63,7 @@
 # TARGET - Holds name of target Domain/Subdomain, used in
 # TARGET_ACCT - Holds target cPanel account name, used in
 # TARGET_PATH - Holds target web docroot, used in
-# TARGET_TYPE - 
+# TARGET_TYPE -
 # vers - Holds CMS-Installer version number, used in initial variable declarations, HELPTEXT (), HEADER (), VERSION ()
 # WP_CV - Holds current WordPress release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_WP (), CMS_SELECT_2 (), CMS_SELECT ()
 # JM_CV - Holds current Joomla release #, used in GET_CMS_VERS (), HELPTEXT (), INSTALL_JM (), CMS_SELECT_2 (), CMS_SELECT ()
@@ -74,33 +74,6 @@
 #------------------------------#
 # END - VARIABLE DOCUMENTATION #
 #------------------------------#
-
-#############################################
-##-----------------------------------------##
-## BEGIN - MAKE SURE WE'RE RUNNING AS ROOT ##
-##-----------------------------------------##
-#############################################
-
-if [ "$(id -u)" != "0" ]; then
-    tput bold
-    tput setaf 1
-    printf "\n\n"
-    echo "--------"
-    echo "WARNING!"
-    echo "--------"
-    echo
-    tput sgr0
-    echo "CMS-Installer must be run as root"
-    echo "(Exiting now...)"
-    printf "\n\n"
-    exit 1
-fi
-
-###########################################
-##---------------------------------------##
-## END - MAKE SURE WE'RE RUNNING AS ROOT ##
-##---------------------------------------##
-###########################################
 
 ###########################################
 ##---------------------------------------##
@@ -545,7 +518,7 @@ clear
 HEADER
 GREEN
 printf "The %s" "$CMS"
-printf " CMS Version %s" "$JM_CV"
+printf " CMS Version %s" "$DR_CV"
 printf " has been installed for"
 WHITE
 echo " $TARGET"
@@ -628,7 +601,7 @@ Table prefix:              (leave it as default)
 
 Master Password:           (set by the end user)
 
-Use persistent 
+Use persistent
  database connections:     (leave box unchecked)
 
 Send error e-mails
@@ -649,7 +622,7 @@ Database username:          DBU
 Database password:          PASS
 
 
-  * Please use or make note of this data immediately! * 
+  * Please use or make note of this data immediately! *
         * This paste will expire in 120 minutes *
 
 =========================================================
@@ -765,12 +738,12 @@ Admin URL:                  http://TARGET/manager
 
 Admin username:             ADMIN_NAME
 
-Admin password:             ADMIN_PASS              
+Admin password:             ADMIN_PASS
 
 Admin email given:          admin@TARGET
 (change this on login)
 
-  * Please use or make note of this data immediately! * 
+  * Please use or make note of this data immediately! *
         * This paste will expire in 120 minutes *
 
 =========================================================
@@ -815,6 +788,122 @@ printf "/manager"
 printf "\n\n\n"
 # Remove PASTE URL tempfiles
 rm -rf mxdbinfo tempaste
+SET_CMSLOG
+}
+
+# Installs the ownCloud Personal Cloud Storage Management System, and provides both domain URL and database info URL for customer to finalize the installation
+INSTALL_OWN () {
+CHECK_EXISTING_INSTALL
+CHECK_EXISTING_DATA
+SUBDOMAIN_HT_CHECK
+cd "$TARGET_PATH"
+clear
+HEADER
+GREEN
+echo "Fetching ownCloud files..."
+echo
+wget -q https://download.owncloud.com/download/community/setup-owncloud.php && CMS_FILES=1
+echo "Moving ownCloud files into place..."
+chmod "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"setup-owncloud.php
+INSTALL_DB
+# Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
+chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
+    if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
+        find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
+        find /home/"$TARGET_ACCT"/public_html -type f | xargs -d$'\n' -r chmod 644
+        find /home/"$TARGET_ACCT"/public_html -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" /home/"$TARGET_ACCT"/public_html/*
+        find /home/"$TARGET_ACCT"/* -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+    else
+        for SUBDOMAIN in $(grep -i document /var/cpanel/userdata/"$TARGET_ACCT"/* | awk '{print $2}' | grep home | grep -v public_html)
+        do
+        find "$SUBDOMAIN" -type d -exec chmod 755 {} \;
+        find "$SUBDOMAIN" -type f | xargs -d$'\n' -r chmod 644
+        find "$SUBDOMAIN" -name '*.cgi' -o -name '*.pl' | xargs -r chmod 755
+        chown -R "$TARGET_ACCT":"$TARGET_ACCT" "$SUBDOMAIN"
+        find "$SUBDOMAIN" -name .htaccess -exec chown "$TARGET_ACCT"."$TARGET_ACCT" {} \;
+        # End fixperms style corrections- making sure all files are owned properly, with correct permissions
+        done
+    fi
+/usr/local/cpanel/scripts/restartsrv_httpd
+## BEGIN pastefile template for database information presentation to customer
+cat > owndbinfo <<EndOfownCloudFile
+==============================================
+         ownCloud OWN_CV Installation
+             'Storage & database'
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET/owncloud
+
+Username:
+Password:
+
+            Storage & database
+
+                Data folder
+TARGET_PATH/owncloud/data
+
+            Configure the database
+         SQLite | [ MySQL/MariaDB ] <- Select
+                                        this
+                                       option
+
+Database user:       DBU
+
+Database password:   PASS
+
+Database name:       DB
+
+localhost            (leave default)
+
+    **Please use or make note of this data
+    immediately- this paste will expire in
+                120 minutes**
+
+==============================================
+EndOfownCloudFile
+## END pastefile template for database information presentation to customer
+# Adds database info into template
+sed -i -e "s/DOMAIN/$TARGET/" -e "s/OWN_CV/$OWN_CV/" -e "s/TARGET_PATH/$TARGET_PATH/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" owndbinfo
+# Creates paste for database info using 'stikked'
+curl -d name=ownCloudInstaller -d expire=120 -d private=1 --data-urlencode text@owndbinfo -s http://nobits.ml/api/create > tempaste
+# converts 'stikked' paste to raw output URL
+sed -i -e 's/view/view\/raw/' tempaste
+clear
+HEADER
+GREEN
+printf "The %s" "$CMS"
+printf " Personal Cloud Storage Management System\n"
+printf " Version %s" "$OWN_CV"
+printf " has been installed for"
+WHITE
+echo " $TARGET"
+echo
+WHITE
+# Prints htaccess warning if flag was set by SUBDOMAIN_HT_CHECK
+HT_CHECK_WARN
+echo
+echo "Provide the Database Info URL to your customer"
+GREEN
+echo "(needed for finalizing installation)"
+echo
+printf "==>  "
+WHITE
+printf "%s" "$(cat tempaste)"
+printf "\n\n"
+printf "Provide the following %s" "$CMS"
+printf " URL to your customer"
+printf "\n"
+echo "and advise them to finalize their installation:"
+echo
+GREEN
+printf "==>  "
+WHITE
+printf "http://%s" "$TARGET"setup-owncloud.php
+printf "\n\n\n"
+# Remove PASTE URL tempfiles
+owndbinfo tempaste
 SET_CMSLOG
 }
 
@@ -863,9 +952,9 @@ BLUE
 echo "/root/support/scripts/CMS-Installer_backups/"
 echo
 WHITE
-echo -n "and run the installer again [y/N]? " 
+echo -n "and run the installer again [y/N]? "
 read BACKUP
-if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then 
+if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
     clear
     HEADER
     GREEN
@@ -886,9 +975,12 @@ if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
     elif [ "$EXISTS" = "OCPORTAL" ]; then
         # Grabs the ocportal database for the backup
         mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    else
+    elif [ "$EXISTS" = "MODXREVO"]; then
         # Grabs the mxrevolution database for the backup
         mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
+    else
+        # Grabs the owncloud database for the backup
+        mysqldump "$(grep dbname "$TARGET_PATH"owncloud/config/config.php | sed -e "s/'/ /g" | awk '{print $3}')" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     fi
     tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
     # Put the backup away for safe-keeping
@@ -902,7 +994,7 @@ if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
     echo "Clearing $TARGET_PATH for new installation..."
     rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
     mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
-    echo 
+    echo
     echo "$TARGET_PATH cleared."
     echo
     echo "Restarting installer..."
@@ -959,7 +1051,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
     echo "/root/support/scripts/CMS-Installer_backups/"
     echo
     WHITE
-    echo -n "and run the installer again [y/N]? " 
+    echo -n "and run the installer again [y/N]? "
     read BACKUP
     if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
         clear
@@ -981,7 +1073,7 @@ if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         echo "Clearing $TARGET_PATH for new installation..."
         rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
         mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
-        echo 
+        echo
         echo "$TARGET_PATH cleared."
         echo
         echo "Restarting installer..."
@@ -1043,7 +1135,7 @@ bashtrap () {
 }
 
 # Purges any files installed if bashtrap is triggered, provided the 'CMS_FILES' flag has been set
-PURGE_INSTALL_FILES () { 
+PURGE_INSTALL_FILES () {
 WHITE
 if [ "$(echo "$CMS_FILES")" = "1" ]; then
         if [ -d "$TARGET_PATH"cgi-bin ]; then
@@ -1100,6 +1192,10 @@ if [ "$CMS_VERS_FLAG" = "0" ]; then
 
     # Sets latest ModXRevolution version
     MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+
+    # Sets latest ownCloud Version
+    OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
+
     CMS_VERS_FLAG=1
 else
     clear
@@ -1134,23 +1230,26 @@ GREEN
 echo "CMS:"
 echo
 WHITE
-echo " -w: (Getting version information...)"
-echo " -j: (Getting version information...)"
-echo " -d: (Getting version information...)"
-echo " -o: (Getting version information...)"
-echo " -m: (Getting version information...)"
+echo "  -w: (Getting version information...)"
+echo "  -j: (Getting version information...)"
+echo "  -d: (Getting version information...)"
+echo "  -o: (Getting version information...)"
+echo "  -m: (Getting version information...)"
+echo "-own: (Getting version information...)"
 WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
 DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
 MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
+OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
 CLINES=5
 CLEARLINE
-echo " -w: installs WordPress  --  Version $WP_CV"
-echo " -j: installs Joomla  -----  Version $JM_CV"
-echo " -d: installs Drupal  -----  Version $DR_CV"
-echo " -o: installs ocPortal  ---  Version $OC_CV"
-echo " -m: installs ModXRevo  ---  Version $MX_CV"
+echo "   -w: installs WordPress  --  Version $WP_CV"
+echo "   -j: installs Joomla  -----  Version $JM_CV"
+echo "   -d: installs Drupal  -----  Version $DR_CV"
+echo "   -o: installs ocPortal  ---  Version $OC_CV"
+echo "   -m: installs ModXRevo  ---  Version $MX_CV"
+echo " -own: installs ownCloud  ---  Version $OWN_CV"
 printf "\n\n"
 exit 0
 }
@@ -1340,7 +1439,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
     WHITE
     echo "$NEW_PASSWORD"
     echo
-    GREEN 
+    GREEN
     printf "Please enter the "
     WHITE
     printf "Contact Email Account"
@@ -1436,7 +1535,7 @@ if [ -z "$C_A_CHOICE" ] || [ "$C_A_CHOICE" = "Y" ] || [ "$C_A_CHOICE" = "y" ]; t
     GREEN
     echo "Please check the Account Creation details below for errors:"
     WHITE
-    echo 
+    echo
     cat create_acct_template
     echo
     GREEN
@@ -1608,7 +1707,7 @@ else
         # Validates given root password prior to doing anything
         CHECK_RPASS
         RPASS_VALIDATE
-        if [ -z "$CMS_TARGET" ]; then 
+        if [ -z "$CMS_TARGET" ]; then
 	        CMS_SELECT_2
 	        CONVERT_CMS_TARGET
             # Send flow to CMS selection if none has been chosen yet
@@ -1657,6 +1756,9 @@ elif [ -f "$TARGET_PATH"fixperms.sh ]; then
     EXISTING_INSTALL_WARN
 elif [ -f "$TARGET_PATH"core/config/config.inc.php ]; then
     EXISTS=MODXREVO
+    EXISTING_INSTALL_WARN
+elif [ "$(grep -m 1 -r OC_Ver "$TARGET_PATH" | tail -1 | awk '{print $3}' | sed -e "s/'/ /g" | awk '{print $2}')" = "OC_Version" ]; then
+    EXISTS=OWNCLOUD
     EXISTING_INSTALL_WARN
 else
     clear
@@ -1711,8 +1813,10 @@ if [ -z "$OPTION1" ] || [ "$OPTION1" = "Y" ] || [ "$OPTION1" = "y" ] || [ "$OPTI
         INSTALL_DR
     elif [ "$CMS_TARGET" = "-o" ]; then
         INSTALL_OC
-    else
+    elif [ "$CMS_TARGET" = "-m" ]; then
         INSTALL_MX
+    else
+        INSTALL_OWN
     fi
 else
     # Quick out if they see an incorrect choice listed
@@ -1898,6 +2002,7 @@ echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
 echo "4) ocPortal $OC_CV"
 echo "5) ModXRevo $MX_CV"
+echo "6) ownCloud $OWN_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1908,6 +2013,7 @@ read CMS_CHOICE
         3) CMS_TARGET="-d";;
         4) CMS_TARGET="-o";;
         5) CMS_TARGET="-m";;
+        6) CMS_TARGET="-own";;
         *) RED
            echo
            echo "Invalid selection."
@@ -1935,6 +2041,7 @@ echo "2) Joomla $JM_CV"
 echo "3) Drupal $DR_CV"
 echo "4) ocPortal $OC_CV"
 echo "5) ModXRevo $MX_CV"
+echo "6) ownCloud $OWN_CV"
 echo
 echo -n "[enter selection]: "
 read CMS_CHOICE
@@ -1952,6 +2059,9 @@ read CMS_CHOICE
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         5) CMS_TARGET="-m"
+           CONVERT_CMS_TARGET
+           FIRST_FUNCTION;;
+        6) CMS_TARGET="-own"
            CONVERT_CMS_TARGET
            FIRST_FUNCTION;;
         *) RED
@@ -1976,8 +2086,10 @@ elif [ "$CMS_TARGET" = "-d" ]; then
     CMS=DRUPAL
 elif [ "$CMS_TARGET" = "-o" ]; then
     CMS=OCPORTAL
+elif [ "$CMS_TARGET" = "-m" ]; then
+    CMS=MODXREVO
 else
-    CMS=MODXREVO    
+    CMS=OWNCLOUD
 fi
 }
 
@@ -1996,8 +2108,10 @@ elif [ "$CMS_TARGET" = "-d" ]; then
     CMS=DRUPAL
 elif [ "$CMS_TARGET" = "-o" ]; then
     CMS=OCPORTAL
-else
+elif [ "$CMS_TARGET" = "-m" ]; then
     CMS=MODXREVO
+else
+    CMS=OWNCLOUD
 fi
 printf "Enter domain for %s" "$CMS"
 printf " installation or "
@@ -2032,6 +2146,32 @@ fi
 ## END - SCRIPT FUNCTIONS ##
 ##------------------------##
 ############################
+
+#############################################
+##-----------------------------------------##
+## BEGIN - MAKE SURE WE'RE RUNNING AS ROOT ##
+##-----------------------------------------##
+#############################################
+
+if [ "$(id -u)" != "0" ]; then
+    RED
+    printf "\n\n"
+    echo "--------"
+    echo "WARNING!"
+    echo "--------"
+    echo
+    WHITE
+    echo "CMS-Installer must be run as root"
+    echo "(Exiting now...)"
+    printf "\n\n"
+    exit 1
+fi
+
+###########################################
+##---------------------------------------##
+## END - MAKE SURE WE'RE RUNNING AS ROOT ##
+##---------------------------------------##
+###########################################
 
 #########################
 ##---------------------##
@@ -2098,8 +2238,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=DRUPAL
         elif [ "$CMS_TARGET" = "-o" ]; then
             CMS=OCPORTAL
-        else
+        elif [ "$CMS_TARGET" = "-m" ]; then
             CMS=MODXREVO
+        else
+            CMS=OWNCLOUD
         fi
         GET_CMS_VERS
         CHECK_RPASS
@@ -2119,8 +2261,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
             CMS=DRUPAL
         elif [ "$CMS_TARGET" = "-o" ]; then
             CMS=OCPORTAL
-        else
+        elif [ "$CMS_TARGET" = "-m" ]; then
             CMS=MODXREVO
+        else
+            CMS=OWNCLOUD
         fi
         RPASS_VALIDATE
         LIST_ACCTS
@@ -2145,8 +2289,10 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
         CMS=DRUPAL
     elif [ "$CMS_TARGET" = "-o" ]; then
         CMS=OCPORTAL
-    else
+    elif [ "$CMS_TARGET" = "-m" ]; then
         CMS=MODXREVO
+    else
+        CMS=OWNCLOUD
     fi
     GET_CMS_VERS
     RPASS_VALIDATE
@@ -2167,7 +2313,7 @@ else
     clear
     CMS_SELECT
     FIRST_FUNCTION
-fi 
+fi
 
 #######################
 ##-------------------##
