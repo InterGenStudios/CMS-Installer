@@ -1,0 +1,38 @@
+=========================================================
+              ocPortal OC_CV Installation
+                    Step 4 of 10
+                Configuration Details
+
+Domain:                     DOMAIN
+
+Base URL:                   http://TARGET
+
+Table prefix:              (leave it as default)
+
+Master Password:           (set by the end user)
+
+Use persistent
+ database connections:     (leave box unchecked)
+
+Send error e-mails
+        to ocProducts:     (set by the end user)
+
+Administration account
+             username:     (set by the end user)
+
+Administration account
+             password:     (set by the end user)
+
+Database name:              DB
+
+Database hostname:          localhost
+
+Database username:          DBU
+
+Database password:          PASS
+
+
+  * Please use or make note of this data immediately! *
+        * This paste will expire in 120 minutes *
+
+=========================================================
