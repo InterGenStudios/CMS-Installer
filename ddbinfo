@@ -1,0 +1,21 @@
+==============================================
+           Drupal DR_CV Installation
+              'Set Up Database'
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET
+
+Database name*:      DB
+
+Database username*:  DBU
+
+Database password*:  PASS
+
+|> ADVANCED OPTIONS: (leave default)
+
+    **Please use or make note of this data
+    immediately- this paste will expire in
+                120 minutes**
+
+==============================================
