@@ -722,10 +722,10 @@ echo "Running ModXRevolution Installer..."
 sleep 1
 echo "(this may take a minute...or two..)"
 echo
-cd $TARGET_PATH
+cd "$TARGET_PATH"
 cd setup
 php index.php --installmode=new
-cd $TARGET_PATH
+cd "$TARGET_PATH"
 ## BEGIN pastefile template for database information presentation to customer
 cat > mxdbinfo <<EndOfModXRevolutionFile
 =========================================================
@@ -975,7 +975,7 @@ if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
     elif [ "$EXISTS" = "OCPORTAL" ]; then
         # Grabs the ocportal database for the backup
         mysqldump "$(grep -m 1 db_site "$TARGET_PATH"info.php | cut -d "'" -f 4)" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
-    elif [ "$EXISTS" = "MODXREVO"]; then
+    elif [ "$EXISTS" = "MODXREVO" ]; then
         # Grabs the mxrevolution database for the backup
         mysqldump "$(grep '$dbase =' "$TARGET_PATH"core/config/config.inc.php | sed -e "s|\$dbase = '||" -e "s|';||")" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
     else
