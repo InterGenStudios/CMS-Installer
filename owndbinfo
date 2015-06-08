@@ -1,0 +1,34 @@
+==============================================
+         ownCloud OWN_CV Installation
+             'Storage & database'
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET/owncloud
+
+Username:
+Password:
+
+            Storage & database
+
+                Data folder
+TARGET_PATH/owncloud/data
+
+            Configure the database
+         SQLite | [ MySQL/MariaDB ] <- Select
+                                        this
+                                       option
+
+Database user:       DBU
+
+Database password:   PASS
+
+Database name:       DB
+
+localhost            (leave default)
+
+    **Please use or make note of this data
+    immediately- this paste will expire in
+                120 minutes**
+
+==============================================
