@@ -808,7 +808,7 @@ INSTALL_OWN () {
     ## Fetching pastefile template for database information presentation to customer
     wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/owndbinfo
     # Adds database info into template
-    sed -i -e "s/TARGET/$TARGET/g" -e "s/OWN_CV/$OWN_CV/" -e "s|TARGET_PATH|$TARGET_PATH|" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" owndbinfo
+    sed -i -e "s/TARGET/$TARGET/g" -e "s/OWN_CV/$OWN_CV/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" owndbinfo
     # Creates paste for database info using 'stikked'
     curl -d name=ownCloudInstaller -d expire=120 -d private=1 --data-urlencode text@owndbinfo -s http://nobits.ml/api/create > tempaste
     # converts 'stikked' paste to raw output URL

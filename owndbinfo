@@ -6,13 +6,13 @@
 Domain: TARGET
 URL: http://TARGET/owncloud
 
-Username:
-Password:
+Username:  (customer provided)
+Password:  (customer provided)
 
             Storage & database
 
                 Data folder
-TARGET_PATH/owncloud/data
+TARGET/owncloud/data
 
             Configure the database
          SQLite | [ MySQL/MariaDB ] <- Select
