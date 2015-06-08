@@ -4,7 +4,7 @@
 # URL: http://cms-installer.ml
 # Github: https://github.com/InterGenStudios/CMS-Installer
 # ---------------------------------------------------
-# InterGenStudios: 5-16-15 
+# InterGenStudios: 5-16-15
 # Copyright (c) 2015: Christopher 'InterGen' Cork  InterGenStudios
 # URL: https://intergenstudios.com
 # --------------------------------
@@ -22,5 +22,5 @@ mkdir -p /root/support && cd /root/support
 wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms
 chmod +x instcms
 echo alias instcms=\'/bin/bash /root/support/instcms\' >> ~/.bashrc
-source ~/.bashrc
 /bin/bash /root/support/instcms -h
+source ~/.bashrc

@@ -1,4 +1,4 @@
-![alt text](https://intergenstudios.com/Downloads/InterGenStudios.png "InterGenStudios")
+![alt text](https://intergenstudios.com/Downloads/cms-inst.png "CMS Installer")
 
 #**CMS-Installer**
 ---
