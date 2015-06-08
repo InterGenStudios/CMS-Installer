@@ -1,0 +1,28 @@
+==============================================
+          Joomla JM_CV Installation
+              Step (2) Database
+            Configuration Details
+
+Domain: DOMAIN
+URL: http://TARGET
+
+Database Type*: (leave default)
+
+Host Name*:     (leave default)
+
+Username*:       DBU
+
+Password*:       PASS
+
+Database Name*:  DB
+
+Table Prefix*:  (leave default)
+
+Old Database    (leave default)
+    Process*
+
+    **Please use or make note of this data
+    immediately- this paste will expire in
+                120 minutes**
+
+==============================================

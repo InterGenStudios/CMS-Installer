@@ -483,31 +483,8 @@ chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
         done
     fi
 /usr/local/cpanel/scripts/restartsrv_httpd
-## BEGIN pastefile template for database information presentation to customer
-cat > ddbinfo <<EndOfDrupalFile
-==============================================
-           Drupal DR_CV Installation
-              'Set Up Database'
-            Configuration Details
-
-Domain: DOMAIN
-URL: http://TARGET
-
-Database name*:      DB
-
-Database username*:  DBU
-
-Database password*:  PASS
-
-|> ADVANCED OPTIONS: (leave default)
-
-    **Please use or make note of this data
-    immediately- this paste will expire in
-                120 minutes**
-
-==============================================
-EndOfDrupalFile
-## END pastefile template for database information presentation to customer
+## Fetching pastefile template for database information presentation to customer
+wget -q https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/ddbinfo
 # Adds database info into template
 sed -i -e "s/DOMAIN/$TARGET/" -e "s/DR_CV/$DR_CV/" -e "s/TARGET/$TARGET/" -e "s/DBU/$DBU_NAME/" -e "s/PASS/$DBU_PASS/" -e "s/DB/$DB_NAME/" ddbinfo
 # Creates paste for database info using 'stikked'
