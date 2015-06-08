@@ -804,7 +804,7 @@ echo "Fetching ownCloud files..."
 echo
 wget -q https://download.owncloud.com/download/community/setup-owncloud.php && CMS_FILES=1
 echo "Moving ownCloud files into place..."
-chmod "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"setup-owncloud.php
+chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"setup-owncloud.php
 INSTALL_DB
 # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
 chown -R "$TARGET_ACCT":"$TARGET_ACCT" ./*
