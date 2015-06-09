@@ -948,7 +948,7 @@ CHECK_EXISTING_DATA () {
     DIR="$TARGET_PATH"
     if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         if [ "$TARGET_TYPE" = "MAINDOMAIN"]; then
-            EXISTING_DIRECTORY_LIST="$(find . -maxdepth 1 -type d | sed -e 's|/| |g' | awk '{print $2}')"
+            EXISTING_DIRECTORY_LIST="$(find . -maxdepth 1 -type d | sed -e 's|/| |g' | awk '{print $2}' | grep -v cgi)"
             for PREFIX in $EXISTING_DIRECTORY_LIST; do
                 if [ "$PREFIX"."$TARGET" = "$(grep -m 1 "$PREFIX"."$TARGET" /usr/local/apache/conf/httpd.conf | awk '{print $2}')" ]; then
                     EXISTING_DIRECTORIES=ARE_SUBDOMAINS
