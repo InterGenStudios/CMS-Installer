@@ -953,6 +953,11 @@ CHECK_EXISTING_DATA () {
             for PREFIX in $(cat $EXISTING_DIRECTORY_LIST); do
                 if [ "$PREFIX"."$TARGET" = "$(grep -m 1 "$PREFIX"."$TARGET" /usr/local/apache/conf/httpd.conf | awk '{print $2}')" ]; then
                     EXISTING_DIRECTORIES=ARE_SUBDOMAINS
+                    if [ $(ls -lah | awk '{print $8}' | cut -d '/' -f 1 | tail -n +4 | grep -v cgi) != "$EXISTING_DIRECTORY_LIST" ]; then
+                        FOUND_DIRECTORIES=TARGET_PATH_ALSO_CONTAINS_OTHER_DATA
+                    else
+                        DATA_FOUND=ONLY_INCLUDES_SUBDOMAINS
+                    fi
                 else
                     FOUND_DIRECTORIES=ARE_NOT_SUBDOMAINS
                 fi
