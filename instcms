@@ -956,11 +956,13 @@ CHECK_EXISTING_DATA () {
         BEGINNING_ENTRY="$(head -1 < VALID_SUBDOMAINS)"
         echo cgi-bin >> VALID_SUBDOMAINS
         sed -i -e ':a;N;$!ba;s/\n/\\|/g' VALID_SUBDOMAINS
-        if [ "$(ls -A "$DIR" | grep -v $(cat VALID_SUBDOMAINS))" ]; then
-            rm VALID_SUBDOMAINS SUBDOMAINS_OUTSIDE_PUBLIC_HTML
+        mv VALID_SUBDOMAINS /home/"$TARGET_ACCT"/
+        mv SUBDOMAINS_OUTSIDE_PUBLIC_HTML /home/"$TARGET_ACCT"/
+        if [ "$(ls -A "$DIR" | grep -v $(cat /home/"$TARGET_ACCT"/VALID_SUBDOMAINS))" ]; then
+            rm /home/"$TARGET_ACCT"/VALID_SUBDOMAINS /home/"$TARGET_ACCT"/SUBDOMAINS_OUTSIDE_PUBLIC_HTML
             EXISTING_DATA_BACKUP
         else
-            rm VALID_SUBDOMAINS SUBDOMAINS_OUTSIDE_PUBLIC_HTML
+            rm /home/"$TARGET_ACCT"/VALID_SUBDOMAINS /home/"$TARGET_ACCT"/SUBDOMAINS_OUTSIDE_PUBLIC_HTML
             echo "Existing data belongs to subdomains, no backup needed"
             printf "\n\n"
             echo "Target Directory clear for installation..."
