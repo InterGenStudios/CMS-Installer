@@ -750,10 +750,10 @@ INSTALL_OWN () {
     GREEN
     printf "==>  "
     WHITE
-    printf "http://%s" "$TARGET"setup-owncloud.php
+    printf "http://%s" "$TARGET"/setup-owncloud.php
     printf "\n\n\n"
     # Remove PASTE URL tempfiles
-    owndbinfo tempaste
+    rm owndbinfo tempaste
     SET_CMSLOG
 }
 
@@ -767,9 +767,9 @@ INSTALL_OWN () {
 
 # Puts cms log into place with timestamp
 SET_CMSLOG () {
-    if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /root/support/scripts/CMS-Installer_logs/cmslog
-        mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    if [ -f /var/log/CMS-Installer_logs/cmslog ]; then
+        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /var/log/CMS-Installer_logs/cmslog
+        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
         exit 0
     else
         exit 0
@@ -777,9 +777,9 @@ SET_CMSLOG () {
 }
 
 SET_CMSLOG_1 () {
-    if [ -f /root/support/scripts/CMS-Installer_logs/cmslog ]; then
-        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /root/support/scripts/CMS-Installer_logs/cmslog
-        mv /root/support/scripts/CMS-Installer_logs/cmslog /root/support/scripts/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+    if [ -f /var/log/CMS-Installer_logs/cmslog ]; then
+        sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /var/log/CMS-Installer_logs/cmslog
+        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
         exit 1
     else
         exit 1
@@ -799,7 +799,7 @@ BACKUP_OPTION () {
     echo "move it to "
     echo
     BLUE
-    echo "/root/support/scripts/CMS-Installer_backups/"
+    echo "/var/log/CMS-Installer_backups/"
     echo
     WHITE
     echo -n "and run the installer again [y/N]? "
@@ -810,7 +810,7 @@ BACKUP_OPTION () {
         GREEN
         echo "Backing up $TARGET_PATH..."
         # Set up the backup directory
-        mkdir -p /root/support/scripts/CMS-Installer_backups
+        mkdir -p /var/log/CMS-Installer_backups
         WHITE
         echo "(this may take a moment)"
         if [ "$EXISTS" = "WORDPRESS" ]; then
@@ -834,7 +834,7 @@ BACKUP_OPTION () {
         fi
         tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
         # Put the backup away for safe-keeping
-        mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+        mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /var/log/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
@@ -893,7 +893,7 @@ EXISTING_DATA_BACKUP () {
     echo "move it to "
     echo
     BLUE
-    echo "/root/support/scripts/CMS-Installer_backups/"
+    echo "/var/log/CMS-Installer_backups/"
     echo
     WHITE
     echo -n "and run the installer again [y/N]? "
@@ -906,9 +906,9 @@ EXISTING_DATA_BACKUP () {
         WHITE
         echo "(this may take a moment)"
         sleep 1
-        mkdir -p /root/support/scripts/CMS-Installer_backups
+        mkdir -p /var/log/CMS-Installer_backups
         tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+        mv "$TARGET"_backup.tar.gz /var/log/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
@@ -948,8 +948,8 @@ CHECK_EXISTING_DATA () {
     DIR="$TARGET_PATH"
     if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
         if [ "$TARGET_TYPE" = "MAINDOMAIN"]; then
-            EXISTING_DIRECTORY_LIST="$(find . -maxdepth 1 -type d | sed -e 's|/| |g' | awk '{print $2}' | grep -v cgi)"
-            for PREFIX in $EXISTING_DIRECTORY_LIST; do
+            EXISTING_DIRECTORY_LIST="$(find . -maxdepth 1 -type d | sed -e 's/\// /' | awk '{print $2}' | tail -n +2 | grep -v cgi)"
+            for PREFIX in $(cat $EXISTING_DIRECTORY_LIST); do
                 if [ "$PREFIX"."$TARGET" = "$(grep -m 1 "$PREFIX"."$TARGET" /usr/local/apache/conf/httpd.conf | awk '{print $2}')" ]; then
                     EXISTING_DIRECTORIES=ARE_SUBDOMAINS
                 else
@@ -1435,7 +1435,7 @@ CREATE_ACCT () {
                 echo "WHM API Account Creation failed."
                 echo
                 WHITE
-                echo "Review the 'account_creation_results_$NEW_USER_NAME' log in /root/support/scripts/CMS-Installer_logs"
+                echo "Review the 'account_creation_results_$NEW_USER_NAME' log in /var/log/CMS-Installer_logs"
                 echo "for more details."
                 echo
                 echo "Manual account creation is required."
@@ -1443,7 +1443,7 @@ CREATE_ACCT () {
                 echo
                 echo "Exiting..."
                 printf "\n\n\n\n"
-                mv account_creation_results_"$NEW_USER_NAME" /root/support/scripts/CMS-Installer_logs/
+                mv account_creation_results_"$NEW_USER_NAME" /var/log/CMS-Installer_logs/
                 rm -rf create_acct_template
                 SET_CMSLOG_1
             else
@@ -1465,10 +1465,10 @@ CREATE_ACCT () {
             fi
             CONVERT_CMS_TARGET
             # Create Installer Log directory
-            mkdir -p /root/support/scripts/CMS-Installer_logs/
+            mkdir -p /var/log/CMS-Installer_logs/
             rm -rf create_acct_template
             # Creates installation log with timestamp
-            TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+            TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
         else
             clear
             HEADER
@@ -1774,7 +1774,7 @@ INSTALL_DB_ERROR () {
     echo
     printf "Review the logs at"
     WHITE
-    printf " /root/support/scripts/CMS-Installer_logs/"
+    printf " /var/log/CMS-Installer_logs/"
     RED
     printf " for more information."
     printf "\n\n"
@@ -1969,7 +1969,7 @@ FIRST_FUNCTION () {
     clear
     HEADER
     # Create Installer Log directory
-    mkdir -p /root/support/scripts/CMS-Installer_logs/
+    mkdir -p /var/log/CMS-Installer_logs/
     GREEN
     # Associates CMS target flag with the actual CMS name
     if [ "$CMS_TARGET" = "-w" ]; then
@@ -1997,7 +1997,7 @@ FIRST_FUNCTION () {
     # 2nd route to -l option, allowing domain target to be picked from numbered list
     if [ "$FIRST_CHOICE" = "get list" ]; then
         # Creates installation log with timestamp
-        LIST_ACCTS 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+        LIST_ACCTS 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
     else
         # Allows target domain to be manually entered
         TARGET=$FIRST_CHOICE
@@ -2005,7 +2005,7 @@ FIRST_FUNCTION () {
         CHECK_RPASS
         RPASS_VALIDATE
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+        TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
     fi
 }
 
@@ -2081,9 +2081,9 @@ elif [ -n "$1" ] && [ -z "$2" ]; then
         CHECK_RPASS
         RPASS_VALIDATE
         # Create Installer Log directory
-        mkdir -p /root/support/scripts/CMS-Installer_logs/
+        mkdir -p /var/log/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+        TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
     else
         RED
         echo
@@ -2119,9 +2119,9 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         CHECK_RPASS
         RPASS_VALIDATE
         # Create Installer Log directory
-        mkdir -p /root/support/scripts/CMS-Installer_logs/
+        mkdir -p /var/log/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+        TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
     else
         # If second argument didn't match a domain in httpd conf, we'll pass it along as the root pass- if it doesn't validate the user will be notified
         API_PASS="$2"
@@ -2141,9 +2141,9 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -z "$3" ]; then
         RPASS_VALIDATE
         LIST_ACCTS
         # Create Installer Log directory
-        mkdir -p /root/support/scripts/CMS-Installer_logs/
+        mkdir -p /var/log/CMS-Installer_logs/
         # Creates installation log with timestamp
-        TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+        TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
     fi
 # Flow control for 3 arguments passed during intiial script call - If one doesn't match up down the line, the user will be notified
 elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
@@ -2169,9 +2169,9 @@ elif [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
     GET_CMS_VERS
     RPASS_VALIDATE
     # Create Installer Log directory
-    mkdir -p /root/support/scripts/CMS-Installer_logs/
+    mkdir -p /var/log/CMS-Installer_logs/
     # Creates installation log with timestamp
-    TARGET_CHECK 2>&1 | tee /root/support/scripts/CMS-Installer_logs/cmslog
+    TARGET_CHECK 2>&1 | tee /var/log/CMS-Installer_logs/cmslog
 else
     # Flow control for too many options entered
     printf "\n\n"
