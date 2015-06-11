@@ -870,109 +870,83 @@ BACKUP_OPTION () {
     fi
 }
 
-EXISTING_DATA_BACKUP () {
-    clear
-    HEADER
-    YELLOW
-    echo "--------"
-    RED
-    echo "WARNING!"
-    YELLOW
-    echo "--------"
-    RED
-    echo
-    echo "Data exists in $TARGET_PATH."
-    echo
-    WHITE
-    echo "Would you like to make a backup of"
-    echo
-    GREEN
-    echo "$TARGET_PATH"
-    echo
-    WHITE
-    echo "move it to "
-    echo
-    BLUE
-    echo "/var/log/CMS-Installer_backups/"
-    echo
-    WHITE
-    echo -n "and run the installer again [y/N]? "
-    read BACKUP
-    if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
-        clear
-        HEADER
-        GREEN
-        echo "Backing up $TARGET_PATH..."
-        WHITE
-        echo "(this may take a moment)"
-        sleep 1
-        mkdir -p /var/log/CMS-Installer_backups
-        tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET"_backup.tar.gz /var/log/CMS-Installer_backups/ &&
-        echo
-        clear
-        HEADER
-        GREEN
-        echo "Backup of the data in $TARGET_PATH complete."
-        echo
-        echo "Clearing $TARGET_PATH for new installation..."
-        rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
-        mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
-        echo
-        echo "$TARGET_PATH cleared."
-        echo
-        echo "Restarting installer..."
-        sleep 2
-        CONFIRM_INSTALL
-    else
-        clear
-        HEADER
-        WHITE
-        echo "Without backing up and moving the current data in"
-        echo "$TARGET_PATH the installer cannot continue."
-        echo
-        RED
-        echo "Exiting..."
-        sleep 1
-        clear
-        printf "\n\n\n"
-        WHITE
-        SET_CMSLOG_1
-    fi
-}
-
 # Same routine as the installation check and backup, but for data other than CMS installations. Need to have it generically look for database info and grab it if it's there
+#
+# Needs to be adjusted to evaluate whether identified data belongs to a subdomain if target type is a maindomain, to keep from forcing backups of subdomains
+# if they're valid and their docroot is in public_html
+#
 CHECK_EXISTING_DATA () {
-    FOUND_DIRECTORIES=0
     FILE=""
     DIR="$TARGET_PATH"
+
     if [ "$(ls -A "$DIR" | grep -v cgi)" ]; then
-        if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
-            cd "$TARGET_PATH"
-            EXISTING_DIRECTORY_LIST="$(find . -maxdepth 1 -type d | sed -e 's/\// /' | awk '{print $2}' | tail -n +2 | grep -v cgi)"
-            for PREFIX in $(cat $EXISTING_DIRECTORY_LIST); do
-                if [ "$PREFIX"."$TARGET" = "$(grep -m 1 "$PREFIX"."$TARGET" /usr/local/apache/conf/httpd.conf | awk '{print $2}')" ]; then
-                    EXISTING_DIRECTORIES=ARE_SUBDOMAINS
-                    if [ $(ls -lah | awk '{print $8}' | cut -d '/' -f 1 | tail -n +4 | grep -v cgi) != "$EXISTING_DIRECTORY_LIST" ]; then
-                        FOUND_DIRECTORIES=TARGET_PATH_ALSO_CONTAINS_OTHER_DATA
-                    else
-                        DATA_FOUND=ONLY_INCLUDES_SUBDOMAINS
-                    fi
-                else
-                    FOUND_DIRECTORIES=ARE_NOT_SUBDOMAINS
-                fi
-            done
-            if [ "$FOUND_DIRECTORIES" = "0" ]; then
-                GREEN
-                echo
-                echo "Existing directories found belong to Subdomains"
-                echo
-                echo "No backup option required"
-            else
-                EXISTING_DATA_BACKUP
-            fi
+        clear
+        HEADER
+        YELLOW
+        echo "--------"
+        RED
+        echo "WARNING!"
+        YELLOW
+        echo "--------"
+        RED
+        echo
+        echo "Data exists in $TARGET_PATH."
+        echo
+        WHITE
+        echo "Would you like to make a backup of"
+        echo
+        GREEN
+        echo "$TARGET_PATH"
+        echo
+        WHITE
+        echo "move it to "
+        echo
+        BLUE
+        echo "/root/support/scripts/CMS-Installer_backups/"
+        echo
+        WHITE
+        echo -n "and run the installer again [y/N]? "
+        read BACKUP
+        if [ "$BACKUP" = "y" ] || [ "$BACKUP" = "Y" ]; then
+            clear
+            HEADER
+            GREEN
+            echo "Backing up $TARGET_PATH..."
+            WHITE
+            echo "(this may take a moment)"
+            sleep 1
+            mkdir -p /root/support/scripts/CMS-Installer_backups
+            tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
+            mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+            echo
+            clear
+            HEADER
+            GREEN
+            echo "Backup of the data in $TARGET_PATH complete."
+            echo
+            echo "Clearing $TARGET_PATH for new installation..."
+            rm -rf "$TARGET_PATH"* && rm -rf "$TARGET_PATH".??* &&
+            mkdir "$TARGET_PATH"cgi-bin && chown "$TARGET_ACCT":"$TARGET_ACCT" "$TARGET_PATH"cgi-bin
+            echo
+            echo "$TARGET_PATH cleared."
+            echo
+            echo "Restarting installer..."
+            sleep 2
+            CONFIRM_INSTALL
         else
-            EXISTING_DATA_BACKUP
+            clear
+            HEADER
+            WHITE
+            echo "Without backing up and moving the current data in"
+            echo "$TARGET_PATH the installer cannot continue."
+            echo
+            RED
+            echo "Exiting..."
+            sleep 1
+            clear
+            printf "\n\n\n"
+            WHITE
+            SET_CMSLOG_1
         fi
     fi
 }
