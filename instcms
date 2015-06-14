@@ -1015,6 +1015,8 @@ bashtrap () {
     sleep 3
     clear
     printf "\n\n\n"
+    stty echo
+    echo " "
     SET_CMSLOG
 }
 
