@@ -1128,7 +1128,7 @@ HELPTEXT () {
     OC_CV="$(curl -s "https://ocportal.com/site/sites.htm" | grep -Po "(\d{1})\.(\d{1})\.(\d{2})" | head -n1)"
     MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
     OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
-    CLINES=5
+    CLINES=6
     CLEARLINE
     echo "   -w: installs WordPress  --  Version $WP_CV"
     echo "   -j: installs Joomla  -----  Version $JM_CV"
