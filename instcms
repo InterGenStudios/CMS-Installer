@@ -105,6 +105,9 @@ RPASS_VALIDATED=0
 # Initial cms version flag
 CMS_VERS_FLAG=0
 
+# Initial root access hash flag
+HASH=NO
+
 #########################################
 ##-------------------------------------##
 ## END - INITIAL VARIABLE DECLARATIONS ##
@@ -1714,9 +1717,24 @@ CHECK_RPASS () {
     clear
     HEADER
     GREEN
-    if [ -f /root/.accesshash ]; then
+    if [ -f /root/.accesshash ] && [ "$HASH" = "NO" ]; then
         API_PASS="$(cat /root/.accesshash | sed ':a;N;$!ba;s/\n//g')"
+        HASH=YES
+        clear
+        HEADER
+        GREEN
+        echo "Root access hash detected"
+        printf "\n\n"
+        sleep 1
+        echo "Validating root access..."
     else
+        if [ "$HASH" = "BAD" ]; then
+            printf "\n\n"
+            echo "Root access hash validation failed"
+            printf "\n\n"
+        else
+            HASH=NO
+        fi
         printf "Please enter your server's root password"
         WHITE
         echo -n ": "
@@ -1734,12 +1752,23 @@ CHECK_RPASS () {
 
 # Validate root password prior to actually doing anything- keeps things from getting messy if it's wrong when database installation time comes
 RPASS_VALIDATE () {
-    if [ -f /root/.accesshash ]; then
+    if [ "$HASH" = "YES" ]; then
+        HASH=USING
         API_PASS="$(cat /root/.accesshash | sed ':a;N;$!ba;s/\n//g')"
+        curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
+    elif [ -f /root/.accesshash ] && [ "$HASH" = "NO" ]; then
+        HASH=USING
+        API_PASS="$(cat /root/.accesshash | sed ':a;N;$!ba;s/\n//g')"
+        curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
     else
         # Using an API call to make sure root password is correct
         curl -sk -X GET -u root:"$API_PASS" https://"$SERVER":2087/json-api/listaccts?api.version=1 > rpasscheck
-        if [ ! -z "$(grep "error" rpasscheck)" ]; then
+    fi
+    if [ ! -z "$(grep "error" rpasscheck)" ]; then
+        if [ "$HASH" = "USING" ]; then
+            HASH=BAD
+            CHECK_RPASS
+        else
             clear
             HEADER
             RED
@@ -1765,19 +1794,19 @@ RPASS_VALIDATE () {
                     printf "\n\n\n"
                     SET_CMSLOG_1;;
             esac
-        else
-            clear
-            HEADER
-            GREEN
-            echo "Root password accepted."
-            RPASS_VALIDATED=1
-            WHITE
-            echo
-            sleep 2
         fi
-        # Remove temporary password verification file
-        rm -rf rpasscheck
+    else
+        clear
+        HEADER
+        GREEN
+        echo "Root access validated."
+        RPASS_VALIDATED=1
+        WHITE
+        echo
+        sleep 2
     fi
+    # Remove temporary password verification file
+    rm -rf rpasscheck
 }
 
 # If you're here, something really really really bad has happened
