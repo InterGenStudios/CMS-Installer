@@ -1066,13 +1066,13 @@ GET_CMS_VERS () {
         WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
 
         # Sets latest Joomla version
-        JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
+        JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html | grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" | tr "" "")"
 
         # Sets latest Drupal version
         DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
 
         # Sets latest ocPortal version
-        OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+        OC_CV="$(curl -s "https://ocportal.com/site/sites.htm" | grep -Po "(\d{1})\.(\d{1})\.(\d{2})" | head -n1)"
 
         # Sets latest ModXRevolution version
         MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
@@ -1121,9 +1121,9 @@ HELPTEXT () {
     echo "  -m: (Getting version information...)"
     echo "-own: (Getting version information...)"
     WP_CV="$(curl -sI https://wordpress.org/latest.tar.gz | grep filename | cut -d '-' -f 3 | sed -e 's/.tar.gz//' -e 's/\r//')"
-    JM_CV="$(curl -s https://github.com/joomla/joomla-cms/releases | grep -m 1 "tree" | awk -F'/' '{print $5}' | cut -d '"' -f 1)"
+    JM_CV="$(curl -A "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5" -s http://www.joomla.org/download.html | grep -Po "Joomla_(?:\d*\.?\d+\.?\d+)\-Stable\-Full\_Package\.zip" | grep -Po "(?:\d*\.?\d+\.?\d+)" | tr "" "")"
     DR_CV="$(curl -s https://www.drupal.org/project/drupal | grep www.drupal.org/drupal | head -1 | sed -e 's/</ /g' -e 's/>/ /g' | awk '{print $3}')"
-    OC_CV="$(curl -s http://ocportal.com/start.htm | grep -i released | tail -1 | awk '{print $4}')"
+    OC_CV="$(curl -s "https://ocportal.com/site/sites.htm" | grep -Po "(\d{1})\.(\d{1})\.(\d{2})" | head -n1)"
     MX_CV="$(curl -s http://modx.com/download/ | grep -m 1 'h3' | sed 's/-/ /' | awk '{print $3}')"
     OWN_CV="$(curl -s https://owncloud.org/changelog/ | grep -m 1 "<h3>Version" | awk '{print $2}')"
     CLINES=5
