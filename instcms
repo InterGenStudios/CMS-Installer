@@ -108,6 +108,9 @@ CMS_VERS_FLAG=0
 # Initial root access hash flag
 HASH=NO
 
+# Sets a timestamp for LOGGING
+TIMESTAMP="$(date +"%m-%d-%Y_%T")"
+
 #########################################
 ##-------------------------------------##
 ## END - INITIAL VARIABLE DECLARATIONS ##
@@ -781,7 +784,7 @@ INSTALL_OWN () {
 SET_CMSLOG () {
     if [ -f /var/log/CMS-Installer_logs/cmslog ]; then
         sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g'            /var/log/CMS-Installer_logs/cmslog
-        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$TIMESTAMP"
         exit 0
     else
         exit 0
@@ -791,7 +794,7 @@ SET_CMSLOG () {
 SET_CMSLOG_1 () {
     if [ -f /var/log/CMS-Installer_logs/cmslog ]; then
         sed -i -e 's/[\x01-\x1F\x7F]//g' -e 's|\[1m\[32m||g' -e 's|(B\[m||g' -e 's|\[1m\[32m||g' -e 's|\[H\[2J||g' -e 's|\[1m\[31m||g' -e 's|\[1m\[34m||g' -e 's|\[5A\[K||g' -e 's|\[1m\[33m||g' /var/log/CMS-Installer_logs/cmslog
-        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$(date +"%m-%d-%Y_%T")"
+        mv /var/log/CMS-Installer_logs/cmslog /var/log/CMS-Installer_logs/instcms_log-"$TARGET"-"$TIMESTAMP"
         exit 1
     else
         exit 1
@@ -844,9 +847,9 @@ BACKUP_OPTION () {
             # Grabs the owncloud database for the backup
             mysqldump "$(grep dbname "$TARGET_PATH"owncloud/config/config.php | sed -e "s/'/ /g" | awk '{print $3}')" > "$TARGET_PATH""$TARGET_ACCT"_"$EXISTS".sql
         fi
-        tar zcf "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz "$TARGET_PATH" &&
+        tar zcf "$TARGET_ACCT"_"$EXISTS"_"$TIMESTAMP"_backup.tar.gz "$TARGET_PATH" &&
         # Put the backup away for safe-keeping
-        mv "$TARGET_ACCT"_"$EXISTS"_backup.tar.gz /var/log/CMS-Installer_backups/ &&
+        mv "$TARGET_ACCT"_"$EXISTS"_"$TIMESTAMP"_backup.tar.gz /var/log/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
@@ -919,8 +922,8 @@ EXISTING_DATA_BACKUP () {
         echo "(this may take a moment)"
         sleep 1
         mkdir -p /var/log/CMS-Installer_backups
-        tar zcf "$TARGET"_backup.tar.gz "$TARGET_PATH" &&
-        mv "$TARGET"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
+        tar zcf "$TARGET"_"$TIMESTAMP"_backup.tar.gz "$TARGET_PATH" &&
+        mv "$TARGET"_"$TIMESTAMP"_backup.tar.gz /root/support/scripts/CMS-Installer_backups/ &&
         echo
         clear
         HEADER
