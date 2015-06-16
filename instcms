@@ -275,7 +275,16 @@ INSTALL_WP () {
     mv "$TARGET_PATH"wordpress/* "$TARGET_PATH"
     INSTALL_DB
     cp wp-config-sample.php wp-config.php
-    sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" wp-config.php
+    IT1=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 9 | tail -1)
+    IT2=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 8 | tail -1)
+    IT3=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 7 | tail -1)
+    IT4=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 6 | tail -1)
+    IT5=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 5 | tail -1)
+    IT6=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 4 | tail -1)
+    IT7=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 3 | tail -1)
+    IT8=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 2 | tail -1)
+    sed -i -e "s/database_name_here/$DB_NAME/" -e "s/username_here/$DBU_NAME/" -e "s/password_here/$DBU_PASS/" -e "45 s/put your unique phrase here/$IT1/" -e "46 s/put your unique phrase here/$IT2/" -e "47 s/put your unique phrase here/$IT3/" -e "48 s/put your unique phrase here/$IT4/" -e "49 s/put your unique phrase here/$IT5/" -e "50 s/put your unique phrase here/$IT6/" -e "51 s/put your unique phrase here/$IT7/" -e "52 s/put your unique phrase here/$IT8/" wp-config.php
+    sed -i -e "s/put your unique phrase here//g" wp-config.php
     # Begin fixperms style corrections- making sure all files are owned properly, with correct permissions
     if [ "$TARGET_TYPE" = "MAINDOMAIN" ]; then
         find /home/"$TARGET_ACCT"/public_html -type d -exec chmod 755 {} \;
