@@ -278,6 +278,7 @@ INSTALL_WP () {
     mv "$TARGET_PATH"wordpress/* "$TARGET_PATH"
     INSTALL_DB
     cp wp-config-sample.php wp-config.php
+    # Load up key and salt variables - added head and tail functions to force variation
     IT1=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 9 | tail -1)
     IT2=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 8 | tail -1)
     IT3=$(tr -dc 'a-zA-Z0-9-_!@#$%^&*()_+{}|:<>?=' < /dev/urandom | fold -w 64 | head -n 7 | tail -1)
