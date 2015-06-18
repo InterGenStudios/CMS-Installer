@@ -11,7 +11,7 @@ Server root pass is required for use
 
 ```
 mkdir -p /usr/local/src && cd /usr/local/src
-wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms
+wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms --no-check-certificate
 chmod +x instcms
 echo alias instcms=\'/bin/bash /usr/local/src/instcms\' >> ~/.bashrc
 /bin/bash /usr/local/src/instcms -h
