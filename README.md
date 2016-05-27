@@ -2,28 +2,8 @@
 
 ---
 
-### Command line CMS installer for CentOS 6+ servers running WHM/cPanel
+### As of 2016-5-20 the APIs used in this script have been deprecated by WHM/cPanel.
+### Until it is re-written using their new APIs it will NOT work correctly.
+### It is currently being re-written in PERL, and should be available soon.  ish. 
+
 ---
-
-Server root pass is required for use
-
-#### To use:
-
-```
-mkdir -p /usr/local/src && cd /usr/local/src
-wget https://raw.githubusercontent.com/InterGenStudios/CMS-Installer/master/instcms --no-check-certificate
-chmod +x instcms
-echo alias instcms=\'/bin/bash /usr/local/src/instcms\' >> ~/.bashrc
-/bin/bash /usr/local/src/instcms -h
-source ~/.bashrc
-```
-
-
-
-```
-
-- To do list:
-  1) Start cPanel Plugin GUI Development
-  2) Identify and integrate additional CMSs
-  3) Everything else  
-```
