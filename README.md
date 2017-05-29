@@ -6,7 +6,7 @@
 ### Until it is re-written using their new APIs it will NOT work correctly.
 ### It is currently being re-written in PERL, and should be available soon.  ish.
 
-New Repo: https://git.intergen.us/intergen/CMS_Installer
+New Repo: https://git.intergen.us/intergen/CMS_Installer<br />
 New Site: https://cms-installer.us
 
 ---
